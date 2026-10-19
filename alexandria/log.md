@@ -29,6 +29,18 @@ tags:
 
 ## 2. Historial Cronológico de Transacciones Aprobadas
 
+### [2026-10-19T17:07:00-04:00] — `LOG-006`: Ensamblaje del Binario CLI (`src/main.rs` y `src/cli.rs`), Certificación E2E (`tests/cli_e2e_test.rs`) y Compilación Release (`v2.4.0-OmniPragmatic`)
+
+- **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`
+- **Ruta de Ejecución:** `omega_pantheon` (Sprint 4 TDD & Release Assembly)
+- **Módulos y Contratos Certificados:**
+  - [[core-engine]] (`src/cli.rs`, `src/main.rs` + `tests/cli_e2e_test.rs`): 3/3 pruebas End-to-End en verde ($1.54\text{ s}$). Verificado el parser de línea de comandos de huella mínima (`std::env::args`), las banderas `--version`/`-v` y `--help`/`-h` (código de salida `0`), el comando `alexandria init [--vault <ruta>] [--profile <perfil>]` con generación determinista de `.alexandria.json`, bóveda `wiki/` (`index.md`, `log.md`, `failures.md`, `architecture/`, `modules/`, `decisions/`, `raw/`) y blindaje de `.gitignore`, el comando `alexandria mcp` conectado a `VaultStorageHandle::spawn` (`~/.alexandria/vault.db`) y `run_mcp_stdio_loop()`, y el comando `alexandria run "<directiva>"`.
+  - Compilación `cargo build --release` con perfil hiperoptimizado (`opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abort"`, `strip = true`), produciendo el ejecutable monolítico `target/release/alexandria.exe` con un tamaño de **`2,278,400 bytes` (`2.17 MB`)**.
+- **Decisiones Constitucionales Verificadas:** [[ADR-001-kernel-space-harness]], [[ADR-002-prefix-pinned-caching]], [[ADR-003-zero-trust-quality-gates]], [[ADR-004-single-writer-mpsc-storage]], [[ADR-005-node-permission-sandboxing]], [[ADR-006-oxc-ast-engine]], [[ADR-007-multi-host-adapter-and-persistence]].
+- **Estado de Compuertas y Disyuntor:** $100\%$ de suites de prueba del workspace aprobadas (`29 passed; 0 failed` en total a través de las 6 suites de integración y E2E). Cero incidentes en [[failures]].
+
+---
+
 ### [2026-10-19T16:58:00-04:00] — `LOG-005`: Certificación del Sandbox Runner (`vitest_sandbox.rs`) y Servidor MCP JSON-RPC 2.0 (`mcp/server.rs`)
 
 - **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`

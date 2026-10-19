@@ -1,47 +1,12 @@
+use alexandria::cli::{
+    CliCommand, HELP_BANNER, VERSION_BANNER, execute_autonomous_run, execute_init_scaffolding,
+    parse_cli_args, resolve_default_vault_db_path,
+};
 use alexandria::mcp::server::run_mcp_stdio_loop;
+use alexandria::storage::CANONICAL_SCHEMA_SQL;
+use alexandria::storage::actor::VaultStorageHandle;
 use std::env;
-use std::path::PathBuf;
 use std::process::ExitCode;
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum CliCommand {
-    Init { vault_path: PathBuf },
-    McpStdio,
-    Run { instruction: String },
-}
-
-pub fn parse_cli_args<I>(args: I) -> Result<CliCommand, String>
-where
-    I: IntoIterator<Item = String>,
-{
-    let mut iter = args.into_iter();
-    let _bin = iter.next();
-
-    match iter.next().as_deref() {
-        Some("init") => {
-            let vault_path = iter
-                .next()
-                .map(PathBuf::from)
-                .unwrap_or_else(|| PathBuf::from("./alexandria"));
-            Ok(CliCommand::Init { vault_path })
-        }
-        Some("mcp") | Some("serve") => Ok(CliCommand::McpStdio),
-        Some("run") => {
-            let parts: Vec<String> = iter.collect();
-            if parts.is_empty() {
-                return Err("El comando 'run' requiere una directiva de ejecución.".into());
-            }
-            Ok(CliCommand::Run {
-                instruction: parts.join(" "),
-            })
-        }
-        Some(other) => Err(format!(
-            "Subcomando desconocido '{}'. Uso: alexandria <init|mcp|run>",
-            other
-        )),
-        None => Err("Uso: alexandria <init|mcp|run>".into()),
-    }
-}
 
 fn main() -> ExitCode {
     let cmd = match parse_cli_args(env::args()) {
@@ -52,6 +17,18 @@ fn main() -> ExitCode {
         }
     };
 
+    match cmd {
+        CliCommand::Version => {
+            println!("{}", VERSION_BANNER);
+            return ExitCode::SUCCESS;
+        }
+        CliCommand::Help => {
+            println!("{}", HELP_BANNER);
+            return ExitCode::SUCCESS;
+        }
+        _ => {}
+    }
+
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(4)
         .thread_name("alexandria-tokio-worker")
@@ -61,21 +38,34 @@ fn main() -> ExitCode {
 
     let res: Result<(), String> = runtime.block_on(async move {
         match cmd {
-            CliCommand::Init { vault_path } => {
-                std::fs::create_dir_all(vault_path.join("architecture"))
-                    .and_then(|_| std::fs::create_dir_all(vault_path.join("modules")))
-                    .and_then(|_| std::fs::create_dir_all(vault_path.join("decisions")))
-                    .and_then(|_| std::fs::create_dir_all(vault_path.join("raw")))
-                    .map_err(|e| format!("Error creando estructura de bóveda: {}", e))?;
-                eprintln!("[ALEXANDRIA KERNEL] Bóveda inicializada en {:?}", vault_path);
+            CliCommand::Version | CliCommand::Help => Ok(()),
+            CliCommand::Init {
+                vault_path,
+                profile,
+            } => {
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Error obteniendo directorio actual: {}", e))?;
+                let config_path = execute_init_scaffolding(
+                    &cwd,
+                    vault_path.as_deref(),
+                    profile.as_deref(),
+                )?;
+                println!(
+                    "[ALEXANDRIA KERNEL] Espacio de trabajo inicializado exitosamente: {}",
+                    config_path.display()
+                );
                 Ok(())
             }
-            CliCommand::McpStdio => run_mcp_stdio_loop().await,
+            CliCommand::McpStdio => {
+                let db_path = resolve_default_vault_db_path()?;
+                let _storage_handle = VaultStorageHandle::spawn(db_path, CANONICAL_SCHEMA_SQL)?;
+                run_mcp_stdio_loop().await
+            }
             CliCommand::Run { instruction } => {
-                eprintln!(
-                    "[ALEXANDRIA KERNEL] Ejecutando directiva en modo autónomo: {}",
-                    instruction
-                );
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Error obteniendo directorio actual: {}", e))?;
+                let report = execute_autonomous_run(&cwd, &instruction)?;
+                println!("{}", report);
                 Ok(())
             }
         }
