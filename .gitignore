@@ -1,0 +1,63 @@
+# =====================================================================
+# ALEXANDRIA RUNTIME — .gitignore (Seguridad en Repositorio Público)
+# =====================================================================
+
+# 1. Secretos, Credenciales y Entorno (CRÍTICO: Cero fugas en repositorios públicos)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+~/.alexandria/
+.alexandria/
+alexandria-worktrees/
+.alexandria-worktrees/
+
+# 2. Obsidian Vault Internals (Evita compartir configuraciones locales/historial del editor)
+alexandria/.obsidian/workspace.json
+alexandria/.obsidian/workspace-mobile.json
+alexandria/.obsidian/graph.json
+alexandria/.trash/
+# Asegurar que las notas de la wiki, agentes y memoria de trabajo SIEMPRE se sincronicen en GitHub
+!alexandria/**/*.md
+!.agents/**/*.md
+!working.md
+
+# 3. Base de Datos Local y Caché de Control
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# 4. Compilación y Binarios en Rust
+target/
+Cargo.lock
+**/*.rs.bk
+
+# 5. Dependencias, Logs y Cobertura en Node/TypeScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+dist/
+build/
+.next/
+out/
+alexandria-vitest-report.json
+
+# 6. Artefactos de Sistema Operativo y Editores
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo

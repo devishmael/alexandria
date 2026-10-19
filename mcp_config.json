@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "alexandria": {
+      "command": "./target/release/alexandria",
+      "args": ["mcp"]
+    }
+  }
+}
