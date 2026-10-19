@@ -29,6 +29,18 @@ tags:
 
 ## 2. Historial Cronológico de Transacciones Aprobadas
 
+### [2026-10-19T16:48:00-04:00] — `LOG-004`: Certificación de GateGuard AST (`oxc_validator.rs`) y Grafo Topológico (`resolver.rs`)
+
+- **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`
+- **Ruta de Ejecución:** `omega_pantheon` (Sprint 2 TDD)
+- **Módulos y Contratos Certificados:**
+  - [[gate-guard-ast]] (`src/gate_guard/oxc_validator.rs` + `tests/oxc_validator_test.rs`): 6/6 pruebas unitarias en verde ($0.00\text{ s}$). Verificado el rechazo de `TSAnyKeyword`, doble casteo `as unknown as T`, encadenamiento `.then()`, aliasing/fuga de `tx` (`const db = tx`, `db = tx`, `helper(tx)`), promesas huérfanas sin `await` y llamadas `fetch()` dentro de `prisma.$transaction`, así como la aprobación de transacciones limpias e inline/batch.
+  - [[topological-graph]] (`src/graph/resolver.rs` + `tests/graph_resolver_test.rs`): 4/4 pruebas unitarias en verde ($0.00\text{ s}$). Verificada la poda estricta $\text{Depth}=1$ para módulos ordinarios, la elevación transitiva de cadenas `ADR-002 -> ADR-001` sin infiltrar módulos intermedios, la prevención de ciclos en `StableDiGraph` y el verificador de disyunción para *Git worktrees* paralelos.
+- **Decisiones Constitucionales Verificadas:** [[ADR-002-prefix-pinned-caching]], [[ADR-003-zero-trust-quality-gates]], [[ADR-006-oxc-ast-engine]], [[ADR-007-multi-host-adapter-and-persistence]].
+- **Estado de Compuertas y Disyuntor:** $100\%$ de suites de prueba aprobadas (`15 passed; 0 failed` en total en el workspace). Cero incidentes en [[failures]].
+
+---
+
 ### [2026-10-19T16:25:00-04:00] — `LOG-003`: Vinculación Remota GitHub, Adaptadores Multi-Host (`ADR-007`) y Primer Sprint TDD del Kernel (`VaultStorageHandle`)
 
 - **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]`
@@ -50,20 +62,9 @@ tags:
 - **Ruta de Ejecución:** `omega_pantheon` (Auditoría Constitucional de Nivel Principal/Staff)
 - **Especificación Primaria Ingerida:** [[specification-v2]]
 - **Decisiones Constitucionales Formalizadas (Formato Nygard Completo):**
-  - [[ADR-001-kernel-space-harness]]: Separación estricta Kernel-Space (Rust) vs. User-Space (LLM), Panteón de 4 Agentes y Disyuntor ($\text{Umbral} = 3$).
-  - [[ADR-002-prefix-pinned-caching]]: Inmutabilidad bit a bit del prefijo, *Forked Prefix Sub-Sessions* y *ADR Hoisting* transitivo ($\text{Depth} \le 6$).
-  - [[ADR-003-zero-trust-quality-gates]]: Compuertas deterministas fuera de banda (`Gate 0` a `Gate 4`), auditoría en frío de `Utu` y validación semántica de Fase RED.
-  - [[ADR-004-single-writer-mpsc-storage]]: Actor MPSC de escritura única en hilo dedicado de OS con drenaje por lotes (`try_recv` hasta 64), confirmación estrictamente *post-commit* y triggers FTS5 simétricos.
-  - [[ADR-005-node-permission-sandboxing]]: Confinamiento de Vitest mediante Node.js Permission Model (`--permission`), limpieza de prefijos extendidos UNC en Windows (`\\?\`) y redirección de `TMP`/`TEMP`/`TMPDIR`.
-  - [[ADR-006-oxc-ast-engine]]: Adopción de la suite `oxc` (`0.56`) sobre arena contigua (`oxc_allocator::Allocator`) para validación léxica sub-milisegundo y clausura total de `prisma.$transaction`.
+  - [[ADR-001-kernel-space-harness]], [[ADR-002-prefix-pinned-caching]], [[ADR-003-zero-trust-quality-gates]], [[ADR-004-single-writer-mpsc-storage]], [[ADR-005-node-permission-sandboxing]], [[ADR-006-oxc-ast-engine]].
 - **Arquitectura y Contratos de Módulos Consolidados con Código Ejecutable:**
-  - [[overview]]: Blueprint maestro de 2 planos, Cuarteto Central y matriz de las 12 dimensiones del software.
-  - [[database-schema]]: DDL SQLite WAL con tuning de `mmap_size`, `cache_size`, triggers FTS5 completos e implementación de `VaultStorageHandle`.
-  - [[core-engine]]: Runtime híbrido Tokio + hilos dedicados de OS, perfil `release` (`lto = "fat"`, `codegen-units = 1`, `panic = "abort"`, `strip = true`), `.alexandria.json` v2.4 y despacho CLI.
-  - [[mcp-server]]: Servidor JSON-RPC 2.0 sobre `stdio` (especificación `2024-11-05`), aislamiento `stdout`/`stderr` y esquemas JSON de las 6 herramientas.
-  - [[topological-graph]]: Motor `StableDiGraph` en RAM, BFS de *ADR Hoisting*, debounce de $75\text{ ms}$ y verificador de doble disyunción para *Git worktrees*.
-  - [[gate-guard-ast]]: Visitante `GateZeroAstVisitor` completo con detección de `any`, doble casteo, aliasing de `tx`, `.then()`, promesas huérfanas y fuga de referencia.
-  - [[sandbox-runner]]: Ejecutor aislado de Vitest con normalización UNC, reporte `--outputFile` y evaluador semántico `evaluate_tdd_red_phase`.
+  - [[overview]], [[database-schema]], [[core-engine]], [[mcp-server]], [[topological-graph]], [[gate-guard-ast]], [[sandbox-runner]].
 
 ---
 
