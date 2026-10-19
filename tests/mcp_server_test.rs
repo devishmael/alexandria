@@ -20,10 +20,12 @@ async fn test_mcp_initialize_handshake() {
     assert_eq!(response.id, json!(1));
     assert!(
         response.error.is_none(),
-        "El handshake initialize no debe producir error"
+        "Initialize handshake must not produce an error"
     );
 
-    let result = response.result.expect("Resultado presente en initialize");
+    let result = response
+        .result
+        .expect("Result must be present in initialize");
     assert_eq!(result["protocolVersion"], json!("2024-11-05"));
     assert_eq!(result["serverInfo"]["name"], json!("alexandria-runtime"));
     assert_eq!(
@@ -33,7 +35,7 @@ async fn test_mcp_initialize_handshake() {
     assert_eq!(
         result["capabilities"]["tools"]["listChanged"],
         json!(false),
-        "Prefix Pinning exige que listChanged sea false"
+        "Prefix Pinning requires listChanged to be false"
     );
 }
 
@@ -45,10 +47,12 @@ async fn test_mcp_tools_list_schema_completeness() {
     assert_eq!(response.id, json!(2));
     assert!(response.error.is_none());
 
-    let result = response.result.expect("Resultado presente en tools/list");
+    let result = response
+        .result
+        .expect("Result must be present in tools/list");
     let tools = result["tools"]
         .as_array()
-        .expect("El campo 'tools' debe ser un arreglo JSON");
+        .expect("Field 'tools' must be a JSON array");
 
     let expected_names = [
         "prepare_task_context",
@@ -62,7 +66,7 @@ async fn test_mcp_tools_list_schema_completeness() {
     assert_eq!(
         tools.len(),
         expected_names.len(),
-        "Deben exponerse exactamente las 6 herramientas oficiales del kernel"
+        "Exactly the 6 official kernel tools must be exposed"
     );
 
     for (idx, expected_name) in expected_names.iter().enumerate() {
@@ -70,14 +74,14 @@ async fn test_mcp_tools_list_schema_completeness() {
         assert_eq!(
             tool["name"].as_str(),
             Some(*expected_name),
-            "El orden de las herramientas debe ser determinista (Prefix Pinning) en el índice {}",
+            "Tool ordering must be deterministic (Prefix Pinning) at index {}",
             idx
         );
         assert!(
             tool["description"]
                 .as_str()
                 .is_some_and(|d| !d.trim().is_empty()),
-            "La herramienta {} debe poseer descripción no vacía",
+            "Tool {} must have a non-empty description",
             expected_name
         );
 
@@ -85,18 +89,18 @@ async fn test_mcp_tools_list_schema_completeness() {
         assert_eq!(
             schema["type"],
             json!("object"),
-            "inputSchema de {} debe ser de tipo object",
+            "inputSchema of {} must be of type object",
             expected_name
         );
         assert_eq!(
             schema["additionalProperties"],
             json!(false),
-            "inputSchema de {} debe bloquear propiedades adicionales (additionalProperties: false)",
+            "inputSchema of {} must forbid additionalProperties (additionalProperties: false)",
             expected_name
         );
         assert!(
             schema["properties"].is_object(),
-            "inputSchema de {} debe definir su mapa de properties",
+            "inputSchema of {} must define its properties map",
             expected_name
         );
     }
@@ -104,13 +108,13 @@ async fn test_mcp_tools_list_schema_completeness() {
 
 #[tokio::test]
 async fn test_mcp_tools_call_dispatch() {
-    // 1. Invocación de prepare_task_context vía tools/call
+    // 1. Invocation of prepare_task_context via tools/call
     let call_prepare = dispatch_mcp_method(
         "tools/call",
         json!({
             "name": "prepare_task_context",
             "arguments": {
-                "instruction": "Auditar transacción de pagos",
+                "instruction": "Audit payment transaction closure",
                 "targetFiles": ["src/billing/service.ts"],
                 "moduleName": "billing"
             }
@@ -120,21 +124,21 @@ async fn test_mcp_tools_call_dispatch() {
     .await;
 
     assert!(call_prepare.error.is_none());
-    let prep_result = call_prepare.result.expect("Result en tools/call");
+    let prep_result = call_prepare.result.expect("Result in tools/call");
     assert_eq!(prep_result["isError"], json!(false));
 
     let content_arr = prep_result["content"]
         .as_array()
-        .expect("content debe ser un array MCP");
+        .expect("content must be an MCP array");
     assert_eq!(content_arr.len(), 1);
     assert_eq!(content_arr[0]["type"], json!("text"));
 
     let inner_payload: Value = serde_json::from_str(
         content_arr[0]["text"]
             .as_str()
-            .expect("Texto JSON serializado"),
+            .expect("Serialized JSON text"),
     )
-    .expect("Payload interno JSON válido");
+    .expect("Valid inner JSON payload");
     assert_eq!(inner_payload["tool"], json!("prepare_task_context"));
     assert_eq!(inner_payload["status"], json!("dispatched_by_kernel"));
     assert_eq!(
@@ -142,7 +146,7 @@ async fn test_mcp_tools_call_dispatch() {
         json!("billing")
     );
 
-    // 2. Invocación de verify_and_gate_changes vía tools/call
+    // 2. Invocation of verify_and_gate_changes via tools/call
     let call_verify = dispatch_mcp_method(
         "tools/call",
         json!({
@@ -159,27 +163,26 @@ async fn test_mcp_tools_call_dispatch() {
     .await;
 
     assert!(call_verify.error.is_none());
-    let verify_result = call_verify.result.expect("Result en verify_and_gate_changes");
+    let verify_result = call_verify
+        .result
+        .expect("Result in verify_and_gate_changes");
     assert_eq!(verify_result["isError"], json!(false));
-    let verify_payload: Value = serde_json::from_str(
-        verify_result["content"][0]["text"]
-            .as_str()
-            .expect("Texto JSON"),
-    )
-    .expect("JSON válido");
+    let verify_payload: Value =
+        serde_json::from_str(verify_result["content"][0]["text"].as_str().expect("JSON text"))
+            .expect("Valid JSON");
     assert_eq!(verify_payload["tool"], json!("verify_and_gate_changes"));
     assert_eq!(
         verify_payload["receivedArgs"]["tddPhase"],
         json!("red_expect_assertion_failure")
     );
 
-    // 3. Verificación de herramienta inexistente (-32602 Invalid params / unknown tool)
+    // 3. Verification of non-existent tool (-32602 Invalid params / unknown tool)
     let unknown_tool_resp =
         dispatch_alexandria_tool("non_existent_tool", json!({}), json!(12)).await;
     assert!(unknown_tool_resp.result.is_none());
     let err = unknown_tool_resp
         .error
-        .expect("Herramienta desconocida debe retornar error");
+        .expect("Unknown tool must return an error");
     assert_eq!(err.code, -32602);
 }
 
@@ -194,10 +197,10 @@ async fn test_mcp_unknown_method_error_code() {
 
     let err = response
         .error
-        .expect("Método inexistente debe retornar objeto error JSON-RPC");
+        .expect("Unknown method must return JSON-RPC error object");
     assert_eq!(
         err.code, -32601,
-        "El código estándar JSON-RPC 2.0 para Method not found debe ser -32601"
+        "Standard JSON-RPC 2.0 error code for Method not found must be -32601"
     );
     assert!(err.message.contains("resources/subscribe_non_existent"));
 }
@@ -216,23 +219,23 @@ async fn test_mcp_ping_pong() {
 async fn test_mcp_notification_silence() {
     let raw_notification = r#"{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}"#;
 
-    // 1. Verificación estructural sobre JsonRpcRequest
+    // 1. Structural verification on JsonRpcRequest
     let parsed: JsonRpcRequest =
-        serde_json::from_str(raw_notification).expect("Deserialización válida de notificación");
+        serde_json::from_str(raw_notification).expect("Valid notification deserialization");
     assert_eq!(parsed.jsonrpc, "2.0");
     assert_eq!(parsed.method, "notifications/initialized");
     assert!(
         parsed.id.is_none(),
-        "Una notificación JSON-RPC no posee campo id"
+        "A JSON-RPC notification does not have an id field"
     );
 
-    // 2. Verificación funcional: el manejador de línea no debe emitir respuesta alguna en stdout
+    // 2. Functional verification: line handler must emit no response on stdout
     let maybe_response = handle_raw_jsonrpc_line(raw_notification).await;
     assert!(
         maybe_response.is_none(),
-        "Las notificaciones sin 'id' jamás deben generar respuesta en stdout"
+        "Notifications without 'id' must never generate a stdout response"
     );
 
-    // 3. Verificación adicional: líneas en blanco tampoco emiten respuesta
+    // 3. Additional verification: blank lines also emit no response
     assert!(handle_raw_jsonrpc_line("   \n  ").await.is_none());
 }

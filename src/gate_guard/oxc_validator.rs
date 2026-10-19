@@ -63,7 +63,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
     fn visit_ts_any_keyword(&mut self, it: &TSAnyKeyword) {
         self.violations.push(AstViolation {
             rule: "NO_EXPLICIT_ANY",
-            message: "Prohibido el uso de 'any'. Utiliza tipos nominales o Branded Types.".into(),
+            message: "Explicit 'any' type is forbidden. Use nominal types or Branded Types.".into(),
             byte_offset: it.span.start,
         });
     }
@@ -73,7 +73,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
             if matches!(inner_as.type_annotation, TSType::TSUnknownKeyword(_)) {
                 self.violations.push(AstViolation {
                     rule: "NO_DOUBLE_CAST_UNKNOWN",
-                    message: "Prohibido el doble casteo 'as unknown as T' para evadir el sistema de tipos.".into(),
+                    message: "Double type assertion 'as unknown as T' is forbidden to prevent type-system evasion.".into(),
                     byte_offset: it.span.start,
                 });
             }
@@ -89,7 +89,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                         self.violations.push(AstViolation {
                             rule: "PRISMA_TX_NO_ALIASING",
                             message: format!(
-                                "Prohibido reasignar o desestructurar el cliente transaccional '{}'.",
+                                "Reassigning or aliasing the transactional client '{}' is forbidden.",
                                 tx_name
                             ),
                             byte_offset: it.span.start,
@@ -101,7 +101,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                         self.violations.push(AstViolation {
                             rule: "PRISMA_TX_UNWAITED_PROMISE_ASSIGNMENT",
                             message: format!(
-                                "Prohibido almacenar una promesa de '{}' en una variable sin 'await' inmediato.",
+                                "Storing a promise from '{}' in a variable without immediate 'await' is forbidden.",
                                 tx_name
                             ),
                             byte_offset: it.span.start,
@@ -121,7 +121,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                     self.violations.push(AstViolation {
                         rule: "PRISMA_TX_NO_ASSIGNMENT_ESCAPE",
                         message: format!(
-                            "Prohibido asignar el cliente transaccional '{}' a variables externas.",
+                            "Assigning the transactional client '{}' to external variables is forbidden.",
                             tx_name
                         ),
                         byte_offset: it.span.start,
@@ -133,7 +133,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                     self.violations.push(AstViolation {
                         rule: "PRISMA_TX_UNWAITED_PROMISE_ASSIGNMENT",
                         message: format!(
-                            "Prohibido asignar una promesa de '{}' a una variable sin 'await' inmediato.",
+                            "Assigning a promise from '{}' to a variable without immediate 'await' is forbidden.",
                             tx_name
                         ),
                         byte_offset: it.span.start,
@@ -152,7 +152,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                     self.violations.push(AstViolation {
                         rule: "PRISMA_TX_DANGLING_PROMISE",
                         message: format!(
-                            "Operación sobre '{}' sin 'await' detectada; causará cierre prematuro de la transacción.",
+                            "Unawaited operation on '{}' detected; this will cause premature transaction closure.",
                             tx_name
                         ),
                         byte_offset: it.span.start,
@@ -179,7 +179,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                 self.violations.push(AstViolation {
                     rule: "PRISMA_TX_STRICT_LEXICAL_AWAIT",
                     message: format!(
-                        "Dentro de $transaction solo se permiten llamadas await directas 'await {}.<modelo>.<op>()'. Prohibido I/O externo, .then() o Promise.all.",
+                        "Inside $transaction only direct await calls 'await {}.<model>.<op>()' are allowed. External I/O, .then(), or Promise.all are forbidden.",
                         tx_name
                     ),
                     byte_offset: it.span.start,
@@ -197,7 +197,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                         self.violations.push(AstViolation {
                             rule: "PRISMA_TX_NO_ESCAPE",
                             message: format!(
-                                "Prohibido pasar el cliente transaccional '{}' a funciones auxiliares.",
+                                "Passing the transactional client '{}' to helper functions is forbidden.",
                                 tx_name
                             ),
                             byte_offset: ident.span.start,
@@ -211,7 +211,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                     self.violations.push(AstViolation {
                         rule: "PRISMA_TX_NO_UNWAITED_IO",
                         message: format!(
-                            "Prohibido invocar '{}' dentro de una transacción de base de datos.",
+                            "Invoking '{}' inside a database transaction is forbidden.",
                             ident.name.as_str()
                         ),
                         byte_offset: it.span.start,
@@ -247,7 +247,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                                 _ => {
                                     self.violations.push(AstViolation {
                                         rule: "PRISMA_TX_NO_PARAM_DESTRUCTURING",
-                                        message: "El parámetro de $transaction debe ser un identificador simple (ej. 'async (tx) => ...'), sin destructuring.".into(),
+                                        message: "The $transaction parameter must be a simple identifier (e.g. 'async (tx) => ...'), without destructuring.".into(),
                                         byte_offset: first_param.span.start,
                                     });
                                     return;
@@ -258,7 +258,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
                     _ => {
                         self.violations.push(AstViolation {
                             rule: "PRISMA_TX_REQUIRE_INLINE_CALLBACK",
-                            message: "El primer argumento de $transaction debe ser un ArrowFunction inline o un Array estático.".into(),
+                            message: "The first argument to $transaction must be an inline ArrowFunction or a static Array.".into(),
                             byte_offset: first_arg.span().start,
                         });
                         return;
@@ -280,7 +280,7 @@ pub fn validate_typescript_source(
     let ret = Parser::new(&allocator, source_text, source_type).parse();
 
     if !ret.errors.is_empty() {
-        return Err(format!("SyntaxError en parseo Oxc: {:?}", ret.errors[0]));
+        return Err(format!("SyntaxError during Oxc parsing: {:?}", ret.errors[0]));
     }
 
     let mut visitor = GateZeroAstVisitor::new();

@@ -207,7 +207,7 @@ fn collect_markdown_files_recursively(dir: &Path, out: &mut Vec<PathBuf>) {
         let path = entry.path();
         if path.is_dir() {
             let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-            if !name.starts_with('.') {
+            if !name.starts_with('.') && name != "private" {
                 collect_markdown_files_recursively(&path, out);
             }
         } else if path.extension().and_then(|e| e.to_str()) == Some("md") {
@@ -268,4 +268,3 @@ pub fn load_vault_graph_from_dir(
 
     (graph, node_map)
 }
-

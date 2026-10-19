@@ -42,8 +42,8 @@ pub enum VaultWriteCommand {
     },
 }
 
-/// Sanitiza un stack trace crudo convirtiéndolo en una expresión FTS5 segura (`"tok1" OR "tok2"`)
-/// inmune a errores de sintaxis por `:`, `/`, `"` o palabras reservadas (`AND`, `OR`, `NOT`, `NEAR`).
+/// Sanitizes a raw stack trace into a safe FTS5 disjunctive query (`"tok1" OR "tok2"`),
+/// immune to syntax errors from `:`, `/`, `"` or reserved FTS5 operators (`AND`, `OR`, `NOT`, `NEAR`).
 pub fn build_safe_fts5_or_query(raw_stack_trace: &str) -> Option<String> {
     let mut tokens: Vec<String> = Vec::new();
     for token in raw_stack_trace
@@ -79,10 +79,73 @@ pub struct VaultStorageHandle {
 impl VaultStorageHandle {
     pub fn spawn(db_path: PathBuf, schema_sql: &str) -> Result<Self, String> {
         let init_conn =
-            Connection::open(&db_path).map_err(|e| format!("Error abriendo vault.db: {}", e))?;
+            Connection::open(&db_path).map_err(|e| format!("Failed to open vault.db: {}", e))?;
         init_conn
             .execute_batch(schema_sql)
-            .map_err(|e| format!("Error inicializando esquema SQL: {}", e))?;
+            .map_err(|e| format!("Failed to initialize SQL schema: {}", e))?;
+
+        let now_ms = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as i64;
+
+        let pantheon_archetypes: [(&str, &str, &str, i64, &str, &str); 4] = [
+            (
+                "bel",
+                "Bel (The Overseer)",
+                "Zero-Turn classifier, topological graph evaluator, and sub-session dispatcher.",
+                5,
+                r#"{"canModifySrc":false,"canReadVault":true,"canSpawnWorktrees":true}"#,
+                r#"["prepare_task_context","spawn_isolated_worktrees","resolve_skill_capsule"]"#,
+            ),
+            (
+                "enki",
+                "Enki (The Builder)",
+                "Polymorphic constructor via prefix-pinned sub-sessions (DB, Backend, UI) under strict TDD.",
+                3,
+                r#"{"canModifySrc":true,"requiresRedPhaseFirst":true,"canWriteTests":true}"#,
+                r#"["prepare_task_context","resolve_skill_capsule","verify_and_gate_changes"]"#,
+            ),
+            (
+                "utu",
+                "Utu (The Critic)",
+                "Stateless cold auditor for Gate 4 (read-only access to git diff, ADRs, and JSON reports).",
+                1,
+                r#"{"canModifySrc":false,"statelessColdContext":true,"readOnlyAudit":true}"#,
+                r#"["verify_and_gate_changes"]"#,
+            ),
+            (
+                "nabu",
+                "Nabu (The Chronicler)",
+                "Custodian of the vault (wiki/), contracts, ADRs, forensic incidents FAIL-XXX, and log.md.",
+                1,
+                r#"{"canModifySrc":false,"canWriteVault":true,"appendOnlyLedger":true}"#,
+                r#"["upsert_architectural_contract","finalize_task_and_log"]"#,
+            ),
+        ];
+
+        for (agent_id, display_name, role_archetype, max_subagents, rbac_json, tools_json) in
+            pantheon_archetypes
+        {
+            init_conn
+                .execute(
+                    "INSERT OR IGNORE INTO agent_catalog (
+                        agent_id, display_name, role_archetype, max_subagents,
+                        rbac_permissions_json, authorized_tools_json, updated_at
+                     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                    params![
+                        agent_id,
+                        display_name,
+                        role_archetype,
+                        max_subagents,
+                        rbac_json,
+                        tools_json,
+                        now_ms
+                    ],
+                )
+                .map_err(|e| format!("Failed to seed Pantheon agent '{}': {}", agent_id, e))?;
+        }
+
         drop(init_conn);
 
         let (writer_tx, mut writer_rx) = mpsc::channel::<VaultWriteCommand>(512);
@@ -92,7 +155,7 @@ impl VaultStorageHandle {
             .name("alexandria-sqlite-writer".into())
             .spawn(move || {
                 let mut conn = Connection::open(&thread_db_path)
-                    .expect("No se pudo abrir la conexión de escritura en vault.db");
+                    .expect("Failed to open write connection on vault.db");
                 let _ = conn.execute_batch(
                     "PRAGMA journal_mode = WAL;
                      PRAGMA synchronous = NORMAL;
@@ -124,14 +187,14 @@ impl VaultStorageHandle {
 
                             let commit_res = tx
                                 .commit()
-                                .map_err(|e| format!("Fallo en COMMIT de batch SQLite: {}", e));
+                                .map_err(|e| format!("SQLite batch COMMIT failed: {}", e));
 
                             for notify in pending_notifications {
                                 notify(commit_res.clone());
                             }
                         }
                         Err(e) => {
-                            let err_msg = format!("No se pudo iniciar transacción SQLite: {}", e);
+                            let err_msg = format!("Failed to begin SQLite transaction: {}", e);
                             for cmd in batch {
                                 Self::abort_command(cmd, &err_msg);
                             }
@@ -139,7 +202,7 @@ impl VaultStorageHandle {
                     }
                 }
             })
-            .map_err(|e| format!("Error creando hilo de VaultWriterActor: {}", e))?;
+            .map_err(|e| format!("Failed to spawn VaultWriterActor thread: {}", e))?;
 
         Ok(Self { writer_tx, db_path })
     }
@@ -161,10 +224,10 @@ impl VaultStorageHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "Canal de VaultWriterActor cerrado".to_string())?;
+            .map_err(|_| "VaultWriterActor channel closed".to_string())?;
         reply_rx
             .await
-            .map_err(|_| "Respuesta oneshot cancelada en VaultWriterActor".to_string())?
+            .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
     }
 
     pub async fn reset_circuit_breaker(
@@ -182,10 +245,10 @@ impl VaultStorageHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "Canal de VaultWriterActor cerrado".to_string())?;
+            .map_err(|_| "VaultWriterActor channel closed".to_string())?;
         reply_rx
             .await
-            .map_err(|_| "Respuesta oneshot cancelada en VaultWriterActor".to_string())?
+            .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
     }
 
     pub async fn upsert_skill(
@@ -209,10 +272,10 @@ impl VaultStorageHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "Canal de VaultWriterActor cerrado".to_string())?;
+            .map_err(|_| "VaultWriterActor channel closed".to_string())?;
         reply_rx
             .await
-            .map_err(|_| "Respuesta oneshot cancelada en VaultWriterActor".to_string())?
+            .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
     }
 
     fn abort_command(cmd: VaultWriteCommand, err_msg: &str) {
@@ -287,7 +350,7 @@ impl VaultStorageHandle {
                 let step_result = res1
                     .and(res2)
                     .map(|_| (failure_id, next_state.to_string(), next_failures))
-                    .map_err(|e| format!("Error SQL registrando incidente: {}", e));
+                    .map_err(|e| format!("SQL error recording forensic incident: {}", e));
 
                 Box::new(move |commit_status| match (commit_status, step_result) {
                     (Ok(()), Ok(payload)) => {
@@ -314,7 +377,7 @@ impl VaultStorageHandle {
                         "UPDATE forensic_incidents SET resolution_hint = ?1 WHERE failure_id = ?2",
                         params![resolution_hint, fid],
                     ) {
-                        sql_err = Some(format!("Error actualizando incidente: {}", e));
+                        sql_err = Some(format!("Failed to update forensic incident: {}", e));
                     }
                 }
 
@@ -329,7 +392,7 @@ impl VaultStorageHandle {
                             updated_at = excluded.updated_at",
                         params![module_name, now_ms],
                     ) {
-                        sql_err = Some(format!("Error reiniciando circuit breaker: {}", e));
+                        sql_err = Some(format!("Failed to reset circuit breaker: {}", e));
                     }
                 }
 
@@ -376,7 +439,7 @@ impl VaultStorageHandle {
                         ],
                     )
                     .map(|_| ())
-                    .map_err(|e| format!("Error SQL insertando skill: {}", e));
+                    .map_err(|e| format!("SQL error inserting skill: {}", e));
 
                 Box::new(move |commit_status| match (commit_status, res) {
                     (Ok(()), Ok(())) => {
@@ -512,4 +575,3 @@ impl VaultStorageHandle {
         Ok(hints)
     }
 }
-

@@ -7,10 +7,10 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 fn make_node(id: &str, kind: NodeKind) -> WikiNode {
-    let content = format!("# Nodo {}", id);
+    let content = format!("# Node {}", id);
     WikiNode {
         id: id.to_string(),
-        path: PathBuf::from(format!("alexandria/{}.md", id)),
+        path: PathBuf::from(format!("wiki/{}.md", id)),
         kind,
         sha256: compute_sha256(&content),
         content,
@@ -37,29 +37,29 @@ fn test_strict_depth_one_for_modules() {
     assert_eq!(
         resolved.direct_neighbors,
         vec!["mcp-server".to_string()],
-        "Solo el vecino directo a profundidad 1 debe inyectarse"
+        "Only the direct neighbor at depth=1 must be injected"
     );
     assert!(
         !resolved
             .direct_neighbors
             .contains(&"sandbox-runner".to_string()),
-        "El módulo a distancia 2 NO debe inyectarse en direct_neighbors"
+        "Module at distance 2 must NOT be injected into direct_neighbors"
     );
     assert!(
         !resolved
             .direct_neighbors
             .contains(&"database-schema".to_string()),
-        "El nodo de arquitectura a distancia 3 NO debe inyectarse en direct_neighbors"
+        "Architecture node at distance 3 must NOT be injected into direct_neighbors"
     );
     assert!(resolved.hoisted_adrs.is_empty());
 }
 
 #[test]
 fn test_transitive_adr_hoisting_chain() {
-    // 1. Cadena directa: ModuloA (0) -> ModuloB (1) -> ADR-002 (2) -> ADR-001 (3)
+    // 1. Direct chain: ModuleA (0) -> ModuleB (1) -> ADR-002 (2) -> ADR-001 (3)
     let mut direct_graph = StableDiGraph::<WikiNode, ()>::new();
-    let d_mod_a = direct_graph.add_node(make_node("ModuloA", NodeKind::Module));
-    let d_mod_b = direct_graph.add_node(make_node("ModuloB", NodeKind::Module));
+    let d_mod_a = direct_graph.add_node(make_node("ModuleA", NodeKind::Module));
+    let d_mod_b = direct_graph.add_node(make_node("ModuleB", NodeKind::Module));
     let d_adr_002 = direct_graph.add_node(make_node(
         "ADR-002-prefix-pinned-caching",
         NodeKind::ConstitutionalAdr,
@@ -74,7 +74,7 @@ fn test_transitive_adr_hoisting_chain() {
     direct_graph.add_edge(d_adr_002, d_adr_001, ());
 
     let res_direct = resolve_context_with_adr_hoisting(&direct_graph, d_mod_a, 6);
-    assert_eq!(res_direct.target_module, "ModuloA");
+    assert_eq!(res_direct.target_module, "ModuleA");
     assert_eq!(
         res_direct.hoisted_adrs,
         vec![
@@ -82,14 +82,14 @@ fn test_transitive_adr_hoisting_chain() {
             "ADR-001-kernel-space-harness".to_string(),
         ]
     );
-    assert!(!res_direct.hoisted_adrs.contains(&"ModuloB".to_string()));
+    assert!(!res_direct.hoisted_adrs.contains(&"ModuleB".to_string()));
 
-    // 2. Cadena con módulo intermedio a distancia 2:
-    // ModuloA (0) -> ModuloVecino (1) -> ModuloB (2) -> ADR-002 (3) -> ADR-001 (4)
+    // 2. Chain with intermediate module at distance 2:
+    // ModuleA (0) -> NeighborModule (1) -> ModuleB (2) -> ADR-002 (3) -> ADR-001 (4)
     let mut graph = StableDiGraph::<WikiNode, ()>::new();
-    let mod_a = graph.add_node(make_node("ModuloA", NodeKind::Module));
-    let mod_vecino = graph.add_node(make_node("ModuloVecino", NodeKind::Module));
-    let mod_b = graph.add_node(make_node("ModuloB", NodeKind::Module));
+    let mod_a = graph.add_node(make_node("ModuleA", NodeKind::Module));
+    let mod_neighbor = graph.add_node(make_node("NeighborModule", NodeKind::Module));
+    let mod_b = graph.add_node(make_node("ModuleB", NodeKind::Module));
     let adr_002 = graph.add_node(make_node(
         "ADR-002-prefix-pinned-caching",
         NodeKind::ConstitutionalAdr,
@@ -99,22 +99,25 @@ fn test_transitive_adr_hoisting_chain() {
         NodeKind::ConstitutionalAdr,
     ));
 
-    graph.add_edge(mod_a, mod_vecino, ());
-    graph.add_edge(mod_vecino, mod_b, ());
+    graph.add_edge(mod_a, mod_neighbor, ());
+    graph.add_edge(mod_neighbor, mod_b, ());
     graph.add_edge(mod_b, adr_002, ());
     graph.add_edge(adr_002, adr_001, ());
 
     let resolved = resolve_context_with_adr_hoisting(&graph, mod_a, 6);
 
-    assert_eq!(resolved.target_module, "ModuloA");
-    assert_eq!(resolved.direct_neighbors, vec!["ModuloVecino".to_string()]);
-    assert!(
-        !resolved.direct_neighbors.contains(&"ModuloB".to_string()),
-        "El módulo intermedio ModuloB (depth=2) NO debe incluirse en el contexto directo"
+    assert_eq!(resolved.target_module, "ModuleA");
+    assert_eq!(
+        resolved.direct_neighbors,
+        vec!["NeighborModule".to_string()]
     );
     assert!(
-        !resolved.hoisted_adrs.contains(&"ModuloB".to_string()),
-        "ModuloB jamás debe clasificarse como ADR elevado"
+        !resolved.direct_neighbors.contains(&"ModuleB".to_string()),
+        "Intermediate module ModuleB (depth=2) must NOT be included in direct context"
+    );
+    assert!(
+        !resolved.hoisted_adrs.contains(&"ModuleB".to_string()),
+        "ModuleB must never be classified as a hoisted ADR"
     );
     assert_eq!(
         resolved.hoisted_adrs,
@@ -122,7 +125,7 @@ fn test_transitive_adr_hoisting_chain() {
             "ADR-002-prefix-pinned-caching".to_string(),
             "ADR-001-kernel-space-harness".to_string(),
         ],
-        "Ambos ADRs en cadena transitiva (ADR-002 -> ADR-001) deben elevarse al contexto de ModuloA"
+        "Both ADRs in the transitive chain (ADR-002 -> ADR-001) must be hoisted into ModuleA's context"
     );
 }
 
@@ -130,22 +133,22 @@ fn test_transitive_adr_hoisting_chain() {
 fn test_cycle_prevention_in_graph() {
     let mut graph = StableDiGraph::<WikiNode, ()>::new();
 
-    let mod_a = graph.add_node(make_node("ModuloA", NodeKind::Module));
-    let mod_b = graph.add_node(make_node("ModuloB", NodeKind::Module));
+    let mod_a = graph.add_node(make_node("ModuleA", NodeKind::Module));
+    let mod_b = graph.add_node(make_node("ModuleB", NodeKind::Module));
     let adr_003 = graph.add_node(make_node(
         "ADR-003-zero-trust-quality-gates",
         NodeKind::ConstitutionalAdr,
     ));
 
-    // Ciclo dirigido: ModuloA -> ModuloB -> ModuloA y enlace de salida a ADR-003
+    // Directed cycle: ModuleA -> ModuleB -> ModuleA and outgoing link to ADR-003
     graph.add_edge(mod_a, mod_b, ());
     graph.add_edge(mod_b, mod_a, ());
     graph.add_edge(mod_b, adr_003, ());
 
     let resolved = resolve_context_with_adr_hoisting(&graph, mod_a, 6);
 
-    assert_eq!(resolved.target_module, "ModuloA");
-    assert_eq!(resolved.direct_neighbors, vec!["ModuloB".to_string()]);
+    assert_eq!(resolved.target_module, "ModuleA");
+    assert_eq!(resolved.direct_neighbors, vec!["ModuleB".to_string()]);
     assert_eq!(
         resolved.hoisted_adrs,
         vec!["ADR-003-zero-trust-quality-gates".to_string()]
@@ -171,11 +174,11 @@ fn test_worktree_disjunction_checker() {
     node_map.insert("shared-db".to_string(), mod_shared_db);
     node_map.insert("ui-theme".to_string(), mod_ui_theme);
 
-    // auth-module y billing-module comparten el vecino directo shared-db (CONFLICTO)
+    // auth-module and billing-module share direct neighbor shared-db (CONFLICT)
     graph.add_edge(mod_auth, mod_shared_db, ());
     graph.add_edge(mod_billing, mod_shared_db, ());
 
-    // Ambos enlazan al mismo ADR constitucional (PERMITIDO: los ADRs son de solo lectura)
+    // Both link to the same constitutional ADR (ALLOWED: ADRs are read-only)
     graph.add_edge(mod_auth, adr_001, ());
     graph.add_edge(mod_ui_theme, adr_001, ());
 
@@ -196,10 +199,10 @@ fn test_worktree_disjunction_checker() {
         Err(DisjunctionConflict::WikiSubgraphOverlap {
             colliding_nodes: vec!["shared-db".to_string()],
         }),
-        "Debe rechazar worktrees paralelos cuando dos módulos comparten un vecino Depth=1"
+        "Must reject parallel worktrees when two modules share a Depth=1 neighbor"
     );
 
-    // Caso disjunto: auth-module (con vecino shared-db) vs ui-theme (sin vecinos compartidos ni archivos en común)
+    // Disjoint case: auth-module (with neighbor shared-db) vs ui-theme (no shared neighbors or files)
     let disjoint_tasks = vec![
         (
             "auth-module".to_string(),
@@ -215,6 +218,6 @@ fn test_worktree_disjunction_checker() {
     assert_eq!(
         ok_res,
         Ok(()),
-        "Debe aprobar la bifurcación paralela cuando tanto el subgrafo Depth=1 como los archivos son disjuntos"
+        "Must approve parallel worktrees when both Depth=1 subgraphs and target files are disjoint"
     );
 }

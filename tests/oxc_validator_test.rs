@@ -11,10 +11,10 @@ fn test_reject_explicit_any() {
     "#;
 
     let violations =
-        validate_typescript_source(source, false).expect("El código TS debe parsear sin errores");
+        validate_typescript_source(source, false).expect("TypeScript code must parse cleanly");
     assert!(
         violations.iter().any(|v| v.rule == "NO_EXPLICIT_ANY"),
-        "Debe detectar y rechazar TSAnyKeyword"
+        "Must detect and reject TSAnyKeyword"
     );
     assert_eq!(
         violations
@@ -22,7 +22,7 @@ fn test_reject_explicit_any() {
             .filter(|v| v.rule == "NO_EXPLICIT_ANY")
             .count(),
         2,
-        "Debe detectar ambas ocurrencias explícitas de 'any'"
+        "Must detect both explicit occurrences of 'any'"
     );
 }
 
@@ -38,7 +38,7 @@ fn test_reject_double_cast_unknown() {
     "#;
 
     let violations =
-        validate_typescript_source(source, false).expect("El código TS debe parsear sin errores");
+        validate_typescript_source(source, false).expect("TypeScript code must parse cleanly");
     assert_eq!(violations.len(), 1);
     assert_eq!(violations[0].rule, "NO_DOUBLE_CAST_UNKNOWN");
 }
@@ -69,10 +69,10 @@ fn test_strict_prisma_transaction_valid() {
     "#;
 
     let violations =
-        validate_typescript_source(source, false).expect("El código TS válido debe parsear");
+        validate_typescript_source(source, false).expect("Valid TypeScript code must parse");
     assert!(
         violations.is_empty(),
-        "Una transacción limpia con clausura léxica total no debe producir violaciones, pero produjo: {:?}",
+        "A clean transaction with full lexical closure must produce zero violations, but produced: {:?}",
         violations
     );
 }
@@ -88,12 +88,12 @@ fn test_reject_tx_promise_chaining() {
     "#;
 
     let violations =
-        validate_typescript_source(source, false).expect("El código TS debe parsear sin errores");
+        validate_typescript_source(source, false).expect("TypeScript code must parse cleanly");
     assert!(
         violations
             .iter()
             .any(|v| v.rule == "PRISMA_TX_STRICT_LEXICAL_AWAIT"),
-        "Debe bloquear encadenamientos .then() sobre promesas dentro de $transaction: {:?}",
+        "Must block .then() promise chaining inside $transaction: {:?}",
         violations
     );
 }
@@ -117,23 +117,23 @@ fn test_reject_tx_aliasing_and_escape() {
     "#;
 
     let violations =
-        validate_typescript_source(source, false).expect("El código TS debe parsear sin errores");
+        validate_typescript_source(source, false).expect("TypeScript code must parse cleanly");
 
     assert!(
         violations.iter().any(|v| v.rule == "PRISMA_TX_NO_ALIASING"),
-        "Debe detectar 'const db = tx;': {:?}",
+        "Must detect 'const db = tx;': {:?}",
         violations
     );
     assert!(
         violations
             .iter()
             .any(|v| v.rule == "PRISMA_TX_NO_ASSIGNMENT_ESCAPE"),
-        "Debe detectar 'externalRef = tx;': {:?}",
+        "Must detect 'externalRef = tx;': {:?}",
         violations
     );
     assert!(
         violations.iter().any(|v| v.rule == "PRISMA_TX_NO_ESCAPE"),
-        "Debe detectar 'helper(tx)': {:?}",
+        "Must detect 'helper(tx)': {:?}",
         violations
     );
 }
@@ -151,27 +151,27 @@ fn test_reject_unwaited_and_dangling_promises() {
     "#;
 
     let violations =
-        validate_typescript_source(source, false).expect("El código TS debe parsear sin errores");
+        validate_typescript_source(source, false).expect("TypeScript code must parse cleanly");
 
     assert!(
         violations
             .iter()
             .any(|v| v.rule == "PRISMA_TX_NO_UNWAITED_IO"),
-        "Debe detectar llamada a fetch() dentro de $transaction: {:?}",
+        "Must detect fetch() call inside $transaction: {:?}",
         violations
     );
     assert!(
         violations
             .iter()
             .any(|v| v.rule == "PRISMA_TX_DANGLING_PROMISE"),
-        "Debe detectar sentencia suelta tx.user.create() sin await: {:?}",
+        "Must detect unawaited tx.user.create() expression statement: {:?}",
         violations
     );
     assert!(
         violations
             .iter()
             .any(|v| v.rule == "PRISMA_TX_UNWAITED_PROMISE_ASSIGNMENT"),
-        "Debe detectar 'const p = tx.user.create()' sin await: {:?}",
+        "Must detect 'const p = tx.user.create()' without immediate await: {:?}",
         violations
     );
 }

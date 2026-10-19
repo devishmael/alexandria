@@ -35,7 +35,7 @@ fn main() -> ExitCode {
         .thread_name("alexandria-tokio-worker")
         .enable_all()
         .build()
-        .expect("Fallo crítico inicializando el reactor Tokio");
+        .expect("Critical failure initializing Tokio runtime");
 
     let res: Result<(), String> = runtime.block_on(async move {
         match cmd {
@@ -45,14 +45,14 @@ fn main() -> ExitCode {
                 profile,
             } => {
                 let cwd = env::current_dir()
-                    .map_err(|e| format!("Error obteniendo directorio actual: {}", e))?;
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
                 let config_path = execute_init_scaffolding(
                     &cwd,
                     vault_path.as_deref(),
                     profile.as_deref(),
                 )?;
                 println!(
-                    "[ALEXANDRIA KERNEL] Espacio de trabajo inicializado exitosamente: {}",
+                    "[ALEXANDRIA KERNEL] Workspace initialized successfully: {}",
                     config_path.display()
                 );
                 Ok(())
@@ -71,7 +71,7 @@ fn main() -> ExitCode {
             }
             CliCommand::Run { instruction } => {
                 let cwd = env::current_dir()
-                    .map_err(|e| format!("Error obteniendo directorio actual: {}", e))?;
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
                 let report = execute_autonomous_run(&cwd, &instruction)?;
                 println!("{}", report);
                 Ok(())

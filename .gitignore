@@ -1,8 +1,8 @@
 # =====================================================================
-# ALEXANDRIA RUNTIME — .gitignore (Seguridad en Repositorio Público)
+# ALEXANDRIA RUNTIME — .gitignore (Public Repository Security Policy)
 # =====================================================================
 
-# 1. Secretos, Credenciales y Entorno (CRÍTICO: Cero fugas en repositorios públicos)
+# 1. Secrets, Credentials, and Environment (CRITICAL: Zero leaks in public repos)
 .env
 .env.*
 !.env.example
@@ -14,29 +14,27 @@
 alexandria-worktrees/
 .alexandria-worktrees/
 
-# 2. Obsidian Vault Internals (Evita compartir configuraciones locales/historial del editor)
-alexandria/.obsidian/workspace.json
-alexandria/.obsidian/workspace-mobile.json
-alexandria/.obsidian/graph.json
-alexandria/.trash/
-# Asegurar que las notas de la wiki, agentes y memoria de trabajo SIEMPRE se sincronicen en GitHub
-!alexandria/**/*.md
-!.agents/**/*.md
-!working.md
+# 2. Private Local Vault & Internal Agent Scaffolding (Never publish to GitHub)
+alexandria/
+alexandria/**
+.agents/
+.agents/**
+AGENTS.md
+GEMINI.md
+working.md
 
-# 3. Base de Datos Local y Caché de Control
+# 3. Local Databases & Control Cache
 *.db
 *.db-wal
 *.db-shm
 *.sqlite
 *.sqlite3
 
-# 4. Compilación y Binarios en Rust
+# 4. Rust Compilation Artifacts (Cargo.lock is tracked for reproducible binary builds)
 target/
-Cargo.lock
 **/*.rs.bk
 
-# 5. Dependencias, Logs y Cobertura en Node/TypeScript
+# 5. Node/TypeScript Dependencies, Logs, and Coverage
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -49,15 +47,12 @@ build/
 out/
 alexandria-vitest-report.json
 
-# 6. Artefactos de Sistema Operativo y Editores
+# 6. Temporary & OS Files
 .DS_Store
 Thumbs.db
-ehthumbs.db
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.idea/
+*.tmp
+*.bak
 *.swp
-*.swo
+*~
+.idea/
+.vscode/

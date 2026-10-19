@@ -1,6 +1,6 @@
 -- =============================================================================
 -- ALEXANDRIA RUNTIME v2.4.0 — CANONICAL SQLITE WAL & FTS5 SCHEMA
--- Archivo: src/storage/schema.sql
+-- File: src/storage/schema.sql
 -- =============================================================================
 
 PRAGMA journal_mode = WAL;
@@ -11,7 +11,7 @@ PRAGMA mmap_size = 268435456;
 PRAGMA temp_store = MEMORY;
 PRAGMA cache_size = -64000;
 
--- 1. Grafo Persistido de la Bóveda de Conocimiento (Plano 1 Relacional)
+-- 1. Persisted Knowledge Vault Graph (Plane 1 Relational)
 CREATE TABLE IF NOT EXISTS wiki_nodes (
     node_id TEXT PRIMARY KEY,
     relative_path TEXT NOT NULL UNIQUE,
@@ -31,7 +31,18 @@ CREATE TABLE IF NOT EXISTS wiki_edges (
 
 CREATE INDEX IF NOT EXISTS idx_wiki_edges_target ON wiki_edges(target_id);
 
--- 2. Catálogo de Habilidades Procedimentales (Cápsulas JIT)
+-- 1.1. Pantheon Agent Catalog (Plane 1 Relational)
+CREATE TABLE IF NOT EXISTS agent_catalog (
+    agent_id TEXT PRIMARY KEY CHECK(agent_id IN ('bel', 'enki', 'utu', 'nabu')),
+    display_name TEXT NOT NULL,
+    role_archetype TEXT NOT NULL,
+    max_subagents INTEGER NOT NULL DEFAULT 1,
+    rbac_permissions_json TEXT NOT NULL,
+    authorized_tools_json TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+-- 2. Procedural Skill Catalog (JIT Capsules)
 CREATE TABLE IF NOT EXISTS skills (
     rowid INTEGER PRIMARY KEY AUTOINCREMENT,
     skill_id TEXT NOT NULL UNIQUE,
@@ -45,7 +56,7 @@ CREATE TABLE IF NOT EXISTS skills (
 
 CREATE INDEX IF NOT EXISTS idx_skills_domain ON skills(domain);
 
--- 3. Índice Léxico FTS5 para Skills (Contenido Externo + Tokenizador Porter)
+-- 3. FTS5 Lexical Index for Skills (External Content + Porter Stemmer)
 CREATE VIRTUAL TABLE IF NOT EXISTS skills_fts USING fts5(
     skill_id,
     domain,
@@ -74,7 +85,7 @@ CREATE TRIGGER IF NOT EXISTS skills_au AFTER UPDATE ON skills BEGIN
     VALUES (new.rowid, new.skill_id, new.domain, new.description, new.trigger_keywords_json, new.instructions_md);
 END;
 
--- 4. Estado del Disyuntor Determinista (Circuit Breaker por Módulo)
+-- 4. Deterministic Circuit Breaker State (Per Module)
 CREATE TABLE IF NOT EXISTS circuit_breakers (
     module_name TEXT PRIMARY KEY,
     consecutive_failures INTEGER NOT NULL DEFAULT 0,
@@ -83,7 +94,7 @@ CREATE TABLE IF NOT EXISTS circuit_breakers (
     updated_at INTEGER NOT NULL
 );
 
--- 5. Registro Forense de Incidentes (Nabu / FAIL-XXX)
+-- 5. Forensic Incident Ledger (Nabu / FAIL-XXX)
 CREATE TABLE IF NOT EXISTS forensic_incidents (
     rowid INTEGER PRIMARY KEY AUTOINCREMENT,
     failure_id TEXT NOT NULL UNIQUE,
@@ -96,7 +107,7 @@ CREATE TABLE IF NOT EXISTS forensic_incidents (
 
 CREATE INDEX IF NOT EXISTS idx_forensic_incidents_module ON forensic_incidents(module_name, created_at DESC);
 
--- 6. Índice Léxico FTS5 para Incidentes Forenses (Previene SQLITE_CORRUPT_VTAB)
+-- 6. FTS5 Lexical Index for Forensic Incidents (Prevents SQLITE_CORRUPT_VTAB)
 CREATE VIRTUAL TABLE IF NOT EXISTS incidents_fts USING fts5(
     failure_id,
     module_name,
@@ -124,7 +135,7 @@ CREATE TRIGGER IF NOT EXISTS incidents_au AFTER UPDATE ON forensic_incidents BEG
     VALUES (new.rowid, new.failure_id, new.module_name, new.stack_trace, new.resolution_hint);
 END;
 
--- 7. Historial Auditable de Veredictos de Compuertas de Calidad
+-- 7. Auditable History of Quality Gate Verdicts
 CREATE TABLE IF NOT EXISTS quality_gate_verdicts (
     verdict_id INTEGER PRIMARY KEY AUTOINCREMENT,
     module_name TEXT NOT NULL,

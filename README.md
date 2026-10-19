@@ -7,7 +7,7 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
 > **Headless Deterministic Agent Harness & Kernel-Space Arbitrator in Rust.**  
-> Gouverning probabilistic User-Space LLMs via zero-trust AST gates, OS-sandboxed TDD verification, single-writer SQLite WAL persistence, and a live Obsidian knowledge graph.
+> Governing probabilistic User-Space LLMs via zero-trust AST gates, OS-sandboxed TDD verification, single-writer SQLite WAL persistence, and a live Obsidian knowledge graph.
 
 ---
 
@@ -28,7 +28,7 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
 │                     USER-SPACE: IDE HOST / PROBABILISTIC LLM AGENTS                      │
 │   ┌────────────────────┬────────────────────┬────────────────────┬───────────────────┐   │
-│   │   BEL (Architect)  │   ENKI (Builder)   │   UTU (Auditor)    │ NABU (Chronicler) │   │
+│   │  BEL (Overseer)    │   ENKI (Builder)   │    UTU (Critic)    │ NABU (Chronicler) │   │
 │   │ • Vault Contracts  │ • Strict RED/GREEN │ • Stateless Cold   │ • Append-Only Log │   │
 │   │ • ADR Governance   │ • Branded Types    │   SAST & ADR Audit │ • FAIL-XXX Ledger │   │
 │   └─────────┬──────────┴─────────┬──────────┴─────────┬──────────┴─────────┬─────────┘   │
@@ -39,7 +39,7 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 │                   KERNEL-SPACE: ALEXANDRIA RUNTIME (Rust 2024 Binary)                    │
 ├────────────────────────────────────────────┬─────────────────────────────────────────────┤
 │  PLANE 1: TOPOLOGICAL GRAPH & AST ENGINE   │  PLANE 2: EPISODIC & PROCEDURAL MEMORY      │
-│  • Obsidian Vault (`./alexandria/`)        │  • Single-Writer Actor (`~/.alexandria/`)   │
+│  • Obsidian Vault (`./wiki/`)              │  • Single-Writer Actor (`~/.alexandria/`)   │
 │  • `petgraph::StableDiGraph` in RAM        │  • `SQLite WAL` (`synchronous = NORMAL`)    │
 │  • Strict Depth=1 Module Pruning           │  • `skills_fts` (BM25 + Porter Stemmer)     │
 │  • Transitive ADR Hoisting (Depth <= 6)    │  • `incidents_fts` (Forensic `FAIL-XXX`)    │
@@ -47,13 +47,13 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 └────────────────────────────────────────────┴─────────────────────────────────────────────┘
 ```
 
-### The Pantheon Quartet (Dual-Mode Governance)
-| Persona | Operational Mode | Core Responsibility | Hard Boundary |
-| :--- | :--- | :--- | :--- |
-| **Bel** | `[ARQUITECTO]` | Authors contracts in `alexandria/modules/` and `[[ADR-XXX]]` in `alexandria/decisions/`. | **Never** touches executable code in `src/`. |
-| **Enki** | `[CONSTRUCTOR]` | Executes strict **RED $\rightarrow$ GREEN $\rightarrow$ REFACTOR** TDD cycles in `tests/` and `src/`. | **Blocked** from editing `src/` without a prior contract and a verified RED assertion failure. |
-| **Utu** | `[ARQUITECTO]` | Performs stateless cold-context audits against hoisted ADRs and SAST rules. | Zero access to Enki's reasoning history (prevents confirmation bias). |
-| **Nabu** | `[ARQUITECTO]` | Records `FAIL-XXX` forensic incidents in `alexandria/failures.md` and `LOG-XXX` entries in `alexandria/log.md`. | Append-only immutable ledger enforcement. |
+### The Pantheon Quartet (`agent_catalog` & `.agents/agents/`)
+| Agent ID | Archetype | `max_subagents` | Core Responsibility | Hard Boundary |
+| :--- | :--- | :---: | :--- | :--- |
+| **`bel`** | **Bel (The Overseer)** | `5` | Chief Software Architect. Authors contracts in `wiki/modules/` and `[[ADR-XXX]]` in `wiki/decisions/`. | **Never** modifies executable code in `src/`. |
+| **`enki`** | **Enki (The Builder)** | `3` | Principal TDD Engineer. Executes strict **RED $\rightarrow$ GREEN $\rightarrow$ REFACTOR** TDD cycles in `tests/` and `src/`. | **Blocked** from editing `src/` without a prior contract and a verified RED assertion failure. |
+| **`utu`** | **Utu (The Critic)** | `1` | Impartial Security & Quality Auditor. Performs stateless cold-context audits against hoisted ADRs and SAST rules. | Zero access to Enki's reasoning history (prevents confirmation bias). |
+| **`nabu`** | **Nabu (The Chronicler)** | `1` | Keeper of the Obsidian Vault. Records `FAIL-XXX` forensic incidents in `wiki/failures.md` and `EPOCH-XXX` entries in `wiki/log.md`. | Append-only immutable ledger enforcement. |
 
 ---
 
@@ -84,15 +84,15 @@ cargo build --release
 ### CLI Commands
 
 1. **Initialize a Workspace (`init`):**
-   Generates `.alexandria.json`, scaffolds the canonical Obsidian vault (`wiki/index.md`, `wiki/log.md`, `wiki/failures.md`, `wiki/architecture/`, `wiki/modules/`, `wiki/decisions/`), and hardens `.gitignore`.
+   Generates `.alexandria.json`, scaffolds the canonical Obsidian vault (`wiki/index.md`, `wiki/log.md`, `wiki/failures.md`, `wiki/architecture/`, `wiki/modules/`, `wiki/decisions/`), populates the Pantheon agent descriptors (`.agents/agents/{bel,enki,utu,nabu}.md`), and hardens `.gitignore`.
    ```bash
    ./target/release/alexandria init
    # Optional custom Obsidian vault path and profile:
-   ./target/release/alexandria init --vault ./alexandria --profile mvp-fullstack-ts
+   ./target/release/alexandria init --vault ./wiki --profile mvp-fullstack-ts
    ```
 
 2. **Start the MCP JSON-RPC 2.0 Server (`mcp`):**
-   Spawns the dedicated SQLite WAL writer thread on `~/.alexandria/vault.db` and serves the 6 Prefix-Pinned MCP tools over `stdio`.
+   Spawns the dedicated SQLite WAL writer thread on `~/.alexandria/vault.db`, seeds the Pantheon `agent_catalog`, and serves the 6 Prefix-Pinned MCP tools over `stdio`.
    ```bash
    ./target/release/alexandria mcp
    ```

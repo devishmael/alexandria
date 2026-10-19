@@ -49,7 +49,7 @@ pub fn strip_windows_unc_prefix(raw_path: &str) -> PathBuf {
 
 pub fn clean_canonical_path(path: &Path) -> Result<PathBuf, String> {
     let canon = std::fs::canonicalize(path)
-        .map_err(|e| format!("Error canonicalizando ruta {:?}: {}", path, e))?;
+        .map_err(|e| format!("Failed to canonicalize path {:?}: {}", path, e))?;
     #[cfg(target_os = "windows")]
     {
         return Ok(strip_windows_unc_prefix(&canon.to_string_lossy()));
@@ -109,8 +109,8 @@ pub async fn run_sandboxed_vitest(
 
     let output = timeout(Duration::from_secs(timeout_secs), cmd.output())
         .await
-        .map_err(|_| "Timeout excedido ejecutando Vitest en Sandbox".to_string())?
-        .map_err(|e| format!("Fallo al lanzar el binario node: {}", e))?;
+        .map_err(|_| "Timeout exceeded while executing Vitest in Sandbox".to_string())?
+        .map_err(|e| format!("Failed to spawn node binary: {}", e))?;
 
     let stdout_str = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr_str = String::from_utf8_lossy(&output.stderr).to_string();
@@ -133,7 +133,7 @@ pub fn evaluate_tdd_red_phase(
     let Some(report) = report_opt else {
         return RedPhaseVerdict::InvalidSyntaxOrImportError {
             details: format!(
-                "Vitest no pudo emitir el archivo JSON de reporte (posible SyntaxError fatal): {}",
+                "Vitest failed to emit the JSON report file (possible fatal SyntaxError): {}",
                 raw_logs
             ),
         };
@@ -141,14 +141,14 @@ pub fn evaluate_tdd_red_phase(
 
     if report.num_total_test_suites == 0 {
         return RedPhaseVerdict::InvalidSyntaxOrImportError {
-            details: "No se encontró ninguna suite ejecutable.".into(),
+            details: "No executable test suites were found.".into(),
         };
     }
 
     for suite in &report.test_results {
         if suite.assertion_results.is_empty() && suite.status == "failed" {
             return RedPhaseVerdict::InvalidSyntaxOrImportError {
-                details: format!("La suite falló al cargar o compilar: {}", suite.message),
+                details: format!("Test suite failed to load or compile: {}", suite.message),
             };
         }
     }

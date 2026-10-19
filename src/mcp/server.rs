@@ -89,7 +89,7 @@ pub async fn handle_raw_jsonrpc_line_with_context(
     let req: JsonRpcRequest = match serde_json::from_str(line) {
         Ok(r) => r,
         Err(e) => {
-            tracing::warn!("Trama JSON-RPC malformada: {}", e);
+            tracing::warn!("Malformed JSON-RPC frame: {}", e);
             return Some(JsonRpcResponse {
                 jsonrpc: "2.0",
                 id: Value::Null,
@@ -116,7 +116,7 @@ pub async fn run_mcp_stdio_loop_with_context(ctx: McpKernelContext) -> Result<()
         .with_ansi(false)
         .try_init();
 
-    tracing::info!("Alexandria Runtime v2.4.0 MCP Server iniciado sobre stdio");
+    tracing::info!("Alexandria Runtime v2.4.0 MCP Server started over stdio");
 
     let stdin = tokio::io::stdin();
     let mut stdout = tokio::io::stdout();
@@ -178,7 +178,7 @@ pub async fn dispatch_mcp_method_with_context(
                 "tools": [
                     {
                         "name": "prepare_task_context",
-                        "description": "Clasifica Path Alpha/Omega en Zero-Turn y resuelve el grafo depth=1 con ADR Hoisting.",
+                        "description": "Classifies Path Alpha/Omega in Zero-Turn and resolves the depth=1 topological graph with transitive ADR hoisting.",
                         "inputSchema": {
                             "type": "object",
                             "required": ["instruction", "targetFiles"],
@@ -192,7 +192,7 @@ pub async fn dispatch_mcp_method_with_context(
                     },
                     {
                         "name": "upsert_architectural_contract",
-                        "description": "Crea o actualiza ADRs y contratos de módulo en alexandria/ (Path Omega).",
+                        "description": "Creates or updates ADRs and module contracts in the knowledge vault (Path Omega).",
                         "inputSchema": {
                             "type": "object",
                             "required": ["moduleName", "technicalSpecMarkdown"],
@@ -207,7 +207,7 @@ pub async fn dispatch_mcp_method_with_context(
                     },
                     {
                         "name": "resolve_skill_capsule",
-                        "description": "Inyecta una cápsula JIT en el sufijo dinámico sin invalidar el Prefix Cache.",
+                        "description": "Injects a JIT procedural capsule into the dynamic suffix without invalidating the KV-Cache prefix.",
                         "inputSchema": {
                             "type": "object",
                             "additionalProperties": false,
@@ -219,7 +219,7 @@ pub async fn dispatch_mcp_method_with_context(
                     },
                     {
                         "name": "spawn_isolated_worktrees",
-                        "description": "Autoriza Git worktrees paralelos verificando disyunción doble en petgraph y oxc_resolver.",
+                        "description": "Authorizes parallel Git worktrees after verifying dual disjunction in petgraph and oxc_resolver.",
                         "inputSchema": {
                             "type": "object",
                             "required": ["tasks"],
@@ -243,7 +243,7 @@ pub async fn dispatch_mcp_method_with_context(
                     },
                     {
                         "name": "verify_and_gate_changes",
-                        "description": "Ejecuta Gate 0 (Oxc AST), Gate 1-4 en Sandbox Node (--permission) y Auditoría Stateless de Utu.",
+                        "description": "Executes Gate 0 (Oxc AST), Gate 1-4 in Node Sandbox (--permission), and Utu Stateless Cold Audit.",
                         "inputSchema": {
                             "type": "object",
                             "required": ["targetModule", "targetFiles", "executionPath", "tddPhase"],
@@ -258,7 +258,7 @@ pub async fn dispatch_mcp_method_with_context(
                     },
                     {
                         "name": "finalize_task_and_log",
-                        "description": "Realiza el commit atómico, actualiza alexandria/log.md y levanta el entorno de desarrollo.",
+                        "description": "Performs the atomic commit, appends the immutable entry to wiki/log.md, and resets the Circuit Breaker.",
                         "inputSchema": {
                             "type": "object",
                             "required": ["moduleName", "summary"],
@@ -288,7 +288,7 @@ pub async fn dispatch_mcp_method_with_context(
             result: None,
             error: Some(JsonRpcError {
                 code: -32601,
-                message: format!("Método JSON-RPC no encontrado: {}", method),
+                message: format!("JSON-RPC method not found: {}", method),
             }),
         },
     }
@@ -316,7 +316,7 @@ pub fn classify_execution_path(instruction: &str, target_files: &[String]) -> &'
 
     let instr_triggers_omega = instr_lower.contains("schema.prisma")
         || instr_lower.contains("adr-")
-        || instr_lower.contains("arquitectura");
+        || instr_lower.contains("architecture");
 
     if touches_critical_file || instr_triggers_omega {
         "omega_pantheon"
@@ -651,7 +651,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                             passed = false;
                             red_phase_kind = Some("unexpected_pass");
                             diagnostics_list.push(
-                                "Fase RED inválida: la prueba aprobó sin fallar por aserción."
+                                "Invalid RED phase: test suite passed without an assertion failure."
                                     .to_string(),
                             );
                         }
@@ -660,8 +660,7 @@ pub async fn dispatch_alexandria_tool_with_context(
             }
 
             let diagnostics_joined = if diagnostics_list.is_empty() {
-                "Gate 0 (Oxc AST) y verificaciones estáticas aprobadas sin infracciones."
-                    .to_string()
+                "Gate 0 (Oxc AST) and static verifications passed with zero violations.".to_string()
             } else {
                 diagnostics_list.join("\n")
             };
@@ -697,7 +696,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                     .reset_circuit_breaker(
                         target_module.to_string(),
                         None,
-                        "Compuertas aprobadas satisfactoriamente".to_string(),
+                        "All quality gates passed successfully".to_string(),
                     )
                     .await;
             }
@@ -726,7 +725,7 @@ pub async fn dispatch_alexandria_tool_with_context(
             let summary = args
                 .get("summary")
                 .and_then(|v| v.as_str())
-                .unwrap_or("Tarea finalizada");
+                .unwrap_or("Task completed");
 
             let _ = fs::create_dir_all(&ctx.vault_dir);
             let log_path = ctx.vault_dir.join("log.md");
@@ -736,7 +735,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                 .as_secs();
 
             let entry = format!(
-                "\n### [EPOCH-{}] Módulo `{}` Certificado\n- **Resumen:** {}\n",
+                "\n### [EPOCH-{}] Module `{}` Certified\n- **Summary:** {}\n",
                 ts, module_name, summary
             );
 
@@ -774,7 +773,7 @@ pub async fn dispatch_alexandria_tool_with_context(
             result: None,
             error: Some(JsonRpcError {
                 code: -32602,
-                message: format!("Herramienta desconocida en Alexandria MCP: {}", tool_name),
+                message: format!("Unknown tool in Alexandria MCP: {}", tool_name),
             }),
         },
     }
