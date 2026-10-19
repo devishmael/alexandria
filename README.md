@@ -7,7 +7,7 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
 > **Headless Deterministic Agent Harness & Kernel-Space Arbitrator in Rust.**  
-> Governing probabilistic User-Space LLMs via zero-trust AST gates, OS-sandboxed TDD verification, single-writer SQLite WAL persistence, and a live Obsidian knowledge graph.
+> Governing probabilistic User-Space LLMs via zero-trust AST gates, OS-sandboxed TDD verification, single-writer SQLite WAL persistence, polymorphic skill/hook ETL normalization, and a live Obsidian knowledge graph.
 
 ---
 
@@ -17,7 +17,7 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 
 **Alexandria Runtime** solves this by enforcing a strict operating-system boundary between **Kernel-Space** and **User-Space**:
 
-- **Kernel-Space (`alexandria` Rust Binary):** The deterministic authority. It owns the filesystem graph (`petgraph`), native TypeScript/TSX AST parsing (`oxc_parser`), OS-level process sandboxing (`node --permission`), single-writer SQLite WAL + FTS5 BM25 memory (`rusqlite`), and the deterministic Circuit Breaker.
+- **Kernel-Space (`alexandria` Rust Binary):** The deterministic authority. It owns the filesystem graph (`petgraph`), native TypeScript/TSX AST parsing (`oxc_parser`), OS-level process sandboxing (`node --permission`), polymorphic Skill/Hook ETL normalization (`src/collector/`), single-writer SQLite WAL + FTS5 BM25 memory (`rusqlite`), and the deterministic Circuit Breaker.
 - **User-Space (Probabilistic LLM Host):** Untrusted compute process (Antigravity 2.0, Claude Code, Cursor, Windsurf). It cannot self-certify compilation, test verdicts, or architectural compliance; every mutation is arbitrated out-of-band by the Rust kernel via the **Model Context Protocol (MCP `2024-11-05`)**.
 
 ---
@@ -67,7 +67,7 @@ Compiled with `opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abo
 | **Idle Resident Memory (RSS)** | $\le 15.0\text{ MB}$ | **`~8.4 MB`** (Zero ML weights in process address space) |
 | **Topological Graph Traversal + ADR Hoisting** | $\le 1.00\text{ ms}$ | **`<= 0.20 ms`** (`petgraph::StableDiGraph` in RAM) |
 | **Gate 0 Native AST Scan (`oxc_parser`)** | $\le 2.00\text{ ms}$ | **`<= 0.80 ms`** (Contiguous arena bump allocation) |
-| **Automated Kernel Test Suites** | $100\%$ Pass | **`32 / 32 Passed`** across 7 integration & E2E suites |
+| **Automated Kernel Test Suites** | $100\%$ Pass | **`36 / 36 Passed`** across 8 integration & E2E suites |
 
 ---
 
@@ -91,13 +91,19 @@ cargo build --release
    ./target/release/alexandria init --vault ./wiki --profile mvp-fullstack-ts
    ```
 
-2. **Start the MCP JSON-RPC 2.0 Server (`mcp`):**
-   Spawns the dedicated SQLite WAL writer thread on `~/.alexandria/vault.db`, seeds the Pantheon `agent_catalog`, and serves the 6 Prefix-Pinned MCP tools over `stdio`.
+2. **Collect & Refactor External Skills, Hooks & Tools (`collect`):**
+   Scans any input directory recursively (`.md`, `SKILL.md`, `.yaml`/`.yml`, `.json`), refactors them into Alexandria's canonical `AlexandriaCapsuleJson` (`alexandria.capsule.v2.4`) bundle and `alexandria-capsules.manifest.json`, and synchronizes them into `~/.alexandria/vault.db` (`skills` + `skills_fts`).
+   ```bash
+   ./target/release/alexandria collect ./raw-skills --out ./.alexandria/capsules
+   ```
+
+3. **Start the MCP JSON-RPC 2.0 Server (`mcp`):**
+   Spawns the dedicated SQLite WAL writer thread on `~/.alexandria/vault.db`, seeds the Pantheon `agent_catalog` and the 4 built-in factory capsules (`testing:tdd-vitest`, `database:prisma-acid-closure`, `typescript:nominal-branded-types`, `security:zero-trust-sast`), and serves the 6 Prefix-Pinned MCP tools over `stdio`.
    ```bash
    ./target/release/alexandria mcp
    ```
 
-3. **Autonomous Zero-Turn Directive Classification (`run`):**
+4. **Autonomous Zero-Turn Directive Classification (`run`):**
    Evaluates an engineering directive, classifies the execution path (`alpha_fast` vs. `omega_pantheon`), and resolves the vault context.
    ```bash
    ./target/release/alexandria run "Refactor Prisma billing transaction with strict lexical closure"
@@ -105,7 +111,47 @@ cargo build --release
 
 ---
 
-## 5. Multi-Host IDE Integration (`MCP 2024-11-05`)
+## 5. Polymorphic Skill & Hook ETL Collector (`src/collector/`)
+
+Alexandria unifies heterogeneous procedural skills (`SKILL.md` from Antigravity/Claude, canonical Alexandria `.md`, `.yaml`, and `.json`) into the deterministic **`AlexandriaCapsuleJson`** (`alexandria.capsule.v2.4`) schema:
+
+```json
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:prisma-acid-closure",
+  "domain": "database",
+  "profileCompatibility": ["mvp-fullstack-ts", "enterprise-microservices"],
+  "description": "Strict lexical closure in prisma.$transaction under 25ms, forbidding .then(), tx aliasing, and dangling promises.",
+  "triggerKeywords": ["database", "prisma", "acid", "closure", "sub25ms"],
+  "requiredTools": ["prepare_task_context", "verify_and_gate_changes"],
+  "invariants": [
+    "PRISMA_TX_INLINE_CALLBACK_REQUIRED",
+    "PRISMA_TX_NO_ALIAS_OR_DESTRUCTURE",
+    "PRISMA_TX_NO_PROMISE_CHAINING",
+    "PRISMA_TX_DANGLING_PROMISE_FORBIDDEN"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "scan_ast_invariants",
+      "targetFilter": "src/**/*.ts"
+    }
+  ],
+  "instructionsMarkdown": "Enforce strict lexical closure inside `prisma.$transaction(async (tx) => { ... })`...",
+  "contentSha256": "..."
+}
+```
+
+### Factory Built-In Core Capsules (`builtin_core_capsules()`)
+Automatically seeded into `vault.db` upon `VaultStorageHandle::spawn`:
+- **`testing:tdd-vitest`** (`testing`): Enforces RED $\rightarrow$ GREEN $\rightarrow$ REFACTOR with Vitest `--outputFile` and blocks `src/` edits without a prior `AssertionError`.
+- **`database:prisma-acid-closure`** (`database`): Enforces $\le 25\text{ ms}$ lexical closure inside `prisma.$transaction`, forbidding `.then()`, `tx` aliasing, and unawaited promises.
+- **`typescript:nominal-branded-types`** (`backend`): Prohibits `any` and `as unknown as T`, requiring nominal Branded Types.
+- **`security:zero-trust-sast`** (`security`): Enforces Utu stateless cold audits, secret leak prevention, and `node --permission` sandboxing.
+
+---
+
+## 6. Multi-Host IDE Integration (`MCP 2024-11-05`)
 
 Alexandria Runtime exposes **6 immutable tools** (`prepare_task_context`, `upsert_architectural_contract`, `resolve_skill_capsule`, `spawn_isolated_worktrees`, `verify_and_gate_changes`, `finalize_task_and_log`) ordered deterministically to guarantee a **100% KV-Cache Prefix Hit**.
 
@@ -144,7 +190,7 @@ claude mcp add alexandria-engine -- alexandria mcp
 
 ---
 
-## 6. Out-of-Band Quality Gates & Deterministic TDD
+## 7. Out-of-Band Quality Gates & Deterministic TDD
 
 Every code mutation submitted via `verify_and_gate_changes` must clear five sequential kernel gates:
 
@@ -162,6 +208,6 @@ When a module fails 3 consecutive gate attempts, the kernel trips the circuit br
 
 ---
 
-## 7. License
+## 8. License
 
 Released under the [MIT License](LICENSE). Copyright (c) 2026 **Dev Ishmael**.

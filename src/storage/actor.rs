@@ -1,3 +1,4 @@
+use crate::collector::skill_etl::{AlexandriaCapsuleJson, builtin_core_capsules};
 use rusqlite::{Connection, OptionalExtension, params};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -12,7 +13,9 @@ pub struct SkillCapsuleRecord {
     pub domain: String,
     pub description: String,
     pub trigger_keywords_json: String,
+    pub required_tools_json: String,
     pub invariants_json: String,
+    pub hooks_json: String,
     pub instructions_md: String,
     pub resolution_method: String,
 }
@@ -36,7 +39,9 @@ pub enum VaultWriteCommand {
         domain: String,
         description: String,
         trigger_keywords_json: String,
+        required_tools_json: String,
         invariants_json: String,
+        hooks_json: String,
         instructions_md: String,
         reply: oneshot::Sender<Result<(), String>>,
     },
@@ -83,6 +88,14 @@ impl VaultStorageHandle {
         init_conn
             .execute_batch(schema_sql)
             .map_err(|e| format!("Failed to initialize SQL schema: {}", e))?;
+        let _ = init_conn.execute(
+            "ALTER TABLE skills ADD COLUMN required_tools_json TEXT NOT NULL DEFAULT '[]'",
+            [],
+        );
+        let _ = init_conn.execute(
+            "ALTER TABLE skills ADD COLUMN hooks_json TEXT NOT NULL DEFAULT '[]'",
+            [],
+        );
 
         let now_ms = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -144,6 +157,37 @@ impl VaultStorageHandle {
                     ],
                 )
                 .map_err(|e| format!("Failed to seed Pantheon agent '{}': {}", agent_id, e))?;
+        }
+
+        for cap in builtin_core_capsules() {
+            let trigger_keywords_json =
+                serde_json::to_string(&cap.trigger_keywords).unwrap_or_else(|_| "[]".to_string());
+            let required_tools_json =
+                serde_json::to_string(&cap.required_tools).unwrap_or_else(|_| "[]".to_string());
+            let invariants_json =
+                serde_json::to_string(&cap.invariants).unwrap_or_else(|_| "[]".to_string());
+            let hooks_json = serde_json::to_string(&cap.hooks).unwrap_or_else(|_| "[]".to_string());
+
+            init_conn
+                .execute(
+                    "INSERT OR IGNORE INTO skills (
+                        skill_id, domain, description, trigger_keywords_json,
+                        required_tools_json, invariants_json, hooks_json,
+                        instructions_md, updated_at
+                     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                    params![
+                        cap.skill_id,
+                        cap.domain,
+                        cap.description,
+                        trigger_keywords_json,
+                        required_tools_json,
+                        invariants_json,
+                        hooks_json,
+                        cap.instructions_markdown,
+                        now_ms
+                    ],
+                )
+                .map_err(|e| format!("Failed to seed built-in capsule '{}': {}", cap.skill_id, e))?;
         }
 
         drop(init_conn);
@@ -267,8 +311,43 @@ impl VaultStorageHandle {
                 domain,
                 description,
                 trigger_keywords_json,
+                required_tools_json: r#"["prepare_task_context","verify_and_gate_changes"]"#
+                    .to_string(),
                 invariants_json,
+                hooks_json: "[]".to_string(),
                 instructions_md,
+                reply: reply_tx,
+            })
+            .await
+            .map_err(|_| "VaultWriterActor channel closed".to_string())?;
+        reply_rx
+            .await
+            .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
+    }
+
+    pub async fn upsert_skill_capsule(
+        &self,
+        capsule: &AlexandriaCapsuleJson,
+    ) -> Result<(), String> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+        let trigger_keywords_json =
+            serde_json::to_string(&capsule.trigger_keywords).unwrap_or_else(|_| "[]".to_string());
+        let required_tools_json =
+            serde_json::to_string(&capsule.required_tools).unwrap_or_else(|_| "[]".to_string());
+        let invariants_json =
+            serde_json::to_string(&capsule.invariants).unwrap_or_else(|_| "[]".to_string());
+        let hooks_json = serde_json::to_string(&capsule.hooks).unwrap_or_else(|_| "[]".to_string());
+
+        self.writer_tx
+            .send(VaultWriteCommand::UpsertSkill {
+                skill_id: capsule.skill_id.clone(),
+                domain: capsule.domain.clone(),
+                description: capsule.description.clone(),
+                trigger_keywords_json,
+                required_tools_json,
+                invariants_json,
+                hooks_json,
+                instructions_md: capsule.instructions_markdown.clone(),
                 reply: reply_tx,
             })
             .await
@@ -413,19 +492,26 @@ impl VaultStorageHandle {
                 domain,
                 description,
                 trigger_keywords_json,
+                required_tools_json,
                 invariants_json,
+                hooks_json,
                 instructions_md,
                 reply,
             } => {
                 let res = tx
                     .execute(
-                        "INSERT INTO skills (skill_id, domain, description, trigger_keywords_json, invariants_json, instructions_md, updated_at)
-                         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                        "INSERT INTO skills (
+                            skill_id, domain, description, trigger_keywords_json,
+                            required_tools_json, invariants_json, hooks_json,
+                            instructions_md, updated_at
+                         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
                          ON CONFLICT(skill_id) DO UPDATE SET
                             domain = excluded.domain,
                             description = excluded.description,
                             trigger_keywords_json = excluded.trigger_keywords_json,
+                            required_tools_json = excluded.required_tools_json,
                             invariants_json = excluded.invariants_json,
+                            hooks_json = excluded.hooks_json,
                             instructions_md = excluded.instructions_md,
                             updated_at = excluded.updated_at",
                         params![
@@ -433,7 +519,9 @@ impl VaultStorageHandle {
                             domain,
                             description,
                             trigger_keywords_json,
+                            required_tools_json,
                             invariants_json,
+                            hooks_json,
                             instructions_md,
                             now_ms
                         ],
@@ -474,7 +562,7 @@ impl VaultStorageHandle {
         if let Some(id) = skill_id.filter(|s| !s.trim().is_empty()) {
             let exact: Option<SkillCapsuleRecord> = conn
                 .query_row(
-                    "SELECT skill_id, domain, description, trigger_keywords_json, invariants_json, instructions_md
+                    "SELECT skill_id, domain, description, trigger_keywords_json, required_tools_json, invariants_json, hooks_json, instructions_md
                      FROM skills WHERE skill_id = ?1",
                     params![id],
                     |row| {
@@ -483,8 +571,10 @@ impl VaultStorageHandle {
                             domain: row.get(1)?,
                             description: row.get(2)?,
                             trigger_keywords_json: row.get(3)?,
-                            invariants_json: row.get(4)?,
-                            instructions_md: row.get(5)?,
+                            required_tools_json: row.get(4)?,
+                            invariants_json: row.get(5)?,
+                            hooks_json: row.get(6)?,
+                            instructions_md: row.get(7)?,
                             resolution_method: "exact_id".to_string(),
                         })
                     },
@@ -511,7 +601,7 @@ impl VaultStorageHandle {
                 if let Some(found_id) = matched_id {
                     let fts_record: Option<SkillCapsuleRecord> = conn
                         .query_row(
-                            "SELECT skill_id, domain, description, trigger_keywords_json, invariants_json, instructions_md
+                            "SELECT skill_id, domain, description, trigger_keywords_json, required_tools_json, invariants_json, hooks_json, instructions_md
                              FROM skills WHERE skill_id = ?1",
                             params![found_id],
                             |row| {
@@ -520,8 +610,10 @@ impl VaultStorageHandle {
                                     domain: row.get(1)?,
                                     description: row.get(2)?,
                                     trigger_keywords_json: row.get(3)?,
-                                    invariants_json: row.get(4)?,
-                                    instructions_md: row.get(5)?,
+                                    required_tools_json: row.get(4)?,
+                                    invariants_json: row.get(5)?,
+                                    hooks_json: row.get(6)?,
+                                    instructions_md: row.get(7)?,
                                     resolution_method: "fts5_bm25_fallback".to_string(),
                                 })
                             },

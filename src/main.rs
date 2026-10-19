@@ -1,6 +1,6 @@
 use alexandria::cli::{
-    CliCommand, HELP_BANNER, VERSION_BANNER, execute_autonomous_run, execute_init_scaffolding,
-    parse_cli_args, resolve_default_vault_db_path,
+    CliCommand, HELP_BANNER, VERSION_BANNER, execute_autonomous_run, execute_collect_subcommand,
+    execute_init_scaffolding, parse_cli_args, resolve_default_vault_db_path,
 };
 use alexandria::mcp::server::{McpKernelContext, run_mcp_stdio_loop_with_context};
 use alexandria::storage::CANONICAL_SCHEMA_SQL;
@@ -55,6 +55,24 @@ fn main() -> ExitCode {
                     "[ALEXANDRIA KERNEL] Workspace initialized successfully: {}",
                     config_path.display()
                 );
+                Ok(())
+            }
+            CliCommand::Collect {
+                source_dir,
+                output_dir,
+            } => {
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
+                let db_path = resolve_default_vault_db_path()?;
+                let storage_handle = VaultStorageHandle::spawn(db_path, CANONICAL_SCHEMA_SQL)?;
+                let report = execute_collect_subcommand(
+                    &cwd,
+                    &source_dir,
+                    output_dir.as_deref(),
+                    Some(&storage_handle),
+                )
+                .await?;
+                println!("{}", report);
                 Ok(())
             }
             CliCommand::McpStdio => {

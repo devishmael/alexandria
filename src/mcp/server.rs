@@ -1,3 +1,6 @@
+use crate::collector::skill_etl::{
+    AlexandriaHookSpec, collect_and_refactor_directory, export_refactored_json_bundle,
+};
 use crate::gate_guard::oxc_validator::validate_typescript_source;
 use crate::graph::resolver::{
     DisjunctionConflict, load_vault_graph_from_dir, resolve_context_with_adr_hoisting,
@@ -207,13 +210,15 @@ pub async fn dispatch_mcp_method_with_context(
                     },
                     {
                         "name": "resolve_skill_capsule",
-                        "description": "Injects a JIT procedural capsule into the dynamic suffix without invalidating the KV-Cache prefix.",
+                        "description": "Injects a JIT procedural capsule into the dynamic suffix without invalidating the KV-Cache prefix, or ingests a skill directory.",
                         "inputSchema": {
                             "type": "object",
                             "additionalProperties": false,
                             "properties": {
                                 "skillId": { "type": "string" },
-                                "intentQuery": { "type": "string" }
+                                "intentQuery": { "type": "string" },
+                                "sourceDir": { "type": "string" },
+                                "outputDir": { "type": "string" }
                             }
                         }
                     },
@@ -436,6 +441,61 @@ pub async fn dispatch_alexandria_tool_with_context(
             wrap_mcp_text_response(id, payload, false)
         }
         "resolve_skill_capsule" => {
+            if let Some(source_dir_str) = args
+                .get("sourceDir")
+                .or_else(|| args.get("collectFromDir"))
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.trim().is_empty())
+            {
+                let source_path = if Path::new(source_dir_str).is_absolute() {
+                    PathBuf::from(source_dir_str)
+                } else {
+                    ctx.workspace_root.join(source_dir_str)
+                };
+                let out_path = args
+                    .get("outputDir")
+                    .and_then(|v| v.as_str())
+                    .map(|p| {
+                        if Path::new(p).is_absolute() {
+                            PathBuf::from(p)
+                        } else {
+                            ctx.workspace_root.join(p)
+                        }
+                    })
+                    .unwrap_or_else(|| ctx.workspace_root.join(".alexandria").join("capsules"));
+
+                match collect_and_refactor_directory(&source_path) {
+                    Ok(capsules) => {
+                        let manifest_res = export_refactored_json_bundle(&capsules, &out_path);
+                        if let Some(storage) = &ctx.storage {
+                            for cap in &capsules {
+                                let _ = storage.upsert_skill_capsule(cap).await;
+                            }
+                        }
+                        let skill_ids: Vec<String> =
+                            capsules.iter().map(|c| c.skill_id.clone()).collect();
+                        let payload = json!({
+                            "tool": tool_name,
+                            "status": "dispatched_by_kernel",
+                            "receivedArgs": args,
+                            "resolutionMethod": "directory_etl_ingest",
+                            "totalCapsules": capsules.len(),
+                            "ingestedSkillIds": skill_ids,
+                            "manifestPath": manifest_res.ok().map(|p| p.to_string_lossy().to_string())
+                        });
+                        return wrap_mcp_text_response(id, payload, false);
+                    }
+                    Err(err) => {
+                        let payload = json!({
+                            "tool": tool_name,
+                            "status": "error",
+                            "error": err
+                        });
+                        return wrap_mcp_text_response(id, payload, true);
+                    }
+                }
+            }
+
             let skill_id = args.get("skillId").and_then(|v| v.as_str());
             let intent_query = args.get("intentQuery").and_then(|v| v.as_str());
 
@@ -451,6 +511,17 @@ pub async fn dispatch_alexandria_tool_with_context(
             let payload = if let Some(record) = resolved_opt {
                 let invariants: Vec<String> =
                     serde_json::from_str(&record.invariants_json).unwrap_or_default();
+                let mut allowed_tools: Vec<String> =
+                    serde_json::from_str(&record.required_tools_json).unwrap_or_default();
+                if allowed_tools.is_empty() {
+                    allowed_tools = vec![
+                        "prepare_task_context".to_string(),
+                        "verify_and_gate_changes".to_string(),
+                    ];
+                }
+                let hooks: Vec<AlexandriaHookSpec> =
+                    serde_json::from_str(&record.hooks_json).unwrap_or_default();
+
                 json!({
                     "tool": tool_name,
                     "status": "dispatched_by_kernel",
@@ -461,7 +532,8 @@ pub async fn dispatch_alexandria_tool_with_context(
                     "resolutionMethod": record.resolution_method,
                     "instructions": record.instructions_md,
                     "invariants": invariants,
-                    "allowedTools": ["prepare_task_context", "verify_and_gate_changes"]
+                    "allowedTools": allowed_tools,
+                    "hooks": hooks
                 })
             } else {
                 json!({
@@ -472,7 +544,8 @@ pub async fn dispatch_alexandria_tool_with_context(
                     "resolutionMethod": "not_found",
                     "instructions": "",
                     "invariants": [],
-                    "allowedTools": []
+                    "allowedTools": [],
+                    "hooks": []
                 })
             };
 

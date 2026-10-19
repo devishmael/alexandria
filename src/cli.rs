@@ -1,3 +1,5 @@
+use crate::collector::skill_etl::{collect_and_refactor_directory, export_refactored_json_bundle};
+use crate::storage::actor::VaultStorageHandle;
 use serde_json::json;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -21,6 +23,10 @@ COMMANDS:
                                  (wiki/index.md, log.md, failures.md, architecture/,
                                  modules/, decisions/), Pantheon agent profiles
                                  (.agents/agents/{bel,enki,utu,nabu}.md), and .gitignore.
+  collect <source_dir> [--out <output_dir>]
+                                 Scan <source_dir>, refactor skills/hooks into canonical
+                                 AlexandriaCapsuleJson files in <output_dir> (default:
+                                 ./.alexandria/capsules), and synchronize into vault.db.
   mcp                            Start the SQLite WAL actor on ~/.alexandria/vault.db
                                  and serve the MCP JSON-RPC 2.0 server over stdio.
   run \"<directive>\"              Execute a directive in autonomous CLI mode by evaluating
@@ -33,6 +39,10 @@ pub enum CliCommand {
     Init {
         vault_path: Option<String>,
         profile: Option<String>,
+    },
+    Collect {
+        source_dir: String,
+        output_dir: Option<String>,
     },
     McpStdio,
     Run {
@@ -83,6 +93,36 @@ where
                 profile,
             })
         }
+        Some("collect") => {
+            let mut source_dir: Option<String> = None;
+            let mut output_dir: Option<String> = None;
+
+            while let Some(arg) = iter.next() {
+                if arg == "--out" || arg == "-o" {
+                    let val = iter.next().ok_or_else(|| {
+                        "Flag '--out' requires a target directory argument.".to_string()
+                    })?;
+                    output_dir = Some(val);
+                } else if let Some(val) = arg.strip_prefix("--out=") {
+                    output_dir = Some(val.to_string());
+                } else if arg == "--help" || arg == "-h" {
+                    return Ok(CliCommand::Help);
+                } else if !arg.starts_with('-') && source_dir.is_none() {
+                    source_dir = Some(arg);
+                } else {
+                    return Err(format!("Unknown option in 'collect': '{}'", arg));
+                }
+            }
+
+            let src = source_dir.ok_or_else(|| {
+                "Command 'collect' requires a <source_dir> argument. Usage: alexandria collect <source_dir> [--out <output_dir>]".to_string()
+            })?;
+
+            Ok(CliCommand::Collect {
+                source_dir: src,
+                output_dir,
+            })
+        }
         Some("mcp") | Some("serve") => Ok(CliCommand::McpStdio),
         Some("run") => {
             let parts: Vec<String> = iter.collect();
@@ -94,10 +134,10 @@ where
             })
         }
         Some(other) => Err(format!(
-            "Unknown subcommand '{}'. Usage: alexandria <init|mcp|run|--version|--help>",
+            "Unknown subcommand '{}'. Usage: alexandria <init|collect|mcp|run|--version|--help>",
             other
         )),
-        None => Err("Usage: alexandria <init|mcp|run|--version|--help>".into()),
+        None => Err("Usage: alexandria <init|collect|mcp|run|--version|--help>".into()),
     }
 }
 
@@ -299,3 +339,45 @@ pub fn execute_autonomous_run(workspace_root: &Path, instruction: &str) -> Resul
 
     serde_json::to_string(&summary).map_err(|e| e.to_string())
 }
+
+pub async fn execute_collect_subcommand(
+    workspace_root: &Path,
+    source_dir: &str,
+    output_dir: Option<&str>,
+    storage: Option<&VaultStorageHandle>,
+) -> Result<String, String> {
+    let source_path = if Path::new(source_dir).is_absolute() {
+        PathBuf::from(source_dir)
+    } else {
+        workspace_root.join(source_dir)
+    };
+
+    let out_path = match output_dir {
+        Some(out_str) if Path::new(out_str).is_absolute() => PathBuf::from(out_str),
+        Some(out_str) => workspace_root.join(out_str),
+        None => workspace_root.join(".alexandria").join("capsules"),
+    };
+
+    let capsules = collect_and_refactor_directory(&source_path)?;
+    let manifest_path = export_refactored_json_bundle(&capsules, &out_path)?;
+
+    if let Some(storage_handle) = storage {
+        for cap in &capsules {
+            storage_handle.upsert_skill_capsule(cap).await?;
+        }
+    }
+
+    let skill_ids: Vec<String> = capsules.iter().map(|c| c.skill_id.clone()).collect();
+    let summary = json!({
+        "engine": VERSION_BANNER,
+        "status": "collected",
+        "sourceDir": source_path.to_string_lossy(),
+        "outputDir": out_path.to_string_lossy(),
+        "manifestPath": manifest_path.to_string_lossy(),
+        "totalCapsules": capsules.len(),
+        "skillIds": skill_ids
+    });
+
+    serde_json::to_string(&summary).map_err(|e| e.to_string())
+}
+

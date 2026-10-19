@@ -49,7 +49,9 @@ CREATE TABLE IF NOT EXISTS skills (
     domain TEXT NOT NULL,
     description TEXT NOT NULL,
     trigger_keywords_json TEXT NOT NULL,
+    required_tools_json TEXT NOT NULL DEFAULT '[]',
     invariants_json TEXT NOT NULL,
+    hooks_json TEXT NOT NULL DEFAULT '[]',
     instructions_md TEXT NOT NULL,
     updated_at INTEGER NOT NULL
 );
