@@ -198,3 +198,74 @@ pub fn classify_node_kind(relative_path: &Path) -> NodeKind {
         NodeKind::Module
     }
 }
+
+fn collect_markdown_files_recursively(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if !name.starts_with('.') {
+                collect_markdown_files_recursively(&path, out);
+            }
+        } else if path.extension().and_then(|e| e.to_str()) == Some("md") {
+            out.push(path);
+        }
+    }
+}
+
+pub fn load_vault_graph_from_dir(
+    vault_dir: &Path,
+) -> (StableDiGraph<WikiNode, ()>, HashMap<String, NodeIndex>) {
+    let mut graph = StableDiGraph::new();
+    let mut node_map: HashMap<String, NodeIndex> = HashMap::new();
+
+    if !vault_dir.exists() {
+        return (graph, node_map);
+    }
+
+    let mut md_files = Vec::new();
+    collect_markdown_files_recursively(vault_dir, &mut md_files);
+    md_files.sort();
+
+    let mut pending_links: Vec<(NodeIndex, Vec<String>)> = Vec::new();
+
+    for file_path in md_files {
+        let Ok(content) = std::fs::read_to_string(&file_path) else {
+            continue;
+        };
+        let Some(stem) = file_path.file_stem().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        let node_id = stem.to_string();
+        let rel_path = file_path.strip_prefix(vault_dir).unwrap_or(&file_path);
+        let kind = classify_node_kind(rel_path);
+        let sha256 = compute_sha256(&content);
+        let links = extract_wikilinks(&content);
+
+        let idx = graph.add_node(WikiNode {
+            id: node_id.clone(),
+            path: file_path,
+            kind,
+            content,
+            sha256,
+        });
+        node_map.insert(node_id, idx);
+        pending_links.push((idx, links));
+    }
+
+    for (src_idx, links) in pending_links {
+        for target_id in links {
+            if let Some(&dst_idx) = node_map.get(&target_id) {
+                if src_idx != dst_idx && !graph.contains_edge(src_idx, dst_idx) {
+                    graph.add_edge(src_idx, dst_idx, ());
+                }
+            }
+        }
+    }
+
+    (graph, node_map)
+}
+

@@ -594,40 +594,13 @@ pub async fn dispatch_mcp_method(method: &str, params: Value, id: Value) -> Json
     }
 }
 
-pub async fn dispatch_alexandria_tool(tool_name: &str, args: Value, id: Value) -> JsonRpcResponse {
-    match tool_name {
-        "prepare_task_context"
-        | "upsert_architectural_contract"
-        | "resolve_skill_capsule"
-        | "spawn_isolated_worktrees"
-        | "verify_and_gate_changes"
-        | "finalize_task_and_log" => JsonRpcResponse {
-            jsonrpc: "2.0",
-            id,
-            result: Some(json!({
-                "content": [{
-                    "type": "text",
-                    "text": serde_json::to_string(&json!({
-                        "tool": tool_name,
-                        "status": "dispatched_by_kernel",
-                        "receivedArgs": args
-                    })).unwrap_or_default()
-                }],
-                "isError": false
-            })),
-            error: None,
-        },
-        _ => JsonRpcResponse {
-            jsonrpc: "2.0",
-            id,
-            result: None,
-            error: Some(JsonRpcError {
-                code: -32602,
-                message: format!("Herramienta desconocida en Alexandria MCP: {}", tool_name),
-            }),
-        },
-    }
-}
+`McpKernelContext` encapsula la raíz del workspace (`workspace_root`), la ruta de la bóveda (`vault_dir`) y el handle vivo del actor SQLite (`Option<VaultStorageHandle>`). `dispatch_alexandria_tool_with_context` conecta directamente:
+1. `prepare_task_context` $\rightarrow$ Clasificación determinista (`omega_pantheon` vs `alpha_fast`) + `resolve_context_with_adr_hoisting` en `petgraph`.
+2. `upsert_architectural_contract` $\rightarrow$ Escritura atómica de contratos y ADRs en `vault_dir`.
+3. `resolve_skill_capsule` $\rightarrow$ Consulta por `skill_id` exacto o búsqueda léxica BM25 Porter en `skills_fts` vía `VaultStorageHandle`.
+4. `spawn_isolated_worktrees` $\rightarrow$ `verify_worktree_disjunction` sobre el grafo de la bóveda y las listas de archivos.
+5. `verify_and_gate_changes` $\rightarrow$ `validate_typescript_source` (`oxc_parser`), `evaluate_tdd_red_phase` y registro/reset del Circuit Breaker en `vault.db`.
+6. `finalize_task_and_log` $\rightarrow$ Registro cronológico en `log.md` y reinicio del Circuit Breaker.
 ```
 
 ---

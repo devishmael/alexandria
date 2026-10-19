@@ -29,6 +29,23 @@ tags:
 
 ## 2. Historial Cronológico de Transacciones Aprobadas
 
+### [2026-10-19T17:17:00-04:00] — `LOG-007`: Cableado Real del Motor MCP (`src/mcp/server.rs`), Persistencia Viva de Skills (`vault.db`) y Certificación de Integración (`tests/mcp_integration_test.rs`)
+
+- **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`
+- **Ruta de Ejecución:** `omega_pantheon` (Sprint 5 Live MCP Wiring & Integration TDD)
+- **Módulos y Contratos Certificados:**
+  - [[mcp-server]] (`src/mcp/server.rs` + `tests/mcp_integration_test.rs`): 3/3 pruebas de integración viva en verde ($0.05\text{ s}$). Conectado `McpKernelContext` (`workspace_root`, `vault_dir`, `Option<VaultStorageHandle>`) con las 6 herramientas deterministas del kernel:
+    1. `prepare_task_context`: Clasificación en Rust (`omega_pantheon` ante cambios en `prisma/schema.prisma`, `auth` o `alexandria/`, y `alpha_fast` para componentes locales como `src/ui/button.tsx`) junto con carga real del grafo `StableDiGraph` (`load_vault_graph_from_dir`) y elevación transitiva de ADRs (`resolve_context_with_adr_hoisting`).
+    2. `upsert_architectural_contract`: Escritura física de contratos en `modules/` y ADRs en `decisions/`.
+    3. `resolve_skill_capsule`: Consulta en `vault.db` por `skillId` exacto (`exact_id`) y fallback léxico BM25 Porter en `skills_fts` (`fts5_bm25_fallback`) mediante `VaultStorageHandle::resolve_skill_capsule`.
+    4. `spawn_isolated_worktrees`: Verificación real de doble disyunción (`verify_worktree_disjunction`).
+    5. `verify_and_gate_changes`: Escaneo AST nativo (`validate_typescript_source` con `oxc_parser`), bloqueo inmediato de `NO_EXPLICIT_ANY` / `NO_DOUBLE_CAST_UNKNOWN` / clausura `$transaction`, evaluación semántica TDD (`evaluate_tdd_red_phase`), registro transaccional de incidentes `FAIL-XXX` en `vault.db` y recuperación de pistas históricas FTS5.
+    6. `finalize_task_and_log`: Registro cronológico append-only en `log.md` y reinicio del Circuit Breaker a `closed_ok`.
+- **Decisiones Constitucionales Verificadas:** [[ADR-001-kernel-space-harness]], [[ADR-002-prefix-pinned-caching]], [[ADR-003-zero-trust-quality-gates]], [[ADR-004-single-writer-mpsc-storage]], [[ADR-005-node-permission-sandboxing]], [[ADR-006-oxc-ast-engine]], [[ADR-007-multi-host-adapter-and-persistence]].
+- **Estado de Compuertas y Disyuntor:** $100\%$ de suites de prueba del workspace aprobadas (`32 passed; 0 failed` en total a través de las 7 suites de pruebas). Cero incidentes en [[failures]].
+
+---
+
 ### [2026-10-19T17:07:00-04:00] — `LOG-006`: Ensamblaje del Binario CLI (`src/main.rs` y `src/cli.rs`), Certificación E2E (`tests/cli_e2e_test.rs`) y Compilación Release (`v2.4.0-OmniPragmatic`)
 
 - **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`

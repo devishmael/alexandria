@@ -6,6 +6,17 @@ use tokio::sync::{mpsc, oneshot};
 
 static INCIDENT_SEQ: AtomicU64 = AtomicU64::new(1);
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SkillCapsuleRecord {
+    pub skill_id: String,
+    pub domain: String,
+    pub description: String,
+    pub trigger_keywords_json: String,
+    pub invariants_json: String,
+    pub instructions_md: String,
+    pub resolution_method: String,
+}
+
 pub enum VaultWriteCommand {
     RecordGateFailure {
         module_name: String,
@@ -18,6 +29,15 @@ pub enum VaultWriteCommand {
         module_name: String,
         last_failure_id: Option<String>,
         resolution_hint: String,
+        reply: oneshot::Sender<Result<(), String>>,
+    },
+    UpsertSkill {
+        skill_id: String,
+        domain: String,
+        description: String,
+        trigger_keywords_json: String,
+        invariants_json: String,
+        instructions_md: String,
         reply: oneshot::Sender<Result<(), String>>,
     },
 }
@@ -168,12 +188,42 @@ impl VaultStorageHandle {
             .map_err(|_| "Respuesta oneshot cancelada en VaultWriterActor".to_string())?
     }
 
+    pub async fn upsert_skill(
+        &self,
+        skill_id: String,
+        domain: String,
+        description: String,
+        trigger_keywords_json: String,
+        invariants_json: String,
+        instructions_md: String,
+    ) -> Result<(), String> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+        self.writer_tx
+            .send(VaultWriteCommand::UpsertSkill {
+                skill_id,
+                domain,
+                description,
+                trigger_keywords_json,
+                invariants_json,
+                instructions_md,
+                reply: reply_tx,
+            })
+            .await
+            .map_err(|_| "Canal de VaultWriterActor cerrado".to_string())?;
+        reply_rx
+            .await
+            .map_err(|_| "Respuesta oneshot cancelada en VaultWriterActor".to_string())?
+    }
+
     fn abort_command(cmd: VaultWriteCommand, err_msg: &str) {
         match cmd {
             VaultWriteCommand::RecordGateFailure { reply, .. } => {
                 let _ = reply.send(Err(err_msg.to_string()));
             }
             VaultWriteCommand::ResetCircuitBreakerAndResolveIncident { reply, .. } => {
+                let _ = reply.send(Err(err_msg.to_string()));
+            }
+            VaultWriteCommand::UpsertSkill { reply, .. } => {
                 let _ = reply.send(Err(err_msg.to_string()));
             }
         }
@@ -295,11 +345,135 @@ impl VaultStorageHandle {
                     }
                 })
             }
+            VaultWriteCommand::UpsertSkill {
+                skill_id,
+                domain,
+                description,
+                trigger_keywords_json,
+                invariants_json,
+                instructions_md,
+                reply,
+            } => {
+                let res = tx
+                    .execute(
+                        "INSERT INTO skills (skill_id, domain, description, trigger_keywords_json, invariants_json, instructions_md, updated_at)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                         ON CONFLICT(skill_id) DO UPDATE SET
+                            domain = excluded.domain,
+                            description = excluded.description,
+                            trigger_keywords_json = excluded.trigger_keywords_json,
+                            invariants_json = excluded.invariants_json,
+                            instructions_md = excluded.instructions_md,
+                            updated_at = excluded.updated_at",
+                        params![
+                            skill_id,
+                            domain,
+                            description,
+                            trigger_keywords_json,
+                            invariants_json,
+                            instructions_md,
+                            now_ms
+                        ],
+                    )
+                    .map(|_| ())
+                    .map_err(|e| format!("Error SQL insertando skill: {}", e));
+
+                Box::new(move |commit_status| match (commit_status, res) {
+                    (Ok(()), Ok(())) => {
+                        let _ = reply.send(Ok(()));
+                    }
+                    (Err(commit_err), _) => {
+                        let _ = reply.send(Err(commit_err));
+                    }
+                    (_, Err(sql_err)) => {
+                        let _ = reply.send(Err(sql_err));
+                    }
+                })
+            }
         }
     }
 
     pub fn build_safe_fts5_or_query(raw_stack_trace: &str) -> Option<String> {
         build_safe_fts5_or_query(raw_stack_trace)
+    }
+
+    pub fn resolve_skill_capsule(
+        &self,
+        skill_id: Option<&str>,
+        intent_query: Option<&str>,
+    ) -> Result<Option<SkillCapsuleRecord>, String> {
+        let conn = Connection::open_with_flags(
+            &self.db_path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+        )
+        .map_err(|e| e.to_string())?;
+
+        if let Some(id) = skill_id.filter(|s| !s.trim().is_empty()) {
+            let exact: Option<SkillCapsuleRecord> = conn
+                .query_row(
+                    "SELECT skill_id, domain, description, trigger_keywords_json, invariants_json, instructions_md
+                     FROM skills WHERE skill_id = ?1",
+                    params![id],
+                    |row| {
+                        Ok(SkillCapsuleRecord {
+                            skill_id: row.get(0)?,
+                            domain: row.get(1)?,
+                            description: row.get(2)?,
+                            trigger_keywords_json: row.get(3)?,
+                            invariants_json: row.get(4)?,
+                            instructions_md: row.get(5)?,
+                            resolution_method: "exact_id".to_string(),
+                        })
+                    },
+                )
+                .optional()
+                .map_err(|e| e.to_string())?;
+
+            if exact.is_some() {
+                return Ok(exact);
+            }
+        }
+
+        if let Some(query) = intent_query.filter(|s| !s.trim().is_empty()) {
+            if let Some(safe_fts_query) = build_safe_fts5_or_query(query) {
+                let matched_id: Option<String> = conn
+                    .query_row(
+                        "SELECT skill_id FROM skills_fts WHERE skills_fts MATCH ?1 ORDER BY bm25(skills_fts) LIMIT 1",
+                        params![safe_fts_query],
+                        |row| row.get(0),
+                    )
+                    .optional()
+                    .map_err(|e| e.to_string())?;
+
+                if let Some(found_id) = matched_id {
+                    let fts_record: Option<SkillCapsuleRecord> = conn
+                        .query_row(
+                            "SELECT skill_id, domain, description, trigger_keywords_json, invariants_json, instructions_md
+                             FROM skills WHERE skill_id = ?1",
+                            params![found_id],
+                            |row| {
+                                Ok(SkillCapsuleRecord {
+                                    skill_id: row.get(0)?,
+                                    domain: row.get(1)?,
+                                    description: row.get(2)?,
+                                    trigger_keywords_json: row.get(3)?,
+                                    invariants_json: row.get(4)?,
+                                    instructions_md: row.get(5)?,
+                                    resolution_method: "fts5_bm25_fallback".to_string(),
+                                })
+                            },
+                        )
+                        .optional()
+                        .map_err(|e| e.to_string())?;
+
+                    if fts_record.is_some() {
+                        return Ok(fts_record);
+                    }
+                }
+            }
+        }
+
+        Ok(None)
     }
 
     pub fn search_similar_incidents_fts5(
@@ -338,3 +512,4 @@ impl VaultStorageHandle {
         Ok(hints)
     }
 }
+

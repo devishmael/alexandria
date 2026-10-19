@@ -2,10 +2,11 @@ use alexandria::cli::{
     CliCommand, HELP_BANNER, VERSION_BANNER, execute_autonomous_run, execute_init_scaffolding,
     parse_cli_args, resolve_default_vault_db_path,
 };
-use alexandria::mcp::server::run_mcp_stdio_loop;
+use alexandria::mcp::server::{McpKernelContext, run_mcp_stdio_loop_with_context};
 use alexandria::storage::CANONICAL_SCHEMA_SQL;
 use alexandria::storage::actor::VaultStorageHandle;
 use std::env;
+use std::path::PathBuf;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -57,9 +58,16 @@ fn main() -> ExitCode {
                 Ok(())
             }
             CliCommand::McpStdio => {
+                let cwd = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+                let vault_dir = if cwd.join("alexandria").exists() {
+                    cwd.join("alexandria")
+                } else {
+                    cwd.join("wiki")
+                };
                 let db_path = resolve_default_vault_db_path()?;
-                let _storage_handle = VaultStorageHandle::spawn(db_path, CANONICAL_SCHEMA_SQL)?;
-                run_mcp_stdio_loop().await
+                let storage_handle = VaultStorageHandle::spawn(db_path, CANONICAL_SCHEMA_SQL)?;
+                let ctx = McpKernelContext::new(cwd, vault_dir, Some(storage_handle));
+                run_mcp_stdio_loop_with_context(ctx).await
             }
             CliCommand::Run { instruction } => {
                 let cwd = env::current_dir()
