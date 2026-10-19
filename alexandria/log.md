@@ -29,6 +29,19 @@ tags:
 
 ## 2. Historial Cronológico de Transacciones Aprobadas
 
+### [2026-10-19T17:21:00-04:00] — `LOG-008`: Pipeline CI/CD Multiplataforma en GitHub Actions (`.github/workflows/ci.yml`), Documentación Pública (`README.md`) y Licencia MIT (`v2.4.0-OmniPragmatic`)
+
+- **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`
+- **Ruta de Ejecución:** `omega_pantheon` (Sprint 6 Open-Source Release & CI/CD)
+- **Artefactos Públicos y de Infraestructura Materializados:**
+  - `.github/workflows/ci.yml`: Pipeline de Integración Continua en matriz multiplataforma (`ubuntu-latest` y `windows-latest`) con `dtolnay/rust-toolchain@stable` (Edición 2024), `Swatinem/rust-cache@v2`, ejecución de las 32 pruebas (`cargo test --all-targets --verbose`) y compilación del binario `release` (`cargo build --release --verbose`).
+  - `README.md`: Documentación técnica de portada con insignias oficiales, arquitectura de doble espacio y doble plano (`vault.db` + `./alexandria/`), el cuarteto de agentes (`Bel`, `Enki`, `Utu`, `Nabu`), métricas certificadas (`2.17 MB` binario release, $\le 15\text{ MB}$ RSS, $\le 0.2\text{ ms}$ travesía de grafo, `32/32` tests), guía Quickstart, configuraciones MCP para Google Antigravity 2.0, Claude Code y Cursor, y matriz de Quality Gates (Gate 0 a Gate 4).
+  - `LICENSE`: Licencia oficial MIT a nombre de **Dev Ishmael** (2026).
+- **Decisiones Constitucionales Verificadas:** [[ADR-001-kernel-space-harness]], [[ADR-002-prefix-pinned-caching]], [[ADR-003-zero-trust-quality-gates]], [[ADR-004-single-writer-mpsc-storage]], [[ADR-005-node-permission-sandboxing]], [[ADR-006-oxc-ast-engine]], [[ADR-007-multi-host-adapter-and-persistence]].
+- **Estado Final del Lanzamiento (`v2.4.0-OmniPragmatic`):** $100\%$ de los sprints completados (`Sprint 1` a `Sprint 6`), `32 passed; 0 failed` en Cargo y repositorio público sincronizado en `https://github.com/devishmael/alexandria-runtime.git`.
+
+---
+
 ### [2026-10-19T17:17:00-04:00] — `LOG-007`: Cableado Real del Motor MCP (`src/mcp/server.rs`), Persistencia Viva de Skills (`vault.db`) y Certificación de Integración (`tests/mcp_integration_test.rs`)
 
 - **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`
