@@ -29,6 +29,18 @@ tags:
 
 ## 2. Historial Cronológico de Transacciones Aprobadas
 
+### [2026-10-19T16:58:00-04:00] — `LOG-005`: Certificación del Sandbox Runner (`vitest_sandbox.rs`) y Servidor MCP JSON-RPC 2.0 (`mcp/server.rs`)
+
+- **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`
+- **Ruta de Ejecución:** `omega_pantheon` (Sprint 3 TDD)
+- **Módulos y Contratos Certificados:**
+  - [[sandbox-runner]] (`src/runner/vitest_sandbox.rs` + `tests/vitest_sandbox_test.rs`): 5/5 pruebas unitarias en verde ($0.00\text{ s}$). Verificada la máquina de estados semántica TDD (`ValidAssertionFailure`, rechazo de `SyntaxError` y `Cannot find module` mediante `InvalidSyntaxOrImportError`, rechazo de `UnexpectedPass`, tratamiento de reportes JSON ausentes o vacíos) y la normalización determinista de rutas extendidas Win32/UNC (`\\?\` y `\\?\UNC\`) mediante `clean_canonical_path` y `strip_windows_unc_prefix`.
+  - [[mcp-server]] (`src/mcp/server.rs` + `tests/mcp_server_test.rs`): 6/6 pruebas unitarias en verde ($0.00\text{ s}$). Verificado el handshake `initialize` (`protocolVersion: "2024-11-05"`, `serverInfo.name: "alexandria-runtime"`), la completitud e inmutabilidad posicional (*Prefix Pinning*) de las 6 herramientas oficiales en `tools/list`, el envoltorio de despacho `tools/call` (`content`, `isError: false`), el código `-32601` para métodos inexistentes, `ping` $\rightarrow$ `{}` y el silencio absoluto en `stdout` ante notificaciones JSON-RPC sin `id` (`notifications/initialized`).
+- **Decisiones Constitucionales Verificadas:** [[ADR-001-kernel-space-harness]], [[ADR-002-prefix-pinned-caching]], [[ADR-003-zero-trust-quality-gates]], [[ADR-005-node-permission-sandboxing]], [[ADR-007-multi-host-adapter-and-persistence]].
+- **Estado de Compuertas y Disyuntor:** $100\%$ de suites de prueba del kernel aprobadas (`26 passed; 0 failed` acumuladas en `tests/`). Cero incidentes en [[failures]].
+
+---
+
 ### [2026-10-19T16:48:00-04:00] — `LOG-004`: Certificación de GateGuard AST (`oxc_validator.rs`) y Grafo Topológico (`resolver.rs`)
 
 - **Autoridad Ejecutora:** `[ARQUITECTO]` $\rightarrow$ `[CONSTRUCTOR]` $\rightarrow$ `[ARQUITECTO]`

@@ -27,6 +27,31 @@ pub struct JsonRpcError {
     pub message: String,
 }
 
+pub async fn handle_raw_jsonrpc_line(line: &str) -> Option<JsonRpcResponse> {
+    if line.trim().is_empty() {
+        return None;
+    }
+
+    let req: JsonRpcRequest = match serde_json::from_str(line) {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!("Trama JSON-RPC malformada: {}", e);
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0",
+                id: Value::Null,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32700,
+                    message: format!("Parse error: {}", e),
+                }),
+            });
+        }
+    };
+
+    let req_id = req.id?;
+    Some(dispatch_mcp_method(&req.method, req.params, req_id).await)
+}
+
 pub async fn run_mcp_stdio_loop() -> Result<(), String> {
     tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
@@ -40,44 +65,16 @@ pub async fn run_mcp_stdio_loop() -> Result<(), String> {
     let mut reader = BufReader::new(stdin).lines();
 
     while let Some(line) = reader.next_line().await.map_err(|e| e.to_string())? {
-        if line.trim().is_empty() {
-            continue;
+        if let Some(response) = handle_raw_jsonrpc_line(&line).await {
+            let mut serialized = serde_json::to_string(&response).map_err(|e| e.to_string())?;
+            serialized.push('\n');
+
+            stdout
+                .write_all(serialized.as_bytes())
+                .await
+                .map_err(|e| e.to_string())?;
+            stdout.flush().await.map_err(|e| e.to_string())?;
         }
-
-        let req: JsonRpcRequest = match serde_json::from_str(&line) {
-            Ok(r) => r,
-            Err(e) => {
-                tracing::warn!("Trama JSON-RPC malformada: {}", e);
-                let err_resp = JsonRpcResponse {
-                    jsonrpc: "2.0",
-                    id: Value::Null,
-                    result: None,
-                    error: Some(JsonRpcError {
-                        code: -32700,
-                        message: format!("Parse error: {}", e),
-                    }),
-                };
-                let mut out = serde_json::to_string(&err_resp).unwrap_or_default();
-                out.push('\n');
-                let _ = stdout.write_all(out.as_bytes()).await;
-                let _ = stdout.flush().await;
-                continue;
-            }
-        };
-
-        let Some(req_id) = req.id else {
-            continue;
-        };
-
-        let response = dispatch_mcp_method(&req.method, req.params, req_id).await;
-        let mut serialized = serde_json::to_string(&response).map_err(|e| e.to_string())?;
-        serialized.push('\n');
-
-        stdout
-            .write_all(serialized.as_bytes())
-            .await
-            .map_err(|e| e.to_string())?;
-        stdout.flush().await.map_err(|e| e.to_string())?;
     }
 
     Ok(())

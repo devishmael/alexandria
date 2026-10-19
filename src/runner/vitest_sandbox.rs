@@ -37,20 +37,27 @@ pub struct VitestAssertionResult {
     pub failure_messages: Vec<String>,
 }
 
+pub fn strip_windows_unc_prefix(raw_path: &str) -> PathBuf {
+    if let Some(unc_rest) = raw_path.strip_prefix(r"\\?\UNC\") {
+        return PathBuf::from(format!(r"\\{}", unc_rest));
+    }
+    if let Some(stripped) = raw_path.strip_prefix(r"\\?\") {
+        return PathBuf::from(stripped);
+    }
+    PathBuf::from(raw_path)
+}
+
 pub fn clean_canonical_path(path: &Path) -> Result<PathBuf, String> {
     let canon = std::fs::canonicalize(path)
         .map_err(|e| format!("Error canonicalizando ruta {:?}: {}", path, e))?;
     #[cfg(target_os = "windows")]
     {
-        let s = canon.to_string_lossy();
-        if let Some(unc_rest) = s.strip_prefix(r"\\?\UNC\") {
-            return Ok(PathBuf::from(format!(r"\\{}", unc_rest)));
-        }
-        if let Some(stripped) = s.strip_prefix(r"\\?\") {
-            return Ok(PathBuf::from(stripped));
-        }
+        return Ok(strip_windows_unc_prefix(&canon.to_string_lossy()));
     }
-    Ok(canon)
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(canon)
+    }
 }
 
 pub async fn run_sandboxed_vitest(
