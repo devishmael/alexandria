@@ -1,7 +1,6 @@
 # 🏛️ Alexandria — The Deterministic Agent Harness
 
 [![Release](https://img.shields.io/badge/Release-v1.0.0-0969da?logo=github)](https://github.com/devishmael/alexandria-runtime/releases/tag/v1.0.0)
-[![Tests](https://img.shields.io/badge/Tests-48%20passed%20(100%25)-success?logo=rust)](https://github.com/devishmael/alexandria-runtime)
 ![Rust Edition](https://img.shields.io/badge/Rust-2024_Edition-orange?logo=rust)
 ![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)
 ![LSP Protocol](https://img.shields.io/badge/LSP-3.17_Native-purple)
