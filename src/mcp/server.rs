@@ -2,16 +2,21 @@ use crate::collector::skill_etl::{
     AlexandriaHookSpec, collect_and_refactor_directory, export_refactored_json_bundle,
 };
 use crate::gate_guard::oxc_validator::{
-    detect_public_export_signature_change, scan_gate2_sast_and_secrets, validate_typescript_source,
+    detect_public_export_signature_change, prune_typescript_context_for_symbol,
+    scan_gate2_sast_and_secrets, validate_typescript_source,
 };
 use crate::graph::resolver::{
-    DisjunctionConflict, load_vault_graph_from_dir, resolve_context_with_adr_hoisting,
-    serialize_graph_for_sqlite, verify_worktree_disjunction,
+    DisjunctionConflict, current_human_intervention_epoch, load_vault_graph_from_dir,
+    resolve_context_with_adr_hoisting, serialize_graph_for_sqlite, verify_worktree_disjunction,
 };
 use crate::runner::vitest_sandbox::{RedPhaseVerdict, VitestJsonReport, evaluate_tdd_red_phase};
-use crate::storage::actor::VaultStorageHandle;
+use crate::storage::actor::{VaultStorageHandle, write_telemetry_and_markdown_dashboard};
+use crate::vector_store::hybrid_memory::{
+    export_vector_store_snapshot, query_hybrid_vector_memory,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -191,7 +196,8 @@ pub async fn dispatch_mcp_method_with_context(
                             "properties": {
                                 "instruction": { "type": "string" },
                                 "targetFiles": { "type": "array", "items": { "type": "string" } },
-                                "moduleName": { "type": "string" }
+                                "moduleName": { "type": "string" },
+                                "focusSymbol": { "type": "string" }
                             }
                         }
                     },
@@ -392,6 +398,63 @@ pub async fn dispatch_alexandria_tool_with_context(
                 vec!["oxc_ast", "types", "tests_sandbox"]
             };
 
+            let mut pruned_ast_contexts: Vec<Value> = Vec::new();
+            if let Some(focus_sym) = args
+                .get("focusSymbol")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.trim().is_empty())
+            {
+                if let Some(inline_src) = args.get("sourceCode").and_then(|v| v.as_str()) {
+                    if let Ok(pruned) = prune_typescript_context_for_symbol(inline_src, focus_sym, false) {
+                        if let Ok(val) = serde_json::to_value(pruned) {
+                            pruned_ast_contexts.push(val);
+                        }
+                    }
+                }
+                for file_str in &target_files {
+                    let candidate = if Path::new(file_str).is_absolute() {
+                        PathBuf::from(file_str)
+                    } else {
+                        ctx.workspace_root.join(file_str)
+                    };
+                    if candidate.is_file() {
+                        if let Ok(code) = fs::read_to_string(&candidate) {
+                            let is_tsx = file_str.ends_with(".tsx") || file_str.ends_with(".jsx");
+                            if let Ok(pruned) =
+                                prune_typescript_context_for_symbol(&code, focus_sym, is_tsx)
+                            {
+                                if let Ok(val) = serde_json::to_value(pruned) {
+                                    pruned_ast_contexts.push(val);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            let mut recalled_vector_memory: Vec<Value> = Vec::new();
+            if let Some(storage) = &ctx.storage {
+                if let Ok(chunks) = query_hybrid_vector_memory(storage, instruction, 350) {
+                    for chunk in chunks {
+                        if let Ok(v) = serde_json::to_value(chunk) {
+                            recalled_vector_memory.push(v);
+                        }
+                    }
+                }
+                if !instruction.trim().is_empty() {
+                    let _ = storage
+                        .record_episodic_memory(
+                            "user_supplied".to_string(),
+                            "bel".to_string(),
+                            module_name.unwrap_or("core").to_string(),
+                            target_files.clone(),
+                            instruction.to_string(),
+                            45,
+                        )
+                        .await;
+                }
+            }
+
             let payload = json!({
                 "tool": tool_name,
                 "status": "dispatched_by_kernel",
@@ -400,6 +463,9 @@ pub async fn dispatch_alexandria_tool_with_context(
                 "architecturalContext": architectural_context,
                 "directNeighbors": direct_neighbors,
                 "hoistedAdrs": hoisted_adrs,
+                "prunedAstContexts": pruned_ast_contexts,
+                "recalledVectorMemory": recalled_vector_memory,
+                "humanInterventionEpoch": current_human_intervention_epoch(),
                 "activeInvariants": [
                     "NO_EXPLICIT_ANY",
                     "NO_DOUBLE_CAST_UNKNOWN",
@@ -880,6 +946,30 @@ pub async fn dispatch_alexandria_tool_with_context(
                 }
             }
 
+            let court_martial_docket = if cb_state == "tripped_abort" {
+                Some(json!({
+                    "docketId": format!(
+                        "CM-{}",
+                        failure_id_opt
+                            .clone()
+                            .unwrap_or_else(|| "FAIL-003".to_string())
+                    ),
+                    "status": "awaiting_bel_single_turn_verdict",
+                    "defendantAgent": "enki",
+                    "prosecutorAgent": "utu",
+                    "presidingJudgeAgent": "bel",
+                    "targetModule": target_module,
+                    "violatedRules": violated_rules,
+                    "utuProsecutionEvidence": diagnostics_joined,
+                    "rulingOptions": [
+                        "RULE_IN_FAVOR_OF_ENKI_AMEND_CONTRACT",
+                        "UPHOLD_UTU_PROSECUTION_REVOKE_WORKTREE_AND_REASSIGN"
+                    ]
+                }))
+            } else {
+                None
+            };
+
             let payload = json!({
                 "tool": tool_name,
                 "status": "dispatched_by_kernel",
@@ -894,7 +984,8 @@ pub async fn dispatch_alexandria_tool_with_context(
                 "attemptNumber": attempt_num,
                 "diagnostics": diagnostics_joined,
                 "failureId": failure_id_opt,
-                "historicalHintsFromMemory": historical_hints
+                "historicalHintsFromMemory": historical_hints,
+                "courtMartialDocket": court_martial_docket
             });
 
             wrap_mcp_text_response(id, payload, false)
@@ -916,9 +1007,15 @@ pub async fn dispatch_alexandria_tool_with_context(
                 .unwrap_or_default()
                 .as_secs();
 
+            let agentic_iam = build_agentic_git_iam_seal("enki", module_name, summary);
+
             let entry = format!(
-                "\n### [EPOCH-{}] Module `{}` Certified\n- **Summary:** {}\n",
-                ts, module_name, summary
+                "\n### [EPOCH-{}] Module `{}` Certified\n- **Summary:** {}\n- **Agentic IAM Branch:** `{}`\n- **Cryptographic Seal (SHA-256):** `{}`\n",
+                ts,
+                module_name,
+                summary,
+                agentic_iam["ephemeralBranch"].as_str().unwrap_or(""),
+                agentic_iam["cryptographicSealSha256"].as_str().unwrap_or("")
             );
 
             let mut wiki_log_updated = false;
@@ -936,6 +1033,23 @@ pub async fn dispatch_alexandria_tool_with_context(
                         summary.to_string(),
                     )
                     .await;
+                let _ = storage
+                    .record_episodic_memory(
+                        "agent_execution".to_string(),
+                        "nabu".to_string(),
+                        module_name.to_string(),
+                        vec!["certified".to_string(), module_name.to_string()],
+                        summary.to_string(),
+                        50,
+                    )
+                    .await;
+                let vector_dir = ctx.workspace_root.join(".alexandria").join("vector-store");
+                let _ = export_vector_store_snapshot(storage, &vector_dir);
+                let _ = write_telemetry_and_markdown_dashboard(
+                    storage,
+                    &ctx.workspace_root,
+                    &ctx.vault_dir,
+                );
             }
 
             let payload = json!({
@@ -944,7 +1058,8 @@ pub async fn dispatch_alexandria_tool_with_context(
                 "receivedArgs": args,
                 "committedHash": "HEAD",
                 "wikiLogUpdated": wiki_log_updated,
-                "logPath": log_path.to_string_lossy()
+                "logPath": log_path.to_string_lossy(),
+                "agenticGitIam": agentic_iam
             });
 
             wrap_mcp_text_response(id, payload, false)
@@ -974,4 +1089,53 @@ fn wrap_mcp_text_response(id: Value, payload: Value, is_error: bool) -> JsonRpcR
         })),
         error: None,
     }
+}
+
+pub fn build_agentic_git_iam_seal(
+    agent_id: &str,
+    module_name: &str,
+    summary: &str,
+) -> Value {
+    let git_author = match agent_id.to_lowercase().as_str() {
+        "bel" => "Bel (Alexandria Overseer) <bel@alexandria.local>",
+        "utu" => "Utu (Alexandria Critic) <utu@alexandria.local>",
+        "nabu" => "Nabu (Alexandria Chronicler) <nabu@alexandria.local>",
+        _ => "Enki (Alexandria Builder) <enki@alexandria.local>",
+    };
+    let git_committer = "Nabu (Alexandria Chronicler) <nabu@alexandria.local>";
+    let clean_module = module_name
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>();
+    let ephemeral_branch = format!("alexandria/task/{}", clean_module);
+
+    let mut hasher = Sha256::new();
+    hasher.update(format!("{}|{}|{}", agent_id, module_name, summary).as_bytes());
+    let digest = hasher.finalize();
+    let mut seal_hex = String::with_capacity(64);
+    for b in digest {
+        use std::fmt::Write;
+        let _ = write!(&mut seal_hex, "{:02x}", b);
+    }
+
+    json!({
+        "agentId": agent_id,
+        "moduleName": module_name,
+        "ephemeralBranch": ephemeral_branch,
+        "gitAuthor": git_author,
+        "gitCommitter": git_committer,
+        "cryptographicSealSha256": seal_hex,
+        "commitTrailers": [
+            format!("Alexandria-Agent: {}", git_author),
+            format!("Alexandria-Module: {}", module_name),
+            format!("Alexandria-Seal-SHA256: {}", seal_hex),
+            format!("Signed-off-by: {}", git_committer)
+        ]
+    })
 }

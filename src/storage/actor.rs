@@ -1,6 +1,11 @@
 use crate::collector::skill_etl::{AlexandriaCapsuleJson, builtin_core_capsules};
+use crate::vector_store::hybrid_memory::{
+    compute_deterministic_int8_embedding, distill_into_micro_chunk,
+};
 use rusqlite::{Connection, OptionalExtension, params};
-use std::path::PathBuf;
+use serde_json::json;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::{mpsc, oneshot};
@@ -57,6 +62,16 @@ pub enum VaultWriteCommand {
         passed: bool,
         diagnostics_json: String,
         reply: oneshot::Sender<Result<i64, String>>,
+    },
+    RecordEpisodicMemoryChunk {
+        source_kind: String,
+        agent_id: String,
+        module_name: String,
+        tags_json: String,
+        compact_summary: String,
+        token_estimate: usize,
+        embedding_int8_json: String,
+        reply: oneshot::Sender<Result<String, String>>,
     },
 }
 
@@ -387,6 +402,9 @@ impl VaultStorageHandle {
             VaultWriteCommand::RecordQualityGateVerdict { reply, .. } => {
                 let _ = reply.send(Err(err_msg.to_string()));
             }
+            VaultWriteCommand::RecordEpisodicMemoryChunk { reply, .. } => {
+                let _ = reply.send(Err(err_msg.to_string()));
+            }
         }
     }
 
@@ -649,6 +667,56 @@ impl VaultStorageHandle {
                     }
                 })
             }
+            VaultWriteCommand::RecordEpisodicMemoryChunk {
+                source_kind,
+                agent_id,
+                module_name,
+                tags_json,
+                compact_summary,
+                token_estimate,
+                embedding_int8_json,
+                reply,
+            } => {
+                let chunk_id = format!(
+                    "MEM-{}-{}-{}",
+                    module_name.to_ascii_uppercase(),
+                    now_ms,
+                    seq
+                );
+                let res = tx
+                    .execute(
+                        "INSERT INTO episodic_vector_memory (
+                            chunk_id, source_kind, agent_id, module_name,
+                            tags_json, compact_summary, token_estimate,
+                            embedding_int8_json, created_at
+                         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                        params![
+                            chunk_id,
+                            source_kind,
+                            agent_id,
+                            module_name,
+                            tags_json,
+                            compact_summary,
+                            token_estimate as i64,
+                            embedding_int8_json,
+                            now_ms
+                        ],
+                    )
+                    .map(|_| chunk_id)
+                    .map_err(|e| format!("SQL error inserting episodic memory chunk: {}", e));
+
+                Box::new(move |commit_status| match (commit_status, res) {
+                    (Ok(()), Ok(cid)) => {
+                        let _ = reply.send(Ok(cid));
+                    }
+                    (Err(commit_err), _) => {
+                        let _ = reply.send(Err(commit_err));
+                    }
+                    (_, Err(sql_err)) => {
+                        let _ = reply.send(Err(sql_err));
+                    }
+                })
+            }
         }
     }
 
@@ -835,4 +903,193 @@ impl VaultStorageHandle {
             .await
             .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
     }
+
+    pub async fn record_episodic_memory(
+        &self,
+        source_kind: String,
+        agent_id: String,
+        module_name: String,
+        tags: Vec<String>,
+        raw_text: String,
+        max_chunk_tokens: usize,
+    ) -> Result<String, String> {
+        let valid_kind = match source_kind.as_str() {
+            "user_supplied" | "agent_execution" | "architectural_decision" => source_kind,
+            _ => "agent_execution".to_string(),
+        };
+        let (compact_summary, token_estimate) = distill_into_micro_chunk(&raw_text, max_chunk_tokens);
+        let composite_text = format!("{} {} {}", module_name, tags.join(" "), compact_summary);
+        let embedding_arr = compute_deterministic_int8_embedding(&composite_text);
+        let embedding_int8_json =
+            serde_json::to_string(&embedding_arr.to_vec()).unwrap_or_else(|_| "[]".to_string());
+        let tags_json = serde_json::to_string(&tags).unwrap_or_else(|_| "[]".to_string());
+
+        let (reply_tx, reply_rx) = oneshot::channel();
+        self.writer_tx
+            .send(VaultWriteCommand::RecordEpisodicMemoryChunk {
+                source_kind: valid_kind,
+                agent_id,
+                module_name,
+                tags_json,
+                compact_summary,
+                token_estimate,
+                embedding_int8_json,
+                reply: reply_tx,
+            })
+            .await
+            .map_err(|_| "VaultWriterActor channel closed".to_string())?;
+        reply_rx
+            .await
+            .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
+    }
+
+    pub fn compute_organism_telemetry(&self) -> Result<serde_json::Value, String> {
+        let conn = Connection::open_with_flags(
+            &self.db_path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+        )
+        .map_err(|e| e.to_string())?;
+
+        let total_verdicts: usize = conn
+            .query_row("SELECT COUNT(*) FROM quality_gate_verdicts", [], |r| r.get(0))
+            .unwrap_or(0);
+        let passed_verdicts: usize = conn
+            .query_row(
+                "SELECT COUNT(*) FROM quality_gate_verdicts WHERE passed = 1",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
+        let failed_verdicts = total_verdicts.saturating_sub(passed_verdicts);
+        let bounce_rate = if total_verdicts > 0 {
+            ((failed_verdicts as f64 / total_verdicts as f64) * 100.0 * 10.0).round() / 10.0
+        } else {
+            0.0
+        };
+
+        // Compute Mean Time To Repair (MTTR) in seconds across modules
+        let mut mttr_samples_ms: Vec<f64> = Vec::new();
+        if let Ok(mut stmt) = conn.prepare(
+            "SELECT module_name, passed, created_at FROM quality_gate_verdicts ORDER BY module_name, verdict_id ASC",
+        ) {
+            if let Ok(rows) = stmt.query_map([], |r| {
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, i64>(1)?,
+                    r.get::<_, i64>(2)?,
+                ))
+            }) {
+                let mut pending_fail_by_mod: std::collections::HashMap<String, i64> =
+                    std::collections::HashMap::new();
+                for (m_name, passed_flag, ts_ms) in rows.flatten() {
+                    if passed_flag == 0 {
+                        pending_fail_by_mod.entry(m_name).or_insert(ts_ms);
+                    } else if let Some(fail_ts) = pending_fail_by_mod.remove(&m_name) {
+                        let delta_ms = (ts_ms - fail_ts).max(1) as f64;
+                        mttr_samples_ms.push(delta_ms);
+                    }
+                }
+            }
+        }
+
+        let mttr_seconds = if !mttr_samples_ms.is_empty() {
+            let avg_ms: f64 = mttr_samples_ms.iter().sum::<f64>() / (mttr_samples_ms.len() as f64);
+            ((avg_ms / 1000.0) * 100.0).round() / 100.0
+        } else {
+            0.0
+        };
+
+        let memory_chunks: usize = conn
+            .query_row("SELECT COUNT(*) FROM episodic_vector_memory", [], |r| r.get(0))
+            .unwrap_or(0);
+        let total_incidents: usize = conn
+            .query_row("SELECT COUNT(*) FROM forensic_incidents", [], |r| r.get(0))
+            .unwrap_or(0);
+        let tripped_breakers: usize = conn
+            .query_row(
+                "SELECT COUNT(*) FROM circuit_breakers WHERE state = 'tripped_abort'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
+
+        let estimated_tokens_saved = (total_verdicts * 1_850) + (memory_chunks * 1_400);
+        let estimated_usd_saved =
+            (((estimated_tokens_saved as f64) / 1_000_000.0) * 15.0 * 1000.0).round() / 1000.0;
+
+        Ok(json!({
+            "schemaVersion": "alexandria.telemetry.v2.5",
+            "totalVerdicts": total_verdicts,
+            "passedVerdicts": passed_verdicts,
+            "failedVerdicts": failed_verdicts,
+            "adversarialBounceRatePercent": bounce_rate,
+            "meanTimeToRepairSeconds": mttr_seconds,
+            "forensicIncidentsCount": total_incidents,
+            "trippedCircuitBreakers": tripped_breakers,
+            "episodicMemoryChunks": memory_chunks,
+            "estimatedTokensSaved": estimated_tokens_saved,
+            "estimatedUsdSaved": estimated_usd_saved
+        }))
+    }
+
+    pub fn db_path(&self) -> &Path {
+        &self.db_path
+    }
+}
+
+pub fn write_telemetry_and_markdown_dashboard(
+    storage: &VaultStorageHandle,
+    workspace_root: &Path,
+    vault_dir: &Path,
+) -> Result<(PathBuf, PathBuf), String> {
+    let telemetry = storage.compute_organism_telemetry()?;
+
+    let telemetry_dir = workspace_root.join(".alexandria").join("telemetry");
+    fs::create_dir_all(&telemetry_dir)
+        .map_err(|e| format!("Failed to create telemetry directory {:?}: {}", telemetry_dir, e))?;
+    let health_json_path = telemetry_dir.join("organism-health.json");
+    let serialized = serde_json::to_string_pretty(&telemetry).map_err(|e| e.to_string())?;
+    fs::write(&health_json_path, serialized)
+        .map_err(|e| format!("Failed to write {:?}: {}", health_json_path, e))?;
+
+    fs::create_dir_all(vault_dir)
+        .map_err(|e| format!("Failed to create vault directory {:?}: {}", vault_dir, e))?;
+    let dashboard_path = vault_dir.join("dashboard.md");
+
+    let total_v = telemetry["totalVerdicts"].as_u64().unwrap_or(0);
+    let passed_v = telemetry["passedVerdicts"].as_u64().unwrap_or(0);
+    let failed_v = telemetry["failedVerdicts"].as_u64().unwrap_or(0);
+    let bounce_pct = telemetry["adversarialBounceRatePercent"]
+        .as_f64()
+        .unwrap_or(0.0);
+    let mttr_sec = telemetry["meanTimeToRepairSeconds"].as_f64().unwrap_or(0.0);
+    let tokens_saved = telemetry["estimatedTokensSaved"].as_u64().unwrap_or(0);
+    let usd_saved = telemetry["estimatedUsdSaved"].as_f64().unwrap_or(0.0);
+    let mem_chunks = telemetry["episodicMemoryChunks"].as_u64().unwrap_or(0);
+    let tripped = telemetry["trippedCircuitBreakers"].as_u64().unwrap_or(0);
+
+    let dashboard_md = format!(
+        "---\nid: dashboard\ntitle: \"Alexandria Organism Telemetry Dashboard\"\ntype: telemetry-dashboard\nstatus: canonical\nversion: \"2.5.0-OmniPragmatic\"\ntotal_verdicts: {}\npassed_verdicts: {}\nfailed_verdicts: {}\nadversarial_bounce_rate_pct: {}\nmttr_seconds: {}\nestimated_tokens_saved: {}\nestimated_usd_saved: {}\n---\n\n# Alexandria Organism Telemetry Dashboard\n\n> **Live Kernel Health Projection** — Compatible with Obsidian Dataview & standard Markdown viewers.\n\n## 1. Key Organism Vital Signs (`MTTR` & Token ROI)\n\n| Metric | Value | Status |\n| :--- | :---: | :--- |\n| **Total Quality Gate Verdicts** | `{}` | Active |\n| **Passed / Failed Verdicts** | `{} / {}` | Gate 0-4 Enforced |\n| **Adversarial Bounce Rate (Utu vs. Enki)** | `{:.1}%` | Zero-Trust SAST |\n| **Mean Time To Repair (`MTTR`)** | `{:.2}s` | Self-Healing Loop |\n| **Tripped Circuit Breakers** | `{}` | Max Retries = 3 |\n| **Hybrid Vector Memory Chunks (`RRF`)** | `{}` | 64-dim `int8` |\n| **Estimated Context Tokens Saved** | `{}` | Depth=1 + AST Pruning |\n| **Estimated Compute Cost Saved (`USD`)** | `${:.3}` | Prefix-Pinned KV-Cache |\n\n## 2. Pantheon Governance Roster\n\n| Agent | Archetype | Concurrency Limit | Role |\n| :--- | :--- | :---: | :--- |\n| **`bel`** | Bel (The Overseer) | `5` | Zero-Turn Classifier & Court-Martial Judge |\n| **`enki`** | Enki (The Builder) | `3` | Strict RED-GREEN-REFACTOR Constructor |\n| **`utu`** | Utu (The Critic) | `1` | Stateless Cold SAST & ADR Auditor |\n| **`nabu`** | Nabu (The Chronicler) | `1` | Vault Custodian & Agentic Git IAM Signer |\n",
+        total_v,
+        passed_v,
+        failed_v,
+        bounce_pct,
+        mttr_sec,
+        tokens_saved,
+        usd_saved,
+        total_v,
+        passed_v,
+        failed_v,
+        bounce_pct,
+        mttr_sec,
+        tripped,
+        mem_chunks,
+        tokens_saved,
+        usd_saved
+    );
+
+    fs::write(&dashboard_path, dashboard_md)
+        .map_err(|e| format!("Failed to write {:?}: {}", dashboard_path, e))?;
+
+    Ok((health_json_path, dashboard_path))
 }

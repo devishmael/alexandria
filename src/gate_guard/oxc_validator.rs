@@ -4,6 +4,7 @@ use oxc_ast_visit::Visit;
 use oxc_ast_visit::walk;
 use oxc_parser::Parser;
 use oxc_span::{GetSpan, SourceType};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AstViolation {
@@ -452,4 +453,166 @@ pub fn scan_gate2_sast_and_secrets(source_text: &str) -> Vec<AstViolation> {
     }
 
     violations
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct PrunedAstContext {
+    pub target_symbol: String,
+    pub retained_symbols: Vec<String>,
+    pub pruned_symbols: Vec<String>,
+    pub pruned_source: String,
+    pub original_bytes: usize,
+    pub pruned_bytes: usize,
+    pub estimated_tokens_saved: usize,
+}
+
+struct CallIdentifierCollector {
+    called_identifiers: Vec<String>,
+}
+
+impl CallIdentifierCollector {
+    fn new() -> Self {
+        Self {
+            called_identifiers: Vec::new(),
+        }
+    }
+}
+
+impl<'a> Visit<'a> for CallIdentifierCollector {
+    fn visit_call_expression(&mut self, it: &CallExpression<'a>) {
+        if let Expression::Identifier(ident) = &it.callee {
+            let name = ident.name.as_str().to_string();
+            if !self.called_identifiers.contains(&name) {
+                self.called_identifiers.push(name);
+            }
+        }
+        walk::walk_call_expression(self, it);
+    }
+}
+
+pub fn prune_typescript_context_for_symbol(
+    source_text: &str,
+    target_symbol: &str,
+    is_tsx: bool,
+) -> Result<PrunedAstContext, String> {
+    let allocator = Allocator::default();
+    let source_type = SourceType::default().with_typescript(true).with_jsx(is_tsx);
+    let ret = Parser::new(&allocator, source_text, source_type).parse();
+
+    if !ret.errors.is_empty() {
+        return Err(format!("SyntaxError during Oxc parsing: {:?}", ret.errors[0]));
+    }
+
+    struct FunctionEntry {
+        name: String,
+        body_start: usize,
+        body_end: usize,
+        called_names: Vec<String>,
+    }
+
+    let mut functions: Vec<FunctionEntry> = Vec::new();
+    let mut type_and_interface_symbols: Vec<String> = Vec::new();
+
+    for stmt in &ret.program.body {
+        match stmt {
+            Statement::FunctionDeclaration(func) => {
+                if let (Some(id), Some(body)) = (&func.id, &func.body) {
+                    let mut collector = CallIdentifierCollector::new();
+                    collector.visit_function_body(body);
+                    functions.push(FunctionEntry {
+                        name: id.name.as_str().to_string(),
+                        body_start: body.span.start as usize,
+                        body_end: body.span.end as usize,
+                        called_names: collector.called_identifiers,
+                    });
+                }
+            }
+            Statement::TSInterfaceDeclaration(iface) => {
+                type_and_interface_symbols.push(iface.id.name.as_str().to_string());
+            }
+            Statement::TSTypeAliasDeclaration(ta) => {
+                type_and_interface_symbols.push(ta.id.name.as_str().to_string());
+            }
+            Statement::ExportNamedDeclaration(exp) => {
+                if let Some(decl) = &exp.declaration {
+                    match decl {
+                        Declaration::FunctionDeclaration(func) => {
+                            if let (Some(id), Some(body)) = (&func.id, &func.body) {
+                                let mut collector = CallIdentifierCollector::new();
+                                collector.visit_function_body(body);
+                                functions.push(FunctionEntry {
+                                    name: id.name.as_str().to_string(),
+                                    body_start: body.span.start as usize,
+                                    body_end: body.span.end as usize,
+                                    called_names: collector.called_identifiers,
+                                });
+                            }
+                        }
+                        Declaration::TSInterfaceDeclaration(iface) => {
+                            type_and_interface_symbols.push(iface.id.name.as_str().to_string());
+                        }
+                        Declaration::TSTypeAliasDeclaration(ta) => {
+                            type_and_interface_symbols.push(ta.id.name.as_str().to_string());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut retained_fn_names: Vec<String> = vec![target_symbol.to_string()];
+    if let Some(target_entry) = functions.iter().find(|f| f.name == target_symbol) {
+        for called in &target_entry.called_names {
+            if functions.iter().any(|f| &f.name == called) && !retained_fn_names.contains(called) {
+                retained_fn_names.push(called.clone());
+            }
+        }
+    }
+
+    let mut retained_symbols = type_and_interface_symbols;
+    let mut pruned_symbols = Vec::new();
+    let mut spans_to_prune: Vec<(usize, usize)> = Vec::new();
+
+    for f in &functions {
+        if retained_fn_names.contains(&f.name) {
+            if !retained_symbols.contains(&f.name) {
+                retained_symbols.push(f.name.clone());
+            }
+        } else {
+            pruned_symbols.push(f.name.clone());
+            spans_to_prune.push((f.body_start, f.body_end));
+        }
+    }
+
+    spans_to_prune.sort_by_key(|&(start, _)| start);
+
+    let mut pruned_source = String::with_capacity(source_text.len());
+    let mut cursor = 0usize;
+    for (start, end) in spans_to_prune {
+        if start >= cursor && end <= source_text.len() && start <= end {
+            pruned_source.push_str(&source_text[cursor..start]);
+            pruned_source.push_str("{ /* [Alexandria AST Pruned] */ }");
+            cursor = end;
+        }
+    }
+    if cursor < source_text.len() {
+        pruned_source.push_str(&source_text[cursor..]);
+    }
+
+    let original_bytes = source_text.len();
+    let pruned_bytes = pruned_source.len();
+    let estimated_tokens_saved = original_bytes.saturating_sub(pruned_bytes) / 4;
+
+    Ok(PrunedAstContext {
+        target_symbol: target_symbol.to_string(),
+        retained_symbols,
+        pruned_symbols,
+        pruned_source,
+        original_bytes,
+        pruned_bytes,
+        estimated_tokens_saved,
+    })
 }

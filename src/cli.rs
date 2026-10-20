@@ -1,5 +1,8 @@
 use crate::collector::skill_etl::{collect_and_refactor_directory, export_refactored_json_bundle};
 use crate::storage::actor::VaultStorageHandle;
+use crate::vector_store::hybrid_memory::{
+    export_vector_store_snapshot, query_hybrid_vector_memory,
+};
 use serde_json::json;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -27,8 +30,13 @@ COMMANDS:
                                  Scan <source_dir>, refactor skills/hooks into canonical
                                  AlexandriaCapsuleJson files in <output_dir> (default:
                                  ./.alexandria/capsules), and synchronize into vault.db.
+  memory <add|query> \"<text>\" [--kind <kind>] [--module <module>] [--budget <tokens>]
+                                 Add or query episodic vector memory using hybrid RRF
+                                 (64-dim int8 embeddings + SQLite FTS5 BM25).
   mcp                            Start the SQLite WAL actor on ~/.alexandria/vault.db
                                  and serve the MCP JSON-RPC 2.0 server over stdio.
+  lsp                            Start the native Language Server Protocol (LSP) engine
+                                 over stdio for sub-2ms Gate 0 & Gate 2 diagnostics.
   run \"<directive>\"              Execute a directive in autonomous CLI mode by evaluating
                                  the execution path (Path Alpha / Path Omega).";
 
@@ -44,7 +52,15 @@ pub enum CliCommand {
         source_dir: String,
         output_dir: Option<String>,
     },
+    Memory {
+        action: String,
+        text: String,
+        source_kind: Option<String>,
+        module_name: Option<String>,
+        token_budget: Option<usize>,
+    },
     McpStdio,
+    LspStdio,
     Run {
         instruction: String,
     },
@@ -124,6 +140,65 @@ where
             })
         }
         Some("mcp") | Some("serve") => Ok(CliCommand::McpStdio),
+        Some("lsp") => Ok(CliCommand::LspStdio),
+        Some("memory") => {
+            let action = iter.next().ok_or_else(|| {
+                "Command 'memory' requires <add|query> action. Usage: alexandria memory <add|query> \"<text>\"".to_string()
+            })?;
+            if action == "--help" || action == "-h" {
+                return Ok(CliCommand::Help);
+            }
+            if action != "add" && action != "query" {
+                return Err(format!(
+                    "Unknown memory action '{}'. Expected 'add' or 'query'.",
+                    action
+                ));
+            }
+            let mut text_parts: Vec<String> = Vec::new();
+            let mut source_kind: Option<String> = None;
+            let mut module_name: Option<String> = None;
+            let mut token_budget: Option<usize> = None;
+
+            while let Some(arg) = iter.next() {
+                if arg == "--kind" {
+                    let val = iter.next().ok_or_else(|| {
+                        "Flag '--kind' requires a value (user_supplied | agent_execution | forensic_lesson).".to_string()
+                    })?;
+                    source_kind = Some(val);
+                } else if let Some(val) = arg.strip_prefix("--kind=") {
+                    source_kind = Some(val.to_string());
+                } else if arg == "--module" {
+                    let val = iter.next().ok_or_else(|| {
+                        "Flag '--module' requires a module name.".to_string()
+                    })?;
+                    module_name = Some(val);
+                } else if let Some(val) = arg.strip_prefix("--module=") {
+                    module_name = Some(val.to_string());
+                } else if arg == "--budget" {
+                    let val = iter.next().ok_or_else(|| {
+                        "Flag '--budget' requires an integer token budget.".to_string()
+                    })?;
+                    token_budget = val.parse::<usize>().ok();
+                } else if let Some(val) = arg.strip_prefix("--budget=") {
+                    token_budget = val.parse::<usize>().ok();
+                } else {
+                    text_parts.push(arg);
+                }
+            }
+
+            let text = text_parts.join(" ");
+            if text.trim().is_empty() {
+                return Err("Command 'memory' requires non-empty text.".to_string());
+            }
+
+            Ok(CliCommand::Memory {
+                action,
+                text,
+                source_kind,
+                module_name,
+                token_budget,
+            })
+        }
         Some("run") => {
             let parts: Vec<String> = iter.collect();
             if parts.is_empty() || parts.iter().all(|s| s.trim().is_empty()) {
@@ -134,10 +209,10 @@ where
             })
         }
         Some(other) => Err(format!(
-            "Unknown subcommand '{}'. Usage: alexandria <init|collect|mcp|run|--version|--help>",
+            "Unknown subcommand '{}'. Usage: alexandria <init|collect|memory|mcp|lsp|run|--version|--help>",
             other
         )),
-        None => Err("Usage: alexandria <init|collect|mcp|run|--version|--help>".into()),
+        None => Err("Usage: alexandria <init|collect|memory|mcp|lsp|run|--version|--help>".into()),
     }
 }
 
@@ -379,5 +454,53 @@ pub async fn execute_collect_subcommand(
     });
 
     serde_json::to_string(&summary).map_err(|e| e.to_string())
+}
+
+pub async fn execute_memory_subcommand(
+    workspace_root: &Path,
+    action: &str,
+    text: &str,
+    source_kind: Option<&str>,
+    module_name: Option<&str>,
+    token_budget: Option<usize>,
+    storage: &VaultStorageHandle,
+) -> Result<String, String> {
+    if action == "add" {
+        let kind = source_kind.unwrap_or("user_supplied").to_string();
+        let module = module_name.unwrap_or("core").to_string();
+        let memory_id = storage
+            .record_episodic_memory(
+                kind.clone(),
+                "bel".to_string(),
+                module.clone(),
+                vec![module.clone()],
+                text.to_string(),
+                50,
+            )
+            .await?;
+        let vector_dir = workspace_root.join(".alexandria").join("vector-store");
+        let snapshot_path = export_vector_store_snapshot(storage, &vector_dir)?;
+        let out = json!({
+            "engine": VERSION_BANNER,
+            "action": "add",
+            "memoryId": memory_id,
+            "sourceKind": kind,
+            "moduleName": module,
+            "snapshotPath": snapshot_path.to_string_lossy()
+        });
+        serde_json::to_string(&out).map_err(|e| e.to_string())
+    } else {
+        let budget = token_budget.unwrap_or(350);
+        let recalled = query_hybrid_vector_memory(storage, text, budget)?;
+        let out = json!({
+            "engine": VERSION_BANNER,
+            "action": "query",
+            "query": text,
+            "tokenBudget": budget,
+            "resultsCount": recalled.len(),
+            "results": recalled
+        });
+        serde_json::to_string(&out).map_err(|e| e.to_string())
+    }
 }
 

@@ -10,7 +10,18 @@ use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
+
+static HUMAN_INTERVENTION_EPOCH: AtomicU64 = AtomicU64::new(0);
+
+pub fn bump_human_intervention_epoch() -> u64 {
+    HUMAN_INTERVENTION_EPOCH.fetch_add(1, Ordering::SeqCst) + 1
+}
+
+pub fn current_human_intervention_epoch() -> u64 {
+    HUMAN_INTERVENTION_EPOCH.load(Ordering::SeqCst)
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NodeKind {
@@ -402,6 +413,7 @@ pub fn start_vault_debounced_watcher(
                     !in_ignored && ev.path.extension().and_then(|e| e.to_str()) == Some("md")
                 });
                 if should_reload {
+                    let _ = bump_human_intervention_epoch();
                     let _ = load_vault_graph_from_dir(&watched_root);
                 }
             }

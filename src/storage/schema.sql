@@ -149,3 +149,46 @@ CREATE TABLE IF NOT EXISTS quality_gate_verdicts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_verdicts_module_time ON quality_gate_verdicts(module_name, created_at DESC);
+
+-- 8. Hybrid Episodic Vector & Lexical Memory (Plane 2 Token-Efficient Store)
+CREATE TABLE IF NOT EXISTS episodic_vector_memory (
+    rowid INTEGER PRIMARY KEY AUTOINCREMENT,
+    chunk_id TEXT NOT NULL UNIQUE,
+    source_kind TEXT NOT NULL CHECK(source_kind IN ('user_supplied', 'agent_execution', 'architectural_decision')),
+    agent_id TEXT NOT NULL,
+    module_name TEXT NOT NULL,
+    tags_json TEXT NOT NULL DEFAULT '[]',
+    compact_summary TEXT NOT NULL,
+    token_estimate INTEGER NOT NULL,
+    embedding_int8_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_episodic_memory_module ON episodic_vector_memory(module_name, created_at DESC);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS episodic_memory_fts USING fts5(
+    chunk_id,
+    module_name,
+    tags_json,
+    compact_summary,
+    content='episodic_vector_memory',
+    content_rowid='rowid',
+    tokenize='porter unicode61'
+);
+
+CREATE TRIGGER IF NOT EXISTS episodic_memory_ai AFTER INSERT ON episodic_vector_memory BEGIN
+    INSERT INTO episodic_memory_fts(rowid, chunk_id, module_name, tags_json, compact_summary)
+    VALUES (new.rowid, new.chunk_id, new.module_name, new.tags_json, new.compact_summary);
+END;
+
+CREATE TRIGGER IF NOT EXISTS episodic_memory_ad AFTER DELETE ON episodic_vector_memory BEGIN
+    INSERT INTO episodic_memory_fts(episodic_memory_fts, rowid, chunk_id, module_name, tags_json, compact_summary)
+    VALUES ('delete', old.rowid, old.chunk_id, old.module_name, old.tags_json, old.compact_summary);
+END;
+
+CREATE TRIGGER IF NOT EXISTS episodic_memory_au AFTER UPDATE ON episodic_vector_memory BEGIN
+    INSERT INTO episodic_memory_fts(episodic_memory_fts, rowid, chunk_id, module_name, tags_json, compact_summary)
+    VALUES ('delete', old.rowid, old.chunk_id, old.module_name, old.tags_json, old.compact_summary);
+    INSERT INTO episodic_memory_fts(rowid, chunk_id, module_name, tags_json, compact_summary)
+    VALUES (new.rowid, new.chunk_id, new.module_name, new.tags_json, new.compact_summary);
+END;

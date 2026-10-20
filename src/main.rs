@@ -1,7 +1,9 @@
 use alexandria::cli::{
     CliCommand, HELP_BANNER, VERSION_BANNER, execute_autonomous_run, execute_collect_subcommand,
-    execute_init_scaffolding, parse_cli_args, resolve_default_vault_db_path,
+    execute_init_scaffolding, execute_memory_subcommand, parse_cli_args,
+    resolve_default_vault_db_path,
 };
+use alexandria::lsp::server::run_lsp_stdio_loop;
 use alexandria::mcp::server::{McpKernelContext, run_mcp_stdio_loop_with_context};
 use alexandria::storage::CANONICAL_SCHEMA_SQL;
 use alexandria::storage::actor::VaultStorageHandle;
@@ -86,6 +88,31 @@ fn main() -> ExitCode {
                 let storage_handle = VaultStorageHandle::spawn(db_path, CANONICAL_SCHEMA_SQL)?;
                 let ctx = McpKernelContext::new(cwd, vault_dir, Some(storage_handle));
                 run_mcp_stdio_loop_with_context(ctx).await
+            }
+            CliCommand::LspStdio => run_lsp_stdio_loop().await,
+            CliCommand::Memory {
+                action,
+                text,
+                source_kind,
+                module_name,
+                token_budget,
+            } => {
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
+                let db_path = resolve_default_vault_db_path()?;
+                let storage_handle = VaultStorageHandle::spawn(db_path, CANONICAL_SCHEMA_SQL)?;
+                let report = execute_memory_subcommand(
+                    &cwd,
+                    &action,
+                    &text,
+                    source_kind.as_deref(),
+                    module_name.as_deref(),
+                    token_budget,
+                    &storage_handle,
+                )
+                .await?;
+                println!("{}", report);
+                Ok(())
             }
             CliCommand::Run { instruction } => {
                 let cwd = env::current_dir()
