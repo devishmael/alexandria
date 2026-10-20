@@ -709,20 +709,22 @@ pub fn export_refactored_json_bundle(
 
 pub fn builtin_core_capsules() -> Vec<AlexandriaCapsuleJson> {
     let tdd_md = "Execute strict RED -> GREEN -> REFACTOR cycles using Vitest with `--outputFile`. Never modify files inside `src/` until a unit test in `tests/` fails deterministically by business `AssertionError`.";
-    let prisma_md = "Enforce strict lexical closure inside `prisma.$transaction(async (tx) => { ... })` with sub-25ms execution budgets. Never alias or destructure `tx`, never chain `.then()`, and immediately `await` every `tx.<model>.<op>()` call.";
-    let ts_md = "Eliminate primitive obsession using nominal Branded Types (`type Brand<K, T> = K & { readonly __brand: T }`). Explicit `any` (`TSAnyKeyword`) and double casts (`as unknown as T`) are strictly forbidden by Gate 0.";
-    let sec_md = "Perform Utu stateless cold-context SAST audits across all diffs, prevent secret or credential leaks, and execute untrusted test suites strictly inside `node --permission` OS sandboxes.";
+    let prisma_md = "Enforce strict lexical closure inside `prisma.$transaction(async (tx) => { ... })` with sub-25ms execution budgets. Never alias or destructure `tx`, never chain `.then()`, forbid external network I/O (`fetch`), and immediately `await` every `tx.<model>.<op>()` call.";
+    let arch_md = "Maintain strict hexagonal layer boundaries: Controllers/Routes handle HTTP and Zod validation, Services/Use Cases orchestrate pure business domain logic, and Repositories handle database interactions. Heavy business logic or raw database queries inside controllers are strictly forbidden. Enforce nominal Branded Types (`type Brand<K, T> = K & { readonly __brand: T }`) for domain IDs, with zero explicit `any` and zero double casting (`as unknown as T`).";
+    let sec_md = "Enforce OWASP Zero-Trust security standards across all code mutations: strictly sanitize all external inputs, forbid unparameterized raw SQL (`$queryRawUnsafe`), prohibit dangerous runtime execution vectors (`eval()`, `new Function()`, `dangerouslySetInnerHTML`), and prevent any credential or secret leaks (`sk-`, `AKIA`, `ghp_`, PEM private keys).";
+    let refactor_md = "Execute surgical atomic refactorings altering fewer than 100 lines per turn. Leverage Oxc AST context pruning (`prune_typescript_context_for_symbol`) with `focusSymbol` to isolate the target function and its immediate helper dependencies while keeping unrelated functions pruned and types intact.";
 
     vec![
         AlexandriaCapsuleJson {
             schema_version: CANONICAL_CAPSULE_SCHEMA_VERSION.to_string(),
-            skill_id: "testing:tdd-vitest".to_string(),
+            skill_id: "testing:tdd-strict-vitest".to_string(),
             domain: "testing".to_string(),
             profile_compatibility: default_profiles(),
-            description: "Strict RED-GREEN-REFACTOR TDD workflow with Vitest --outputFile JSON verification and mandatory prior AssertionError.".to_string(),
+            description: "Strict RED-GREEN-REFACTOR TDD workflow with Vitest JSON reports, forbidding src/ modifications without prior verified AssertionError.".to_string(),
             trigger_keywords: vec![
                 "testing".to_string(),
                 "tdd".to_string(),
+                "strict".to_string(),
                 "vitest".to_string(),
                 "red".to_string(),
                 "green".to_string(),
@@ -733,15 +735,22 @@ pub fn builtin_core_capsules() -> Vec<AlexandriaCapsuleJson> {
                 "verify_and_gate_changes".to_string(),
             ],
             invariants: vec![
+                "FORBID_SRC_MUTATION_WITHOUT_PRIOR_ASSERTION_ERROR".to_string(),
                 "REQUIRE_RED_PHASE_ASSERTION_ERROR".to_string(),
                 "MIN_DIFF_COVERAGE_90_PERCENT".to_string(),
-                "FORBID_SRC_EDIT_WITHOUT_FAILING_TEST".to_string(),
             ],
-            hooks: vec![AlexandriaHookSpec {
-                event: "pre_execution".to_string(),
-                action: "enforce_red_phase".to_string(),
-                target_filter: Some("tests/**/*.test.ts".to_string()),
-            }],
+            hooks: vec![
+                AlexandriaHookSpec {
+                    event: "pre_execution".to_string(),
+                    action: "enforce_test_file_existence".to_string(),
+                    target_filter: Some("tests/**/*.test.ts".to_string()),
+                },
+                AlexandriaHookSpec {
+                    event: "post_gate_3".to_string(),
+                    action: "validate_red_phase_assertion".to_string(),
+                    target_filter: Some("coverage/alexandria-vitest-report.json".to_string()),
+                },
+            ],
             instructions_markdown: tdd_md.to_string(),
             content_sha256: compute_sha256_hex(tdd_md),
         },
@@ -750,27 +759,29 @@ pub fn builtin_core_capsules() -> Vec<AlexandriaCapsuleJson> {
             skill_id: "database:prisma-acid-closure".to_string(),
             domain: "database".to_string(),
             profile_compatibility: default_profiles(),
-            description: "Strict lexical closure in prisma.$transaction under 25ms, forbidding .then(), tx aliasing, and dangling promises.".to_string(),
+            description: "Total lexical closure inside prisma.$transaction under 25ms, forbidding .then(), tx aliasing, external network calls, and dangling promises.".to_string(),
             trigger_keywords: vec![
                 "database".to_string(),
                 "prisma".to_string(),
                 "acid".to_string(),
                 "closure".to_string(),
                 "sub25ms".to_string(),
+                "transaction".to_string(),
             ],
             required_tools: vec![
                 "prepare_task_context".to_string(),
                 "verify_and_gate_changes".to_string(),
             ],
             invariants: vec![
-                "PRISMA_TX_INLINE_CALLBACK_REQUIRED".to_string(),
+                "PRISMA_TX_STRICT_LEXICAL_CLOSURE".to_string(),
                 "PRISMA_TX_NO_ALIAS_OR_DESTRUCTURE".to_string(),
                 "PRISMA_TX_NO_PROMISE_CHAINING".to_string(),
-                "PRISMA_TX_DANGLING_PROMISE_FORBIDDEN".to_string(),
+                "PRISMA_TX_FORBID_NETWORK_AND_DANGLING_PROMISES".to_string(),
+                "SUB_25MS_EXECUTION_BUDGET".to_string(),
             ],
             hooks: vec![AlexandriaHookSpec {
                 event: "pre_gate_0".to_string(),
-                action: "scan_ast_invariants".to_string(),
+                action: "validate_prisma_tx_closure".to_string(),
                 target_filter: Some("src/**/*.ts".to_string()),
             }],
             instructions_markdown: prisma_md.to_string(),
@@ -778,15 +789,21 @@ pub fn builtin_core_capsules() -> Vec<AlexandriaCapsuleJson> {
         },
         AlexandriaCapsuleJson {
             schema_version: CANONICAL_CAPSULE_SCHEMA_VERSION.to_string(),
-            skill_id: "typescript:nominal-branded-types".to_string(),
+            skill_id: "architecture:clean-hexagonal-api".to_string(),
             domain: "backend".to_string(),
             profile_compatibility: default_profiles(),
-            description: "Prohibits explicit any and double casting (as unknown as T), enforcing nominal Branded Types across domain models.".to_string(),
+            description: "Clean hexagonal architecture with strict layer separation, Zod boundary validation, and nominal Branded Types forbidding explicit any.".to_string(),
             trigger_keywords: vec![
-                "typescript".to_string(),
+                "architecture".to_string(),
+                "clean".to_string(),
+                "hexagonal".to_string(),
+                "api".to_string(),
                 "nominal".to_string(),
                 "branded".to_string(),
                 "types".to_string(),
+                "backend".to_string(),
+                "typescript".to_string(),
+                "zod".to_string(),
                 "explicit".to_string(),
                 "any".to_string(),
             ],
@@ -795,48 +812,88 @@ pub fn builtin_core_capsules() -> Vec<AlexandriaCapsuleJson> {
                 "verify_and_gate_changes".to_string(),
             ],
             invariants: vec![
-                "NO_EXPLICIT_ANY".to_string(),
-                "NO_DOUBLE_CAST_UNKNOWN".to_string(),
+                "STRICT_LAYER_SEPARATION_CONTROLLER_SERVICE_REPOSITORY".to_string(),
+                "FORBID_RAW_QUERIES_IN_CONTROLLERS".to_string(),
                 "ENFORCE_NOMINAL_BRANDED_TYPES".to_string(),
+                "VALIDATE_BOUNDARY_INPUTS_WITH_ZOD".to_string(),
+                "NO_EXPLICIT_ANY".to_string(),
             ],
             hooks: vec![AlexandriaHookSpec {
                 event: "pre_gate_0".to_string(),
-                action: "scan_ast_invariants".to_string(),
+                action: "enforce_nominal_types".to_string(),
                 target_filter: Some("src/**/*.{ts,tsx}".to_string()),
             }],
-            instructions_markdown: ts_md.to_string(),
-            content_sha256: compute_sha256_hex(ts_md),
+            instructions_markdown: arch_md.to_string(),
+            content_sha256: compute_sha256_hex(arch_md),
         },
         AlexandriaCapsuleJson {
             schema_version: CANONICAL_CAPSULE_SCHEMA_VERSION.to_string(),
-            skill_id: "security:zero-trust-sast".to_string(),
+            skill_id: "security:owasp-zero-trust".to_string(),
             domain: "security".to_string(),
             profile_compatibility: default_profiles(),
-            description: "Utu stateless cold-audit rules, secret leak prevention, and OS sandboxed execution via node --permission.".to_string(),
+            description: "OWASP Zero-Trust security rules prohibiting unparameterized raw SQL, eval(), dangerouslySetInnerHTML, and hardcoded credential leaks.".to_string(),
             trigger_keywords: vec![
                 "security".to_string(),
+                "owasp".to_string(),
                 "zero".to_string(),
                 "trust".to_string(),
                 "sast".to_string(),
+                "secret".to_string(),
+                "credentials".to_string(),
+                "sql".to_string(),
+                "injection".to_string(),
                 "sandbox".to_string(),
-                "permission".to_string(),
             ],
             required_tools: vec![
                 "verify_and_gate_changes".to_string(),
                 "finalize_task_and_log".to_string(),
             ],
             invariants: vec![
-                "ZERO_SECRET_LEAKS".to_string(),
+                "FORBID_RAW_UNPARAMETERIZED_SQL".to_string(),
+                "FORBID_EVAL_AND_DANGEROUS_HTML".to_string(),
+                "ZERO_HARDCODED_CREDENTIALS".to_string(),
                 "ENFORCE_NODE_PERMISSION_SANDBOX".to_string(),
-                "STATELESS_UTU_COLD_AUDIT".to_string(),
             ],
             hooks: vec![AlexandriaHookSpec {
-                event: "post_gate_3".to_string(),
-                action: "run_stateless_utu_audit".to_string(),
+                event: "pre_gate_2".to_string(),
+                action: "scan_gate2_sast_and_secrets".to_string(),
                 target_filter: Some("src/**".to_string()),
             }],
             instructions_markdown: sec_md.to_string(),
             content_sha256: compute_sha256_hex(sec_md),
+        },
+        AlexandriaCapsuleJson {
+            schema_version: CANONICAL_CAPSULE_SCHEMA_VERSION.to_string(),
+            skill_id: "refactor:atomic-symbol-pruning".to_string(),
+            domain: "refactoring".to_string(),
+            profile_compatibility: default_profiles(),
+            description: "Surgical AST context pruning and atomic refactoring (< 100 modified lines per turn) isolating focusSymbol and direct helpers.".to_string(),
+            trigger_keywords: vec![
+                "refactor".to_string(),
+                "atomic".to_string(),
+                "symbol".to_string(),
+                "pruning".to_string(),
+                "ast".to_string(),
+                "diff".to_string(),
+                "focus".to_string(),
+                "context".to_string(),
+            ],
+            required_tools: vec![
+                "prepare_task_context".to_string(),
+                "verify_and_gate_changes".to_string(),
+            ],
+            invariants: vec![
+                "ATOMIC_DIFF_UNDER_100_LINES".to_string(),
+                "ISOLATE_TARGET_FOCUS_SYMBOL".to_string(),
+                "PRESERVE_UNRELATED_FUNCTION_BODIES".to_string(),
+            ],
+            hooks: vec![AlexandriaHookSpec {
+                event: "pre_execution".to_string(),
+                action: "prune_ast_context".to_string(),
+                target_filter: Some("src/**/*.{ts,tsx}".to_string()),
+            }],
+            instructions_markdown: refactor_md.to_string(),
+            content_sha256: compute_sha256_hex(refactor_md),
         },
     ]
 }

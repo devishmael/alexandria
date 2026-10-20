@@ -222,7 +222,7 @@ instructions_markdown: "Verify all environment variables are excluded from sourc
 #[tokio::test]
 async fn test_builtin_capsules_auto_seeded_in_vault_db() {
     let builtins = builtin_core_capsules();
-    assert_eq!(builtins.len(), 4, "Exactly 4 factory core capsules must exist");
+    assert_eq!(builtins.len(), 5, "Exactly 5 factory core capsules must exist");
 
     let temp_dir = create_temp_test_dir("builtin_seed");
     let db_path = temp_dir.join("vault.db");
@@ -230,13 +230,14 @@ async fn test_builtin_capsules_auto_seeded_in_vault_db() {
         .expect("VaultStorageHandle must initialize and auto-seed built-in capsules");
 
     let expected_ids = [
-        "testing:tdd-vitest",
+        "testing:tdd-strict-vitest",
         "database:prisma-acid-closure",
-        "typescript:nominal-branded-types",
-        "security:zero-trust-sast",
+        "architecture:clean-hexagonal-api",
+        "security:owasp-zero-trust",
+        "refactor:atomic-symbol-pruning",
     ];
 
-    // 1. Verify exact_id resolution for all 4 built-in capsules
+    // 1. Verify exact_id resolution for all 5 built-in capsules
     for expected_id in expected_ids {
         let resolved = storage
             .resolve_skill_capsule(Some(expected_id), None)
@@ -250,17 +251,17 @@ async fn test_builtin_capsules_auto_seeded_in_vault_db() {
 
     // 2. Verify FTS5 BM25 search resolution for built-in capsules
     let bm25_match = storage
-        .resolve_skill_capsule(None, Some("nominal branded types explicit any typescript"))
+        .resolve_skill_capsule(None, Some("nominal branded types explicit any typescript clean hexagonal architecture"))
         .expect("FTS5 query must succeed")
-        .expect("FTS5 BM25 must resolve typescript:nominal-branded-types");
-    assert_eq!(bm25_match.skill_id, "typescript:nominal-branded-types");
+        .expect("FTS5 BM25 must resolve architecture:clean-hexagonal-api");
+    assert_eq!(bm25_match.skill_id, "architecture:clean-hexagonal-api");
     assert_eq!(bm25_match.resolution_method, "fts5_bm25_fallback");
 
     // 3. Verify MCP tool `resolve_skill_capsule` returns real `allowedTools` and `hooks` from SQLite
     let ctx = McpKernelContext::new(temp_dir.clone(), temp_dir.join("wiki"), Some(storage));
     let mcp_resp = dispatch_alexandria_tool_with_context(
         "resolve_skill_capsule",
-        json!({ "skillId": "testing:tdd-vitest" }),
+        json!({ "skillId": "testing:tdd-strict-vitest" }),
         json!(901),
         &ctx,
     )
@@ -269,7 +270,7 @@ async fn test_builtin_capsules_auto_seeded_in_vault_db() {
     let result = mcp_resp.result.expect("MCP response must contain result");
     let payload: Value =
         serde_json::from_str(result["content"][0]["text"].as_str().unwrap()).unwrap();
-    assert_eq!(payload["skillId"], json!("testing:tdd-vitest"));
+    assert_eq!(payload["skillId"], json!("testing:tdd-strict-vitest"));
     assert!(
         payload["allowedTools"]
             .as_array()

@@ -1,4 +1,4 @@
-# 🏛️ Alexandria Runtime (`v2.5.0-OmniPragmatic`)
+# 🏛️ Alexandria — The Deterministic Agent Harness
 
 [![Alexandria CI](https://github.com/devishmael/alexandria-runtime/actions/workflows/ci.yml/badge.svg)](https://github.com/devishmael/alexandria-runtime/actions/workflows/ci.yml)
 ![Rust Edition](https://img.shields.io/badge/Rust-2024_Edition-orange?logo=rust)
@@ -8,7 +8,7 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
 > **Headless Deterministic Agent Harness, Kernel-Space Arbitrator, Hybrid Vector Store & Native LSP Server in Rust.**  
-> Governing probabilistic User-Space LLMs via zero-trust Oxc AST gates, surgical AST context pruning, token-efficient hybrid vector memory (`int8` + BM25 Reciprocal Rank Fusion), OS-sandboxed TDD verification, Single-Turn Court-Martial arbitration, Agentic Git IAM, live organism telemetry (`MTTR` + `dashboard.md`), and a live Obsidian knowledge graph.
+> Governing probabilistic User-Space LLMs via zero-trust Oxc AST gates, surgical AST context pruning, token-efficient hybrid vector memory (`int8` + BM25 Reciprocal Rank Fusion), OS-sandboxed TDD verification, Single-Turn Court-Martial arbitration, Agentic Git IAM, live organism telemetry (`MTTR` + `dashboard.md`), and an agnostic Headless Markdown Knowledge Vault.
 
 ---
 
@@ -23,8 +23,8 @@
 7. [Surgical AST Context Pruning (`oxc_parser`)](#7-surgical-ast-context-pruning-oxc_parser)
 8. [Out-of-Band Quality Gates, Court-Martial & Agentic Git IAM](#8-out-of-band-quality-gates-court-martial--agentic-git-iam)
 9. [Live Organism Telemetry (`MTTR` & `wiki/dashboard.md`)](#9-live-organism-telemetry-mttr--wikidashboardmd)
-10. [Polymorphic Skill & Hook ETL Collector (`src/collector/`)](#10-polymorphic-skill--hook-etl-collector-srccollector)
-11. [Obsidian Vault Structure & 75ms Live Watcher](#11-obsidian-vault-structure--75ms-live-watcher)
+10. [Polymorphic Skill & Hook ETL Collector & 5-Skill Starter Pack](#10-polymorphic-skill--hook-etl-collector--5-skill-starter-pack)
+11. [Headless Markdown Knowledge Vault & Multi-Viewer Guide](#11-headless-markdown-knowledge-vault--multi-viewer-guide)
 12. [License](#12-license)
 
 ---
@@ -33,7 +33,7 @@
 
 Modern AI coding assistants suffer from **context rot**, **hallucinated green builds**, **silent architectural drift**, **token bloat**, and **destructive retry loops (*LLM Thrashing*)** when left to self-police through prompt engineering alone.
 
-**Alexandria Runtime** solves this by enforcing a strict operating-system boundary between **Kernel-Space** and **User-Space**:
+**Alexandria** solves this by enforcing a strict operating-system boundary between **Kernel-Space** and **User-Space**:
 
 - **Kernel-Space (`alexandria` Rust Binary):** The deterministic authority. It owns the filesystem knowledge graph (`petgraph`), native TypeScript/TSX AST parsing and surgical context pruning (`oxc_parser` + `oxc_resolver`), OS-level process sandboxing (`node --permission`), polymorphic Skill/Hook ETL normalization (`src/collector/`), single-writer SQLite WAL + FTS5 BM25 + 64-dim `int8` hybrid vector memory (`rusqlite`), real-time Language Server Protocol (`LSP`) diagnostics, and the deterministic Circuit Breaker.
 - **User-Space (Probabilistic LLM Host):** Untrusted compute process (Google Antigravity 2.0, Claude Code, Cursor, Windsurf, VS Code, Neovim). It cannot self-certify compilation, test verdicts, or architectural compliance; every mutation is arbitrated out-of-band by the Rust kernel via **MCP (`2024-11-05`)** and **LSP (`3.17`)**.
@@ -57,7 +57,7 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 │                   KERNEL-SPACE: ALEXANDRIA RUNTIME (Rust 2024 Binary)                    │
 ├────────────────────────────────────────────┬─────────────────────────────────────────────┤
 │  PLANE 1: TOPOLOGICAL GRAPH & AST ENGINE   │  PLANE 2: HYBRID VECTOR & EPISODIC MEMORY   │
-│  • Obsidian Vault (`./wiki/`)              │  • Single-Writer Actor (`~/.alexandria/`)   │
+│  • Headless Markdown Vault (`./wiki/`)     │  • Single-Writer Actor (`~/.alexandria/`)   │
 │  • `petgraph::StableDiGraph` in RAM        │  • `SQLite WAL` (`synchronous = NORMAL`)    │
 │  • Strict Depth=1 Module Pruning           │  • 64-Dim `int8` Embeddings + FTS5 BM25     │
 │  • Transitive ADR Hoisting (Depth <= 6)    │  • Reciprocal Rank Fusion (RRF, k = 60)     │
@@ -73,7 +73,7 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 | **`bel`** | **Bel (The Overseer)** | `5` | Chief Software Architect & Presiding Judge. Resolves Depth=1 topological context, dispatches isolated worktrees, authors contracts in `wiki/modules/` and `[[ADR-XXX]]` in `wiki/decisions/`, and issues Single-Turn Court-Martial verdicts. | **Never** modifies executable code in `src/`. |
 | **`enki`** | **Enki (The Builder)** | `3` | Principal TDD Engineer. Executes strict **RED $\rightarrow$ GREEN $\rightarrow$ REFACTOR** TDD cycles in `tests/` and `src/`. | **Blocked** from editing `src/` without a prior contract and a verified RED assertion failure. |
 | **`utu`** | **Utu (The Critic)** | `1` | Impartial Security & Quality Auditor. Performs stateless cold-context audits against hoisted ADRs and Gate 2 SAST rules, and acts as Prosecutor in Court-Martial dockets. | Zero access to Enki's reasoning history (prevents confirmation bias). |
-| **`nabu`** | **Nabu (The Chronicler)** | `1` | Keeper of the Obsidian Vault & Cryptographic Signer. Records `FAIL-XXX` incidents in `wiki/failures.md`, signs Agentic Git IAM commits, updates `wiki/dashboard.md`, and exports vector snapshots. | Append-only immutable ledger enforcement. |
+| **`nabu`** | **Nabu (The Chronicler)** | `1` | Keeper of the Knowledge Vault & Cryptographic Signer. Records `FAIL-XXX` incidents in `wiki/failures.md`, signs Agentic Git IAM commits, updates `wiki/dashboard.md`, and exports vector snapshots. | Append-only immutable ledger enforcement. |
 
 ---
 
@@ -102,11 +102,11 @@ cargo test --all-targets
 cargo build --release
 ```
 
-### 1. `alexandria init` — Initialize Workspace, Obsidian Vault & Pantheon Agents
-Generates `.alexandria.json`, scaffolds the canonical Obsidian vault (`wiki/index.md`, `wiki/log.md`, `wiki/failures.md`, `wiki/architecture/`, `wiki/modules/`, `wiki/decisions/`), populates the Pantheon agent descriptors (`.agents/agents/{bel,enki,utu,nabu}.md`), and hardens `.gitignore`.
+### 1. `alexandria init` — Initialize Workspace, Headless Vault & Pantheon Agents
+Generates `.alexandria.json`, scaffolds the canonical Markdown vault (`wiki/index.md`, `wiki/log.md`, `wiki/failures.md`, `wiki/architecture/`, `wiki/modules/`, `wiki/decisions/`), populates the Pantheon agent descriptors (`.agents/agents/{bel,enki,utu,nabu}.md`), and hardens `.gitignore`.
 ```bash
 alexandria init
-# Custom Obsidian vault path and engineering profile:
+# Custom vault path and engineering profile:
 alexandria init --vault ./wiki --profile mvp-fullstack-ts
 ```
 
@@ -127,7 +127,7 @@ alexandria memory query "prisma transaction billing closure" --budget 150
 ```
 
 ### 4. `alexandria mcp` — Start the Model Context Protocol (`2024-11-05`) Server
-Spawns the dedicated SQLite WAL writer thread on `~/.alexandria/vault.db`, seeds the Pantheon `agent_catalog` and the 4 built-in factory capsules, and serves the 6 Prefix-Pinned MCP tools over `stdio`.
+Spawns the dedicated SQLite WAL writer thread on `~/.alexandria/vault.db`, seeds the Pantheon `agent_catalog` and the 5 built-in factory capsules, and serves the 6 Prefix-Pinned MCP tools over `stdio`.
 ```bash
 alexandria mcp
 ```
@@ -148,7 +148,7 @@ alexandria run "Refactor Prisma billing transaction with strict lexical closure"
 
 ## 5. Multi-Host IDE, Agent & LSP Configuration Guide
 
-Alexandria Runtime exposes **6 immutable MCP tools** (`prepare_task_context`, `upsert_architectural_contract`, `resolve_skill_capsule`, `spawn_isolated_worktrees`, `verify_and_gate_changes`, `finalize_task_and_log`) ordered deterministically to guarantee a **100% KV-Cache Prefix Hit**, plus a native **LSP server** (`alexandria lsp`).
+Alexandria exposes **6 immutable MCP tools** (`prepare_task_context`, `upsert_architectural_contract`, `resolve_skill_capsule`, `spawn_isolated_worktrees`, `verify_and_gate_changes`, `finalize_task_and_log`) ordered deterministically to guarantee a **100% KV-Cache Prefix Hit**, plus a native **LSP server** (`alexandria lsp`).
 
 ### Google Antigravity 2.0 (`mcp_config.json`)
 ```json
@@ -270,24 +270,30 @@ Upon task certification in `finalize_task_and_log`, the kernel generates a crypt
 
 ## 9. Live Organism Telemetry (`MTTR` & `wiki/dashboard.md`)
 
-Alexandria continuously computes live organism health metrics from SQLite WAL (`write_telemetry_and_markdown_dashboard`) and writes both `.alexandria/telemetry/organism-health.json` and an Obsidian-compatible **`wiki/dashboard.md`**:
+Alexandria continuously computes live organism health metrics from SQLite WAL (`write_telemetry_and_markdown_dashboard`) and writes both `.alexandria/telemetry/organism-health.json` and a Markdown-compatible **`wiki/dashboard.md`**:
 - **Gate Pass / Fail Ratio** across all recorded quality gate verdicts.
 - **Mean Time To Repair (`MTTR` in seconds):** Average elapsed time between a recorded `FAIL-XXX` incident on a module and its subsequent green gate certification.
 - **Active Circuit Breakers** and **Episodic Vector Memory Count**.
 
 ---
 
-## 10. Polymorphic Skill & Hook ETL Collector (`src/collector/`)
+## 10. Polymorphic Skill & Hook ETL Collector & 5-Skill Starter Pack
 
-Alexandria unifies heterogeneous procedural skills (`SKILL.md` from Antigravity/Claude, canonical Alexandria `.md`, `.yaml`, and `.json`) into the deterministic **`AlexandriaCapsuleJson`** (`alexandria.capsule.v2.4`) schema. Four factory capsules are automatically seeded into `vault.db` upon startup:
-- **`testing:tdd-vitest`** (`testing`): Enforces RED $\rightarrow$ GREEN $\rightarrow$ REFACTOR with Vitest `--outputFile`.
-- **`database:prisma-acid-closure`** (`database`): Enforces $\le 25\text{ ms}$ lexical closure inside `prisma.$transaction`.
-- **`typescript:nominal-branded-types`** (`backend`): Prohibits `any` and `as unknown as T`, requiring nominal Branded Types.
-- **`security:zero-trust-sast`** (`security`): Enforces Utu stateless cold audits, secret leak prevention, and `node --permission` sandboxing.
+Alexandria unifies heterogeneous procedural skills (`SKILL.md` from Antigravity/Claude, canonical Alexandria `.md`, `.yaml`, and `.json`) into the deterministic **`AlexandriaCapsuleJson`** (`alexandria.capsule.v2.4`) schema.
+
+Five elite factory capsules with deterministic hooks are automatically seeded into `vault.db` upon kernel initialization:
+
+| Skill ID | Domain | Deterministic Invariants Enforced | Associated Kernel Hooks |
+| :--- | :--- | :--- | :--- |
+| **`testing:tdd-strict-vitest`** | `testing` | Forbids modifying `src/` without a prior failing test in `tests/`; enforces genuine business `AssertionError` and $\ge 90\%$ coverage. | `pre_execution` (`enforce_test_file_existence`) & `post_gate_3` (`validate_red_phase_assertion`) |
+| **`database:prisma-acid-closure`** | `database` | Total lexical closure in `prisma.$transaction` under $\le 25\text{ ms}$; prohibits `.then()`, `tx` aliasing, unawaited promises, and external network calls (`fetch`). | `pre_gate_0` (`validate_prisma_tx_closure`) |
+| **`architecture:clean-hexagonal-api`** | `backend` | Strict boundary separation (Controllers $\rightarrow$ Services $\rightarrow$ Repositories); forbids raw SQL in controllers; enforces nominal Branded Types (`type Brand<K, T> = K & { readonly __brand: T }`) and Zod validation. | `pre_gate_0` (`enforce_nominal_types`) |
+| **`security:owasp-zero-trust`** | `security` | OWASP Zero-Trust rules: input sanitization, prohibits unparameterized SQL (`$queryRawUnsafe`), blocks `eval()` and `dangerouslySetInnerHTML`, zero hardcoded credentials. | `pre_gate_2` (`scan_gate2_sast_and_secrets`) |
+| **`refactor:atomic-symbol-pruning`** | `refactoring` | Atomic surgical diffs ($< 100$ modified lines per turn); uses AST Context Pruning (`prune_typescript_context_for_symbol`) with `focusSymbol` to isolate target functions and direct helpers. | `pre_execution` (`prune_ast_context`) |
 
 ---
 
-## 11. Obsidian Vault Structure & 75ms Live Watcher
+## 11. Headless Markdown Knowledge Vault & Multi-Viewer Guide
 
 ```text
 wiki/
@@ -300,10 +306,36 @@ wiki/
 └── decisions/                # Constitutional ADRs (ADR-XXX.md, hoisted up to Depth <= 6)
 ```
 
-The 75ms debounced file watcher (`start_vault_debounced_watcher` in `src/graph/resolver.rs`) monitors `wiki/**/*.md`, automatically reloads the `petgraph::StableDiGraph` in RAM when a human architect saves a file in Obsidian, and increments the atomic `HUMAN_INTERVENTION_EPOCH` counter (`current_human_intervention_epoch()`).
+### Agnostic Design: 100% Headless Native Execution
+
+The knowledge base in `./wiki` is structured as a **Headless Markdown Knowledge Vault** using standard GitHub Flavored Markdown and universal bidirectional wikilinks (`[[node]]`).
+
+> **Headless In-Engine Resolution:**  
+> Alexandria does **not** depend on or require any GUI application to operate. The Rust kernel loads, indexes, and traverses the entire topological graph in RAM (`petgraph::StableDiGraph`) with sub-millisecond latency ($\le 0.20\text{ ms}$) and monitors changes with a 75ms debounced watcher (`start_vault_debounced_watcher`). The vault is purely plain text files on disk.
+
+### Multi-Viewer Guide
+
+You can inspect, browse, or edit the vault using any tool of your choice:
+
+1. **Obsidian:**
+   - Open the `./wiki` directory as an existing local vault.
+   - Enjoy native 2D/3D interactive graph visualization, backlink panes, and canvas views out-of-the-box.
+2. **VS Code / Cursor / Windsurf:**
+   - Open the project folder or point directly to `./wiki`.
+   - Install extensions like **Foam** (`foam.foam-vscode`), **Markdown Links**, or **Dendron** to get full graph navigation, autocompletion of `[[wikilinks]]`, and jump-to-definition.
+3. **Notion / GitHub Wiki / Static Site Generators:**
+   - Standard Markdown files can be imported into Notion, published to GitHub Pages with MkDocs/Docusaurus, or synced directly with GitHub Wiki.
+4. **Terminal / Headless CLI:**
+   - Inspect live telemetry, logs, and ADRs with terminal viewers:
+     ```bash
+     glow wiki/dashboard.md
+     bat wiki/index.md
+     ```
+
+The 75ms debounced file watcher monitors `wiki/**/*.md`, reloads the graph in RAM when a human architect modifies a file in any editor, and increments the atomic `HUMAN_INTERVENTION_EPOCH` counter (`current_human_intervention_epoch()`).
 
 ---
 
 ## 12. License
 
-Released under the [MIT License](LICENSE). Copyright (c) 2026 **Dev Ishmael**.
+Released under the [MIT License](LICENSE). Copyright (c) 2026 **Devi Ishmael**.
