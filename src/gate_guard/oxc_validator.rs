@@ -6,14 +6,20 @@ use oxc_parser::Parser;
 use oxc_span::{GetSpan, SourceType};
 use serde::{Deserialize, Serialize};
 
+/// Represents a syntax or semantic policy violation detected by GateGuard AST scanners.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AstViolation {
+    /// Invariant rule identifier (e.g. `NO_EXPLICIT_ANY`, `PRISMA_TX_STRICT_LEXICAL_CLOSURE`).
     pub rule: &'static str,
+    /// Human-readable explanation of why the syntax was rejected.
     pub message: String,
+    /// Byte offset in the source file where the violation occurred.
     pub byte_offset: u32,
 }
 
+/// Native AST visitor implemented on Oxc AST for sub-2ms lexical inspection.
 pub struct GateZeroAstVisitor {
+    /// Collected AST violations.
     pub violations: Vec<AstViolation>,
     active_tx_params: Vec<String>,
 }

@@ -126,7 +126,7 @@ pub async fn run_mcp_stdio_loop_with_context(ctx: McpKernelContext) -> Result<()
         .with_ansi(false)
         .try_init();
 
-    tracing::info!("Alexandria Runtime v2.4.0 MCP Server started over stdio");
+    tracing::info!("Alexandria v1.0.0 MCP Server started over stdio");
 
     let stdin = tokio::io::stdin();
     let mut stdout = tokio::io::stdout();
@@ -166,8 +166,8 @@ pub async fn dispatch_mcp_method_with_context(
             result: Some(json!({
                 "protocolVersion": "2024-11-05",
                 "serverInfo": {
-                    "name": "alexandria-runtime",
-                    "version": "2.4.0-OmniPragmatic"
+                    "name": "alexandria",
+                    "version": "1.0.0"
                 },
                 "capabilities": {
                     "tools": { "listChanged": false }
@@ -227,6 +227,35 @@ pub async fn dispatch_mcp_method_with_context(
                                 "intentQuery": { "type": "string" },
                                 "sourceDir": { "type": "string" },
                                 "outputDir": { "type": "string" }
+                            }
+                        }
+                    },
+                    {
+                        "name": "search_capsules",
+                        "description": "Searches curated skill and hook capsules via full-text BM25 index with optional domain filtering.",
+                        "inputSchema": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "query": { "type": "string", "description": "Free-text search query matching triggers, titles, and instructions." },
+                                "domain": {
+                                    "type": "string",
+                                    "enum": ["backend", "architecture", "devops", "frontend", "testing", "database", "api", "hook"],
+                                    "description": "Optional canonical domain filter."
+                                },
+                                "limit": { "type": "integer", "minimum": 1, "maximum": 50, "description": "Maximum number of capsules to return (default: 10, max: 50)." }
+                            }
+                        }
+                    },
+                    {
+                        "name": "read_capsule",
+                        "description": "Retrieves complete technical specifications, invariants, instructions, and hooks for a specific capsule.",
+                        "inputSchema": {
+                            "type": "object",
+                            "required": ["capsuleId"],
+                            "additionalProperties": false,
+                            "properties": {
+                                "capsuleId": { "type": "string", "description": "The canonical capsule identifier (e.g. 'testing:tdd-practitioner' or 'api:api-designer')." }
                             }
                         }
                     },
@@ -335,6 +364,164 @@ pub fn classify_execution_path(instruction: &str, target_files: &[String]) -> &'
         "omega_pantheon"
     } else {
         "alpha_fast"
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HookExecutionResult {
+    pub passed: bool,
+    pub executed_hooks_count: usize,
+    pub triggered_actions: Vec<String>,
+    pub rejections: Vec<String>,
+}
+
+pub async fn execute_lifecycle_hook_interceptors(
+    event: &str,
+    target_files: &[String],
+    sources: &[(String, String)],
+    ctx: &McpKernelContext,
+    args: &Value,
+) -> HookExecutionResult {
+    let mut passed = true;
+    let mut triggered_actions = Vec::new();
+    let mut rejections = Vec::new();
+
+    let registered_hooks = if let Some(storage) = &ctx.storage {
+        storage.get_hooks_for_event(event).unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+
+    let mut executed_hooks_count = registered_hooks.len();
+
+    for (capsule_id, hook) in &registered_hooks {
+        triggered_actions.push(format!("{}:{}", capsule_id, hook.action));
+
+        match hook.action.as_str() {
+            "validate_prisma_tx_closure" => {
+                for (file_label, code) in sources {
+                    let is_tsx = file_label.ends_with(".tsx") || file_label.ends_with(".jsx");
+                    if let Ok(violations) = validate_typescript_source(code, is_tsx) {
+                        for v in violations {
+                            if v.rule.to_string().contains("PRISMA") {
+                                passed = false;
+                                rejections.push(format!(
+                                    "[HOOK:{} @ {}] Prisma transaction violation: {}",
+                                    hook.action, file_label, v.message
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+            "enforce_nominal_types" => {
+                for (file_label, code) in sources {
+                    let is_tsx = file_label.ends_with(".tsx") || file_label.ends_with(".jsx");
+                    if let Ok(violations) = validate_typescript_source(code, is_tsx) {
+                        for v in violations {
+                            let rule_str = v.rule.to_string();
+                            if rule_str.contains("ANY") || rule_str.contains("DOUBLE_CAST") {
+                                passed = false;
+                                rejections.push(format!(
+                                    "[HOOK:{} @ {}] Nominal type violation: {}",
+                                    hook.action, file_label, v.message
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+            "scan_gate2_sast_and_secrets" => {
+                for (file_label, code) in sources {
+                    let violations = scan_gate2_sast_and_secrets(code);
+                    for v in violations {
+                        passed = false;
+                        rejections.push(format!(
+                            "[HOOK:{} @ {}] Security SAST leak: {}",
+                            hook.action, file_label, v.message
+                        ));
+                    }
+                }
+            }
+            "enforce_test_file_existence" => {
+                let has_test_file = target_files.iter().any(|f| {
+                    let fl = f.to_lowercase();
+                    fl.contains(".test.") || fl.contains(".spec.") || fl.contains("tests/")
+                }) || sources.iter().any(|(f, _)| {
+                    let fl = f.to_lowercase();
+                    fl.contains(".test.") || fl.contains(".spec.") || fl.contains("tests/")
+                });
+
+                if !has_test_file && (!target_files.is_empty() || !sources.is_empty()) {
+                    passed = false;
+                    rejections.push(
+                        "[HOOK:enforce_test_file_existence] TDD lifecycle hook requires at least one test file in target files or sources.".to_string(),
+                    );
+                }
+            }
+            _ => {
+                if hook.action.contains("secret") || hook.action.contains("sast") {
+                    for (file_label, code) in sources {
+                        let violations = scan_gate2_sast_and_secrets(code);
+                        for v in violations {
+                            passed = false;
+                            rejections.push(format!(
+                                "[HOOK:{} @ {}] SAST check failed: {}",
+                                hook.action, file_label, v.message
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if let Some(explicit_hooks) = args.get("activeHooks").and_then(|v| v.as_array()) {
+        for eh in explicit_hooks {
+            if let Ok(hook_spec) = serde_json::from_value::<AlexandriaHookSpec>(eh.clone()) {
+                if hook_spec.event == event {
+                    executed_hooks_count += 1;
+                    triggered_actions.push(format!("explicit:{}", hook_spec.action));
+
+                    if hook_spec.action == "forbid_secrets" || hook_spec.action.contains("secret") {
+                        for (file_label, code) in sources {
+                            let violations = scan_gate2_sast_and_secrets(code);
+                            for v in violations {
+                                passed = false;
+                                rejections.push(format!(
+                                    "[EXPLICIT_HOOK:{} @ {}] Secret detected: {}",
+                                    hook_spec.action, file_label, v.message
+                                ));
+                            }
+                        }
+                    } else if hook_spec.action == "forbid_any" || hook_spec.action.contains("any") {
+                        for (file_label, code) in sources {
+                            let is_tsx =
+                                file_label.ends_with(".tsx") || file_label.ends_with(".jsx");
+                            if let Ok(violations) = validate_typescript_source(code, is_tsx) {
+                                for v in violations {
+                                    if v.rule.to_string().contains("ANY") {
+                                        passed = false;
+                                        rejections.push(format!(
+                                            "[EXPLICIT_HOOK:{} @ {}] Explicit any forbidden: {}",
+                                            hook_spec.action, file_label, v.message
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    HookExecutionResult {
+        passed,
+        executed_hooks_count,
+        triggered_actions,
+        rejections,
     }
 }
 
@@ -630,6 +817,96 @@ pub async fn dispatch_alexandria_tool_with_context(
 
             wrap_mcp_text_response(id, payload, false)
         }
+        "search_capsules" => {
+            let query = args.get("query").and_then(|v| v.as_str());
+            let domain = args.get("domain").and_then(|v| v.as_str());
+            let limit = args
+                .get("limit")
+                .and_then(|v| v.as_u64())
+                .map(|u| u as usize);
+
+            let records = if let Some(storage) = &ctx.storage {
+                storage
+                    .search_skill_capsules(query, domain, limit)
+                    .unwrap_or_default()
+            } else {
+                Vec::new()
+            };
+
+            let capsule_summaries: Vec<Value> = records
+                .into_iter()
+                .map(|r| {
+                    let triggers: Vec<String> =
+                        serde_json::from_str(&r.trigger_keywords_json).unwrap_or_default();
+                    json!({
+                        "capsuleId": r.skill_id,
+                        "domain": r.domain,
+                        "description": r.description,
+                        "triggerKeywords": triggers,
+                        "resolutionMethod": r.resolution_method
+                    })
+                })
+                .collect();
+
+            let payload = json!({
+                "tool": tool_name,
+                "status": "success",
+                "receivedArgs": args,
+                "query": query,
+                "domain": domain,
+                "totalFound": capsule_summaries.len(),
+                "capsules": capsule_summaries
+            });
+
+            wrap_mcp_text_response(id, payload, false)
+        }
+        "read_capsule" => {
+            let capsule_id = args.get("capsuleId").and_then(|v| v.as_str()).unwrap_or("");
+
+            let record_opt = if let Some(storage) = &ctx.storage {
+                storage
+                    .resolve_skill_capsule(Some(capsule_id), None)
+                    .ok()
+                    .flatten()
+            } else {
+                None
+            };
+
+            if let Some(record) = record_opt {
+                let triggers: Vec<String> =
+                    serde_json::from_str(&record.trigger_keywords_json).unwrap_or_default();
+                let invariants: Vec<String> =
+                    serde_json::from_str(&record.invariants_json).unwrap_or_default();
+                let tools: Vec<String> =
+                    serde_json::from_str(&record.required_tools_json).unwrap_or_default();
+                let hooks: Vec<AlexandriaHookSpec> =
+                    serde_json::from_str(&record.hooks_json).unwrap_or_default();
+
+                let payload = json!({
+                    "tool": tool_name,
+                    "status": "success",
+                    "receivedArgs": args,
+                    "capsuleId": record.skill_id,
+                    "domain": record.domain,
+                    "description": record.description,
+                    "triggerKeywords": triggers,
+                    "requiredTools": tools,
+                    "invariants": invariants,
+                    "hooks": hooks,
+                    "instructions": record.instructions_md
+                });
+                wrap_mcp_text_response(id, payload, false)
+            } else {
+                let payload = json!({
+                    "tool": tool_name,
+                    "status": "not_found",
+                    "receivedArgs": args,
+                    "capsuleId": capsule_id,
+                    "message": format!("Capsule '{}' was not found in vault database.", capsule_id)
+                });
+                wrap_mcp_text_response(id, payload, false)
+            }
+        }
         "spawn_isolated_worktrees" => {
             let tasks_val = args.get("tasks").and_then(|v| v.as_array());
             let mut task_tuples: Vec<(String, Vec<PathBuf>)> = Vec::new();
@@ -843,6 +1120,23 @@ pub async fn dispatch_alexandria_tool_with_context(
                 }
             }
 
+            // Execute active lifecycle hook interceptors (pre_verify)
+            let hook_result = execute_lifecycle_hook_interceptors(
+                "pre_verify",
+                &target_files,
+                &sources_to_scan,
+                ctx,
+                &args,
+            )
+            .await;
+
+            if !hook_result.passed {
+                for rej in &hook_result.rejections {
+                    violated_rules.push("LIFECYCLE_HOOK_REJECTION".to_string());
+                    diagnostics_list.push(rej.clone());
+                }
+            }
+
             let mut passed = violated_rules.is_empty();
             let mut red_phase_kind: Option<&'static str> = None;
 
@@ -985,7 +1279,9 @@ pub async fn dispatch_alexandria_tool_with_context(
                 "diagnostics": diagnostics_joined,
                 "failureId": failure_id_opt,
                 "historicalHintsFromMemory": historical_hints,
-                "courtMartialDocket": court_martial_docket
+                "courtMartialDocket": court_martial_docket,
+                "lifecycleHooksExecuted": hook_result.executed_hooks_count,
+                "lifecycleHookActions": hook_result.triggered_actions
             });
 
             wrap_mcp_text_response(id, payload, false)
@@ -999,6 +1295,44 @@ pub async fn dispatch_alexandria_tool_with_context(
                 .get("summary")
                 .and_then(|v| v.as_str())
                 .unwrap_or("Task completed");
+
+            let mut commit_sources = Vec::new();
+            let mut target_files: Vec<String> = Vec::new();
+            if let Some(files_val) = args.get("targetFiles").and_then(|v| v.as_array()) {
+                for f in files_val.iter().filter_map(|v| v.as_str()) {
+                    target_files.push(f.to_string());
+                    let path = if Path::new(f).is_absolute() {
+                        PathBuf::from(f)
+                    } else {
+                        ctx.workspace_root.join(f)
+                    };
+                    if let Ok(code) = fs::read_to_string(&path) {
+                        commit_sources.push((f.to_string(), code));
+                    }
+                }
+            }
+
+            let commit_hook_result = execute_lifecycle_hook_interceptors(
+                "pre_commit",
+                &target_files,
+                &commit_sources,
+                ctx,
+                &args,
+            )
+            .await;
+
+            if !commit_hook_result.passed {
+                let payload = json!({
+                    "tool": tool_name,
+                    "status": "rejected_by_lifecycle_hook",
+                    "passed": false,
+                    "moduleName": module_name,
+                    "rejections": commit_hook_result.rejections,
+                    "executedHooksCount": commit_hook_result.executed_hooks_count,
+                    "triggeredActions": commit_hook_result.triggered_actions
+                });
+                return wrap_mcp_text_response(id, payload, false);
+            }
 
             let _ = fs::create_dir_all(&ctx.vault_dir);
             let log_path = ctx.vault_dir.join("log.md");
@@ -1056,10 +1390,13 @@ pub async fn dispatch_alexandria_tool_with_context(
                 "tool": tool_name,
                 "status": "dispatched_by_kernel",
                 "receivedArgs": args,
+                "passed": true,
                 "committedHash": "HEAD",
                 "wikiLogUpdated": wiki_log_updated,
                 "logPath": log_path.to_string_lossy(),
-                "agenticGitIam": agentic_iam
+                "agenticGitIam": agentic_iam,
+                "lifecycleHooksExecuted": commit_hook_result.executed_hooks_count,
+                "lifecycleHookActions": commit_hook_result.triggered_actions
             });
 
             wrap_mcp_text_response(id, payload, false)

@@ -1,4 +1,6 @@
-use crate::collector::skill_etl::{AlexandriaCapsuleJson, builtin_core_capsules};
+use crate::collector::skill_etl::{
+    AlexandriaCapsuleJson, AlexandriaHookSpec, builtin_core_capsules,
+};
 use crate::vector_store::hybrid_memory::{
     compute_deterministic_int8_embedding, distill_into_micro_chunk,
 };
@@ -807,6 +809,286 @@ impl VaultStorageHandle {
         Ok(None)
     }
 
+    /// Searches curated skill and hook capsules with BM25 full-text ranking, optional domain filter,
+    /// and clamped limit (default 10, max 50). Falls back to substring matching if FTS5 yields no results.
+    pub fn search_skill_capsules(
+        &self,
+        query: Option<&str>,
+        domain: Option<&str>,
+        limit: Option<usize>,
+    ) -> Result<Vec<SkillCapsuleRecord>, String> {
+        let conn = Connection::open_with_flags(
+            &self.db_path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+        )
+        .map_err(|e| e.to_string())?;
+
+        let lim = limit.unwrap_or(10).clamp(1, 50) as i64;
+        let clean_query = query.map(|s| s.trim()).filter(|s| !s.is_empty());
+        let clean_domain = domain.map(|s| s.trim()).filter(|s| !s.is_empty());
+
+        let mut results = Vec::new();
+
+        if let Some(q) = clean_query {
+            if let Some(safe_fts) = build_safe_fts5_or_query(q) {
+                if let Some(dom) = clean_domain {
+                    let mut stmt = conn
+                        .prepare(
+                            "SELECT s.skill_id, s.domain, s.description, s.trigger_keywords_json, s.required_tools_json, s.invariants_json, s.hooks_json, s.instructions_md
+                             FROM skills_fts f
+                             JOIN skills s ON s.skill_id = f.skill_id
+                             WHERE f.skills_fts MATCH ?1 AND s.domain = ?2
+                             ORDER BY bm25(f.skills_fts)
+                             LIMIT ?3",
+                        )
+                        .map_err(|e| e.to_string())?;
+
+                    let rows = stmt
+                        .query_map(params![safe_fts, dom, lim], |row| {
+                            Ok(SkillCapsuleRecord {
+                                skill_id: row.get(0)?,
+                                domain: row.get(1)?,
+                                description: row.get(2)?,
+                                trigger_keywords_json: row.get(3)?,
+                                required_tools_json: row.get(4)?,
+                                invariants_json: row.get(5)?,
+                                hooks_json: row.get(6)?,
+                                instructions_md: row.get(7)?,
+                                resolution_method: "fts5_bm25".to_string(),
+                            })
+                        })
+                        .map_err(|e| e.to_string())?;
+
+                    for r in rows {
+                        if let Ok(rec) = r {
+                            results.push(rec);
+                        }
+                    }
+                } else {
+                    let mut stmt = conn
+                        .prepare(
+                            "SELECT s.skill_id, s.domain, s.description, s.trigger_keywords_json, s.required_tools_json, s.invariants_json, s.hooks_json, s.instructions_md
+                             FROM skills_fts f
+                             JOIN skills s ON s.skill_id = f.skill_id
+                             WHERE f.skills_fts MATCH ?1
+                             ORDER BY bm25(f.skills_fts)
+                             LIMIT ?2",
+                        )
+                        .map_err(|e| e.to_string())?;
+
+                    let rows = stmt
+                        .query_map(params![safe_fts, lim], |row| {
+                            Ok(SkillCapsuleRecord {
+                                skill_id: row.get(0)?,
+                                domain: row.get(1)?,
+                                description: row.get(2)?,
+                                trigger_keywords_json: row.get(3)?,
+                                required_tools_json: row.get(4)?,
+                                invariants_json: row.get(5)?,
+                                hooks_json: row.get(6)?,
+                                instructions_md: row.get(7)?,
+                                resolution_method: "fts5_bm25".to_string(),
+                            })
+                        })
+                        .map_err(|e| e.to_string())?;
+
+                    for r in rows {
+                        if let Ok(rec) = r {
+                            results.push(rec);
+                        }
+                    }
+                }
+            }
+
+            // Fallback substring query if FTS5 produced 0 records
+            if results.is_empty() {
+                let like_term = format!("%{}%", q);
+                if let Some(dom) = clean_domain {
+                    let mut stmt = conn
+                        .prepare(
+                            "SELECT skill_id, domain, description, trigger_keywords_json, required_tools_json, invariants_json, hooks_json, instructions_md
+                             FROM skills
+                             WHERE domain = ?1 AND (skill_id LIKE ?2 OR description LIKE ?2 OR trigger_keywords_json LIKE ?2)
+                             ORDER BY skill_id ASC
+                             LIMIT ?3",
+                        )
+                        .map_err(|e| e.to_string())?;
+
+                    let rows = stmt
+                        .query_map(params![dom, like_term, lim], |row| {
+                            Ok(SkillCapsuleRecord {
+                                skill_id: row.get(0)?,
+                                domain: row.get(1)?,
+                                description: row.get(2)?,
+                                trigger_keywords_json: row.get(3)?,
+                                required_tools_json: row.get(4)?,
+                                invariants_json: row.get(5)?,
+                                hooks_json: row.get(6)?,
+                                instructions_md: row.get(7)?,
+                                resolution_method: "substring_fallback".to_string(),
+                            })
+                        })
+                        .map_err(|e| e.to_string())?;
+
+                    for r in rows {
+                        if let Ok(rec) = r {
+                            results.push(rec);
+                        }
+                    }
+                } else {
+                    let mut stmt = conn
+                        .prepare(
+                            "SELECT skill_id, domain, description, trigger_keywords_json, required_tools_json, invariants_json, hooks_json, instructions_md
+                             FROM skills
+                             WHERE skill_id LIKE ?1 OR description LIKE ?1 OR trigger_keywords_json LIKE ?1
+                             ORDER BY skill_id ASC
+                             LIMIT ?2",
+                        )
+                        .map_err(|e| e.to_string())?;
+
+                    let rows = stmt
+                        .query_map(params![like_term, lim], |row| {
+                            Ok(SkillCapsuleRecord {
+                                skill_id: row.get(0)?,
+                                domain: row.get(1)?,
+                                description: row.get(2)?,
+                                trigger_keywords_json: row.get(3)?,
+                                required_tools_json: row.get(4)?,
+                                invariants_json: row.get(5)?,
+                                hooks_json: row.get(6)?,
+                                instructions_md: row.get(7)?,
+                                resolution_method: "substring_fallback".to_string(),
+                            })
+                        })
+                        .map_err(|e| e.to_string())?;
+
+                    for r in rows {
+                        if let Ok(rec) = r {
+                            results.push(rec);
+                        }
+                    }
+                }
+            }
+        } else if let Some(dom) = clean_domain {
+            let mut stmt = conn
+                .prepare(
+                    "SELECT skill_id, domain, description, trigger_keywords_json, required_tools_json, invariants_json, hooks_json, instructions_md
+                     FROM skills
+                     WHERE domain = ?1
+                     ORDER BY skill_id ASC
+                     LIMIT ?2",
+                )
+                .map_err(|e| e.to_string())?;
+
+            let rows = stmt
+                .query_map(params![dom, lim], |row| {
+                    Ok(SkillCapsuleRecord {
+                        skill_id: row.get(0)?,
+                        domain: row.get(1)?,
+                        description: row.get(2)?,
+                        trigger_keywords_json: row.get(3)?,
+                        required_tools_json: row.get(4)?,
+                        invariants_json: row.get(5)?,
+                        hooks_json: row.get(6)?,
+                        instructions_md: row.get(7)?,
+                        resolution_method: "domain_filter".to_string(),
+                    })
+                })
+                .map_err(|e| e.to_string())?;
+
+            for r in rows {
+                if let Ok(rec) = r {
+                    results.push(rec);
+                }
+            }
+        } else {
+            let mut stmt = conn
+                .prepare(
+                    "SELECT skill_id, domain, description, trigger_keywords_json, required_tools_json, invariants_json, hooks_json, instructions_md
+                     FROM skills
+                     ORDER BY skill_id ASC
+                     LIMIT ?1",
+                )
+                .map_err(|e| e.to_string())?;
+
+            let rows = stmt
+                .query_map(params![lim], |row| {
+                    Ok(SkillCapsuleRecord {
+                        skill_id: row.get(0)?,
+                        domain: row.get(1)?,
+                        description: row.get(2)?,
+                        trigger_keywords_json: row.get(3)?,
+                        required_tools_json: row.get(4)?,
+                        invariants_json: row.get(5)?,
+                        hooks_json: row.get(6)?,
+                        instructions_md: row.get(7)?,
+                        resolution_method: "catalog_browse".to_string(),
+                    })
+                })
+                .map_err(|e| e.to_string())?;
+
+            for r in rows {
+                if let Ok(rec) = r {
+                    results.push(rec);
+                }
+            }
+        }
+
+        Ok(results)
+    }
+
+    /// Retrieves active hooks registered in the skills repository that match a given lifecycle event
+    /// (e.g. `pre_verify`, `pre_commit`, `pre_gate_0`, `pre_gate_2`).
+    pub fn get_hooks_for_event(
+        &self,
+        event: &str,
+    ) -> Result<Vec<(String, AlexandriaHookSpec)>, String> {
+        let conn = Connection::open_with_flags(
+            &self.db_path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+        )
+        .map_err(|e| e.to_string())?;
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT skill_id, hooks_json FROM skills WHERE hooks_json != '[]' AND hooks_json != ''",
+            )
+            .map_err(|e| e.to_string())?;
+
+        let rows = stmt
+            .query_map([], |row| {
+                let skill_id: String = row.get(0)?;
+                let hooks_json: String = row.get(1)?;
+                Ok((skill_id, hooks_json))
+            })
+            .map_err(|e| e.to_string())?;
+
+        let mut active_hooks = Vec::new();
+        for r in rows {
+            if let Ok((skill_id, hooks_json)) = r {
+                if let Ok(hooks) = serde_json::from_str::<Vec<AlexandriaHookSpec>>(&hooks_json) {
+                    for h in hooks {
+                        let is_match = match event {
+                            "pre_verify" => {
+                                h.event == "pre_verify"
+                                    || h.event == "pre_gate_0"
+                                    || h.event == "pre_gate_2"
+                                    || h.event == "pre_execution"
+                            }
+                            "pre_commit" => h.event == "pre_commit" || h.event == "post_gate_3",
+                            other => h.event == other,
+                        };
+                        if is_match {
+                            active_hooks.push((skill_id.clone(), h));
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(active_hooks)
+    }
+
     pub fn search_similar_incidents_fts5(
         &self,
         raw_stack_trace: &str,
@@ -1069,7 +1351,7 @@ pub fn write_telemetry_and_markdown_dashboard(
     let tripped = telemetry["trippedCircuitBreakers"].as_u64().unwrap_or(0);
 
     let dashboard_md = format!(
-        "---\nid: dashboard\ntitle: \"Alexandria Organism Telemetry Dashboard\"\ntype: telemetry-dashboard\nstatus: canonical\nversion: \"2.5.0-OmniPragmatic\"\ntotal_verdicts: {}\npassed_verdicts: {}\nfailed_verdicts: {}\nadversarial_bounce_rate_pct: {}\nmttr_seconds: {}\nestimated_tokens_saved: {}\nestimated_usd_saved: {}\n---\n\n# Alexandria Organism Telemetry Dashboard\n\n> **Live Kernel Health Projection** — Compatible with Obsidian Dataview & standard Markdown viewers.\n\n## 1. Key Organism Vital Signs (`MTTR` & Token ROI)\n\n| Metric | Value | Status |\n| :--- | :---: | :--- |\n| **Total Quality Gate Verdicts** | `{}` | Active |\n| **Passed / Failed Verdicts** | `{} / {}` | Gate 0-4 Enforced |\n| **Adversarial Bounce Rate (Utu vs. Enki)** | `{:.1}%` | Zero-Trust SAST |\n| **Mean Time To Repair (`MTTR`)** | `{:.2}s` | Self-Healing Loop |\n| **Tripped Circuit Breakers** | `{}` | Max Retries = 3 |\n| **Hybrid Vector Memory Chunks (`RRF`)** | `{}` | 64-dim `int8` |\n| **Estimated Context Tokens Saved** | `{}` | Depth=1 + AST Pruning |\n| **Estimated Compute Cost Saved (`USD`)** | `${:.3}` | Prefix-Pinned KV-Cache |\n\n## 2. Pantheon Governance Roster\n\n| Agent | Archetype | Concurrency Limit | Role |\n| :--- | :--- | :---: | :--- |\n| **`bel`** | Bel (The Overseer) | `5` | Zero-Turn Classifier & Court-Martial Judge |\n| **`enki`** | Enki (The Builder) | `3` | Strict RED-GREEN-REFACTOR Constructor |\n| **`utu`** | Utu (The Critic) | `1` | Stateless Cold SAST & ADR Auditor |\n| **`nabu`** | Nabu (The Chronicler) | `1` | Vault Custodian & Agentic Git IAM Signer |\n",
+        "---\nid: dashboard\ntitle: \"Alexandria Organism Telemetry Dashboard\"\ntype: telemetry-dashboard\nstatus: canonical\nversion: \"1.0.0\"\ntotal_verdicts: {}\npassed_verdicts: {}\nfailed_verdicts: {}\nadversarial_bounce_rate_pct: {}\nmttr_seconds: {}\nestimated_tokens_saved: {}\nestimated_usd_saved: {}\n---\n\n# Alexandria Organism Telemetry Dashboard\n\n> **Live Kernel Health Projection** — Compatible with Obsidian Dataview & standard Markdown viewers.\n\n## 1. Key Organism Vital Signs (`MTTR` & Token ROI)\n\n| Metric | Value | Status |\n| :--- | :---: | :--- |\n| **Total Quality Gate Verdicts** | `{}` | Active |\n| **Passed / Failed Verdicts** | `{} / {}` | Gate 0-4 Enforced |\n| **Adversarial Bounce Rate (Utu vs. Enki)** | `{:.1}%` | Zero-Trust SAST |\n| **Mean Time To Repair (`MTTR`)** | `{:.2}s` | Self-Healing Loop |\n| **Tripped Circuit Breakers** | `{}` | Max Retries = 3 |\n| **Hybrid Vector Memory Chunks (`RRF`)** | `{}` | 64-dim `int8` |\n| **Estimated Context Tokens Saved** | `{}` | Depth=1 + AST Pruning |\n| **Estimated Compute Cost Saved (`USD`)** | `${:.3}` | Prefix-Pinned KV-Cache |\n\n## 2. Pantheon Governance Roster\n\n| Agent | Archetype | Concurrency Limit | Role |\n| :--- | :--- | :---: | :--- |\n| **`bel`** | Bel (The Overseer) | `5` | Zero-Turn Classifier & Court-Martial Judge |\n| **`enki`** | Enki (The Builder) | `3` | Strict RED-GREEN-REFACTOR Constructor |\n| **`utu`** | Utu (The Critic) | `1` | Stateless Cold SAST & ADR Auditor |\n| **`nabu`** | Nabu (The Chronicler) | `1` | Vault Custodian & Agentic Git IAM Signer |\n",
         total_v,
         passed_v,
         failed_v,

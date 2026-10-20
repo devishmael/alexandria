@@ -81,14 +81,14 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 
 Compiled with `opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abort"`, and `strip = true`:
 
-| Metric | Target | Certified Benchmark (`v2.5.0`) |
+| Metric | Target | Certified Benchmark (`v1.0.0`) |
 | :--- | :--- | :--- |
 | **Release Binary Size (`alexandria.exe` / `alexandria`)** | $\le 5.00\text{ MB}$ | **`~2.20 MB`** (single self-contained binary with SQLite + Oxc + Tokio + LSP) |
 | **Idle Resident Memory (RSS)** | $\le 15.0\text{ MB}$ | **`~8.5 MB`** (Zero external ML weights; 64-dim `int8` feature hashing in RAM) |
 | **Topological Graph Traversal + ADR Hoisting** | $\le 1.00\text{ ms}$ | **`<= 0.20 ms`** (`petgraph::StableDiGraph` in RAM) |
 | **Gate 0 Native AST Scan & Context Pruning (`oxc_parser`)** | $\le 2.00\text{ ms}$ | **`<= 0.85 ms`** (Contiguous arena bump allocation) |
 | **Hybrid Vector + FTS5 RRF Recall Query** | $\le 3.00\text{ ms}$ | **`<= 0.90 ms`** (64-dim `int8` cosine + BM25 Reciprocal Rank Fusion) |
-| **Automated Kernel Test Suites** | $100\%$ Pass | **`46 / 46 Passed`** across 10 integration & E2E suites |
+| **Automated Kernel Test Suites** | $100\%$ Pass | **`48 / 48 Passed`** across 10 integration & E2E suites |
 
 ---
 
@@ -148,7 +148,7 @@ alexandria run "Refactor Prisma billing transaction with strict lexical closure"
 
 ## 5. Multi-Host IDE, Agent & LSP Configuration Guide
 
-Alexandria exposes **6 immutable MCP tools** (`prepare_task_context`, `upsert_architectural_contract`, `resolve_skill_capsule`, `spawn_isolated_worktrees`, `verify_and_gate_changes`, `finalize_task_and_log`) ordered deterministically to guarantee a **100% KV-Cache Prefix Hit**, plus a native **LSP server** (`alexandria lsp`).
+Alexandria exposes **8 deterministic MCP tools** (`prepare_task_context`, `upsert_architectural_contract`, `resolve_skill_capsule`, `search_capsules`, `read_capsule`, `spawn_isolated_worktrees`, `verify_and_gate_changes`, `finalize_task_and_log`) ordered deterministically to guarantee a **100% KV-Cache Prefix Hit**, plus a native **LSP server** (`alexandria lsp`). Comprehensive architecture documentation is available in [`docs/CODEBASE_REFERENCE.md`](docs/CODEBASE_REFERENCE.md).
 
 ### Google Antigravity 2.0 (`mcp_config.json`)
 ```json
@@ -277,19 +277,23 @@ Alexandria continuously computes live organism health metrics from SQLite WAL (`
 
 ---
 
-## 10. Polymorphic Skill & Hook ETL Collector & 5-Skill Starter Pack
+## 10. Curated Master Capsule Catalog & Active Lifecycle Hooks
 
-Alexandria unifies heterogeneous procedural skills (`SKILL.md` from Antigravity/Claude, canonical Alexandria `.md`, `.yaml`, and `.json`) into the deterministic **`AlexandriaCapsuleJson`** (`alexandria.capsule.v2.4`) schema.
+Alexandria normalizes and curates heterogeneous procedural skills into the deterministic **`AlexandriaCapsuleJson`** (`alexandria.capsule.v2.4`) schema. The production catalog comprises **189 Curated Master Capsules** indexed in SQLite WAL (`~/.alexandria/vault.db`) and `.alexandria/capsules/` across 8 canonical domains:
 
-Five elite factory capsules with deterministic hooks are automatically seeded into `vault.db` upon kernel initialization:
+| Domain | Master Capsules | Core Engineering Competencies |
+| :--- | :---: | :--- |
+| **`backend`** | **28** | Rust Tokio actors, Node.js Fastify/NestJS, Go Concurrency, Python AsyncIO, RabbitMQ, Zero-Copy serialization. |
+| **`architecture`** | **26** | Clean & Hexagonal Architecture, CQRS & Event Sourcing, Domain-Driven Design (DDD), Transactional Outbox pattern. |
+| **`devops`** | **26** | Multi-stage Docker, Kubernetes manifests, GitHub Actions CI/CD pipelines, Terraform IaC, Prometheus telemetry. |
+| **`frontend`** | **26** | React 19 Concurrent & Server Components, Next.js App Router, Vue 3 Composition, Zustand, Web Performance. |
+| **`testing`** | **25** | Strict TDD (Red-Green-Refactor), Vitest & Jest, Playwright E2E POM, Property-based testing, Mutation testing. |
+| **`database`** | **22** | PostgreSQL query tuning (`EXPLAIN ANALYZE`), Prisma/Drizzle transactions, SQLite WAL concurrency, Redis sharding. |
+| **`api`** | **20** | RESTful RFC 7807 Problem Details, GraphQL Schema-First, gRPC/Protobuf, WebSockets, API Gateways, OAuth2/OIDC. |
+| **`hook`** | **16** | Alexandria Syscall Traps: Pre-Commit Quality Gate, Post-Commit Audit, Secret Interceptor, Prisma Isolation. |
 
-| Skill ID | Domain | Deterministic Invariants Enforced | Associated Kernel Hooks |
-| :--- | :--- | :--- | :--- |
-| **`testing:tdd-strict-vitest`** | `testing` | Forbids modifying `src/` without a prior failing test in `tests/`; enforces genuine business `AssertionError` and $\ge 90\%$ coverage. | `pre_execution` (`enforce_test_file_existence`) & `post_gate_3` (`validate_red_phase_assertion`) |
-| **`database:prisma-acid-closure`** | `database` | Total lexical closure in `prisma.$transaction` under $\le 25\text{ ms}$; prohibits `.then()`, `tx` aliasing, unawaited promises, and external network calls (`fetch`). | `pre_gate_0` (`validate_prisma_tx_closure`) |
-| **`architecture:clean-hexagonal-api`** | `backend` | Strict boundary separation (Controllers $\rightarrow$ Services $\rightarrow$ Repositories); forbids raw SQL in controllers; enforces nominal Branded Types (`type Brand<K, T> = K & { readonly __brand: T }`) and Zod validation. | `pre_gate_0` (`enforce_nominal_types`) |
-| **`security:owasp-zero-trust`** | `security` | OWASP Zero-Trust rules: input sanitization, prohibits unparameterized SQL (`$queryRawUnsafe`), blocks `eval()` and `dangerouslySetInnerHTML`, zero hardcoded credentials. | `pre_gate_2` (`scan_gate2_sast_and_secrets`) |
-| **`refactor:atomic-symbol-pruning`** | `refactoring` | Atomic surgical diffs ($< 100$ modified lines per turn); uses AST Context Pruning (`prune_typescript_context_for_symbol`) with `focusSymbol` to isolate target functions and direct helpers. | `pre_execution` (`prune_ast_context`) |
+### Active Lifecycle Hook Interceptors
+When tools like `verify_and_gate_changes` (`pre_verify` event) or `finalize_task_and_log` (`pre_commit` event) are dispatched, the kernel queries registered hooks and evaluates AST policies, secret detection, and invariant compliance, returning deterministic rejections (`rejected_by_lifecycle_hook`) if any invariant fails.
 
 ---
 

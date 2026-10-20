@@ -23,29 +23,44 @@ pub fn current_human_intervention_epoch() -> u64 {
     HUMAN_INTERVENTION_EPOCH.load(Ordering::SeqCst)
 }
 
+/// Represents the architectural category of a knowledge vault markdown document.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NodeKind {
+    /// Ordinary component or service specification (`wiki/modules/*.md`).
     Module,
+    /// System-wide architectural blueprint (`wiki/architecture/*.md`).
     Architecture,
+    /// Constitutional Architecture Decision Record (`wiki/decisions/ADR-*.md`).
     ConstitutionalAdr,
 }
 
+/// A node within Alexandria's in-memory topological knowledge graph.
 #[derive(Debug, Clone)]
 pub struct WikiNode {
+    /// Canonical identifier matching the filename stem or frontmatter ID.
     pub id: String,
+    /// Absolute filesystem path to the markdown document.
     pub path: PathBuf,
+    /// Categorical classification of the node.
     pub kind: NodeKind,
+    /// Full markdown content of the document.
     pub content: String,
+    /// SHA-256 cryptographic digest of the document content.
     pub sha256: [u8; 32],
 }
 
+/// Resolved context containing direct Depth=1 neighbors and transitively hoisted ADRs (Depth <= 6).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResolvedContext {
+    /// The target module identifier.
     pub target_module: String,
+    /// Direct Depth=1 module dependencies.
     pub direct_neighbors: Vec<String>,
+    /// Constitutional ADRs hoisted transitively through the graph.
     pub hoisted_adrs: Vec<String>,
 }
 
+/// Conflict reported when two parallel tasks overlap in file targets or graph dependencies.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DisjunctionConflict {
     WikiSubgraphOverlap { colliding_nodes: Vec<String> },

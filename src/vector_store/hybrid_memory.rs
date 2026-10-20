@@ -6,15 +6,23 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+/// Ranked memory chunk returned by hybrid vector search with Reciprocal Rank Fusion (RRF).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct HybridMemoryQueryResult {
+    /// Unique memory chunk identifier.
     pub chunk_id: String,
+    /// Origin of the chunk (`agent_execution`, `user_supplied`, etc.).
     pub source_kind: String,
+    /// Agent identifier that produced the chunk (`bel`, `enki`, `utu`, `nabu`).
     pub agent_id: String,
+    /// Associated target module.
     pub module_name: String,
+    /// Distilled concise summary.
     pub compact_summary: String,
+    /// Token estimate for context window budgeting.
     pub token_estimate: usize,
+    /// Reciprocal Rank Fusion score combining vector and BM25 ranks.
     pub rrf_score: f32,
 }
 

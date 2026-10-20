@@ -27,10 +27,10 @@ async fn test_mcp_initialize_handshake() {
         .result
         .expect("Result must be present in initialize");
     assert_eq!(result["protocolVersion"], json!("2024-11-05"));
-    assert_eq!(result["serverInfo"]["name"], json!("alexandria-runtime"));
+    assert_eq!(result["serverInfo"]["name"], json!("alexandria"));
     assert_eq!(
         result["serverInfo"]["version"],
-        json!("2.4.0-OmniPragmatic")
+        json!("1.0.0")
     );
     assert_eq!(
         result["capabilities"]["tools"]["listChanged"],
@@ -58,6 +58,8 @@ async fn test_mcp_tools_list_schema_completeness() {
         "prepare_task_context",
         "upsert_architectural_contract",
         "resolve_skill_capsule",
+        "search_capsules",
+        "read_capsule",
         "spawn_isolated_worktrees",
         "verify_and_gate_changes",
         "finalize_task_and_log",
@@ -66,7 +68,7 @@ async fn test_mcp_tools_list_schema_completeness() {
     assert_eq!(
         tools.len(),
         expected_names.len(),
-        "Exactly the 6 official kernel tools must be exposed"
+        "Exactly the 8 official kernel tools must be exposed"
     );
 
     for (idx, expected_name) in expected_names.iter().enumerate() {
@@ -178,12 +180,125 @@ async fn test_mcp_tools_call_dispatch() {
 
     // 3. Verification of non-existent tool (-32602 Invalid params / unknown tool)
     let unknown_tool_resp =
-        dispatch_alexandria_tool("non_existent_tool", json!({}), json!(12)).await;
-    assert!(unknown_tool_resp.result.is_none());
-    let err = unknown_tool_resp
-        .error
-        .expect("Unknown tool must return an error");
+        dispatch_alexandria_tool("unknown_arbitrary_tool", json!({}), json!(12)).await;
+    assert_eq!(unknown_tool_resp.jsonrpc, "2.0");
+    assert_eq!(unknown_tool_resp.id, json!(12));
+    assert!(unknown_tool_resp.error.is_some());
+    let err = unknown_tool_resp.error.expect("Error on unknown tool");
     assert_eq!(err.code, -32602);
+    assert!(err.message.contains("unknown_arbitrary_tool"));
+}
+
+#[tokio::test]
+async fn test_mcp_search_and_read_capsules_tools() {
+    // 1. Test search_capsules via tools/call
+    let search_resp = dispatch_mcp_method(
+        "tools/call",
+        json!({
+            "name": "search_capsules",
+            "arguments": {
+                "query": "rust concurrency",
+                "limit": 5
+            }
+        }),
+        json!(20),
+    )
+    .await;
+
+    assert!(search_resp.error.is_none());
+    let s_res = search_resp.result.expect("Result in search_capsules");
+    assert_eq!(s_res["isError"], json!(false));
+    let s_payload: Value = serde_json::from_str(
+        s_res["content"][0]["text"].as_str().expect("text"),
+    )
+    .expect("Valid JSON");
+    assert_eq!(s_payload["tool"], json!("search_capsules"));
+    assert_eq!(s_payload["status"], json!("success"));
+
+    // 2. Test read_capsule via tools/call
+    let read_resp = dispatch_mcp_method(
+        "tools/call",
+        json!({
+            "name": "read_capsule",
+            "arguments": {
+                "capsuleId": "testing:tdd-practitioner"
+            }
+        }),
+        json!(21),
+    )
+    .await;
+
+    assert!(read_resp.error.is_none());
+    let r_res = read_resp.result.expect("Result in read_capsule");
+    assert_eq!(r_res["isError"], json!(false));
+    let r_payload: Value = serde_json::from_str(
+        r_res["content"][0]["text"].as_str().expect("text"),
+    )
+    .expect("Valid JSON");
+    assert_eq!(r_payload["tool"], json!("read_capsule"));
+}
+
+#[tokio::test]
+async fn test_mcp_lifecycle_hook_interception() {
+    // 1. verify_and_gate_changes with an explicit hook forbidding any
+    let call_verify_hook = dispatch_mcp_method(
+        "tools/call",
+        json!({
+            "name": "verify_and_gate_changes",
+            "arguments": {
+                "targetModule": "billing",
+                "targetFiles": ["src/billing/service.ts"],
+                "executionPath": "alpha_fast",
+                "tddPhase": "green_expect_pass",
+                "activeHooks": [
+                    {
+                        "event": "pre_verify",
+                        "action": "forbid_any"
+                    }
+                ]
+            }
+        }),
+        json!(30),
+    )
+    .await;
+
+    assert!(call_verify_hook.error.is_none());
+    let verify_res = call_verify_hook.result.expect("Result");
+    let verify_payload: Value = serde_json::from_str(
+        verify_res["content"][0]["text"].as_str().expect("text"),
+    )
+    .expect("Valid JSON");
+    assert_eq!(verify_payload["tool"], json!("verify_and_gate_changes"));
+    assert!(verify_payload["lifecycleHooksExecuted"].as_u64().unwrap_or(0) >= 1);
+
+    // 2. finalize_task_and_log with an explicit hook forbidding secrets
+    let call_finalize_hook = dispatch_mcp_method(
+        "tools/call",
+        json!({
+            "name": "finalize_task_and_log",
+            "arguments": {
+                "moduleName": "billing",
+                "summary": "Completed billing audit",
+                "activeHooks": [
+                    {
+                        "event": "pre_commit",
+                        "action": "forbid_secrets"
+                    }
+                ]
+            }
+        }),
+        json!(31),
+    )
+    .await;
+
+    assert!(call_finalize_hook.error.is_none());
+    let final_res = call_finalize_hook.result.expect("Result");
+    let final_payload: Value = serde_json::from_str(
+        final_res["content"][0]["text"].as_str().expect("text"),
+    )
+    .expect("Valid JSON");
+    assert_eq!(final_payload["tool"], json!("finalize_task_and_log"));
+    assert!(final_payload["passed"].as_bool().unwrap_or(false));
 }
 
 #[tokio::test]

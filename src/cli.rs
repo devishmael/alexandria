@@ -7,10 +7,10 @@ use serde_json::json;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub const VERSION_BANNER: &str = "alexandria-runtime v2.4.0-OmniPragmatic";
+pub const VERSION_BANNER: &str = "alexandria v1.0.0";
 
 pub const HELP_BANNER: &str = "\
-alexandria-runtime v2.4.0-OmniPragmatic
+alexandria v1.0.0
 Headless Deterministic Agent Harness & Kernel-Space Arbitrator
 
 USAGE:
@@ -40,18 +40,24 @@ COMMANDS:
   run \"<directive>\"              Execute a directive in autonomous CLI mode by evaluating
                                  the execution path (Path Alpha / Path Omega).";
 
+/// Parsed representation of Alexandria command-line invocations.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CliCommand {
+    /// Display version information and exit.
     Version,
+    /// Display global help and command catalog.
     Help,
+    /// Scaffold a new knowledge vault, configuration, and agent roles.
     Init {
         vault_path: Option<String>,
         profile: Option<String>,
     },
+    /// ETL scan and refactor skill/hook directories into canonical capsules.
     Collect {
         source_dir: String,
         output_dir: Option<String>,
     },
+    /// Ingest or retrieve episodic vector memory via hybrid RRF ranking.
     Memory {
         action: String,
         text: String,
@@ -59,13 +65,17 @@ pub enum CliCommand {
         module_name: Option<String>,
         token_budget: Option<usize>,
     },
+    /// Launch the Model Context Protocol (MCP) server over standard input/output.
     McpStdio,
+    /// Launch the Language Server Protocol (LSP) diagnostics server over stdio.
     LspStdio,
+    /// Execute an autonomous directive via zero-turn path classification.
     Run {
         instruction: String,
     },
 }
 
+/// Parses CLI arguments from an iterator into a validated [`CliCommand`].
 pub fn parse_cli_args<I>(args: I) -> Result<CliCommand, String>
 where
     I: IntoIterator<Item = String>,
@@ -235,7 +245,7 @@ pub fn execute_init_scaffolding(
 
     let index_path = wiki_dir.join("index.md");
     if !index_path.exists() {
-        let index_content = "---\nid: index\ntitle: \"Alexandria Vault — Master Index\"\ntype: index\nstatus: canonical\nversion: \"2.4.0-OmniPragmatic\"\n---\n\n# Alexandria Vault — Master Index\n\n- Canonical Operational Log: [[log]]\n- Forensic Incident Ledger: [[failures]]\n";
+        let index_content = "---\nid: index\ntitle: \"Alexandria Vault — Master Index\"\ntype: index\nstatus: canonical\nversion: \"1.0.0\"\n---\n\n# Alexandria Vault — Master Index\n\n- Canonical Operational Log: [[log]]\n- Forensic Incident Ledger: [[failures]]\n";
         fs::write(&index_path, index_content)
             .map_err(|e| format!("Failed to write wiki/index.md: {}", e))?;
     }

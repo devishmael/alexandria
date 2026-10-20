@@ -9,36 +9,52 @@ use std::path::{Path, PathBuf};
 pub const CANONICAL_CAPSULE_SCHEMA_VERSION: &str = "alexandria.capsule.v2.4";
 pub const MANIFEST_FILENAME: &str = "alexandria-capsules.manifest.json";
 
+/// Lifecycle hook specification embedded within an Alexandria capsule.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AlexandriaHookSpec {
+    /// Target lifecycle event (`pre_verify`, `pre_commit`, `pre_gate_0`, `pre_gate_2`, etc.).
     pub event: String,
+    /// Action identifier to execute when the event triggers.
     pub action: String,
+    /// Optional glob path filter for affected source files.
     #[serde(alias = "target_filter")]
     pub target_filter: Option<String>,
 }
 
+/// Canonical JSON schema representation of an Alexandria procedural skill or hook capsule (`alexandria.capsule.v2.4`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AlexandriaCapsuleJson {
+    /// Schema version identifier.
     #[serde(default = "default_schema_version", alias = "schema_version")]
     pub schema_version: String,
+    /// Unique capsule identifier with domain prefix (e.g. `testing:tdd-practitioner`).
     #[serde(alias = "skill_id", alias = "id")]
     pub skill_id: String,
+    /// Canonical engineering domain (`backend`, `architecture`, `devops`, `frontend`, `testing`, `database`, `api`, `hook`).
     pub domain: String,
+    /// Applicable Pantheon agent execution profiles.
     #[serde(default = "default_profiles", alias = "profile_compatibility")]
     pub profile_compatibility: Vec<String>,
+    /// Concise summary of capabilities.
     pub description: String,
+    /// Trigger keywords for BM25 and semantic matching.
     #[serde(default, alias = "trigger_keywords")]
     pub trigger_keywords: Vec<String>,
+    /// List of MCP tools authorized for use when this capsule is active.
     #[serde(default = "default_required_tools", alias = "required_tools")]
     pub required_tools: Vec<String>,
+    /// Constitutional invariants that must not be violated.
     #[serde(default)]
     pub invariants: Vec<String>,
+    /// Lifecycle hook interceptors.
     #[serde(default)]
     pub hooks: Vec<AlexandriaHookSpec>,
+    /// Markdown procedural instructions.
     #[serde(default, alias = "instructions_markdown")]
     pub instructions_markdown: String,
+    /// SHA-256 integrity hash of instructions.
     #[serde(default, alias = "content_sha256")]
     pub content_sha256: String,
 }

@@ -20,6 +20,7 @@ fn byte_offset_to_line_col(source: &str, byte_offset: u32) -> (u32, u32) {
     (line, col)
 }
 
+/// Dispatches a single LSP JSON-RPC message, processing initialize, shutdown, and text document synchronization.
 pub fn handle_lsp_jsonrpc_message(raw_json: &str) -> Option<Value> {
     let parsed: Value = serde_json::from_str(raw_json.trim()).ok()?;
     let method = parsed.get("method").and_then(|m| m.as_str()).unwrap_or("");
@@ -32,8 +33,8 @@ pub fn handle_lsp_jsonrpc_message(raw_json: &str) -> Option<Value> {
             "id": id,
             "result": {
                 "serverInfo": {
-                    "name": "alexandria-lsp",
-                    "version": "2.5.0-OmniPragmatic"
+                    "name": "alexandria",
+                    "version": "1.0.0"
                 },
                 "capabilities": {
                     "textDocumentSync": 1,
