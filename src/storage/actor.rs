@@ -45,6 +45,19 @@ pub enum VaultWriteCommand {
         instructions_md: String,
         reply: oneshot::Sender<Result<(), String>>,
     },
+    SyncWikiGraph {
+        nodes: Vec<(String, String, String, String)>,
+        edges: Vec<(String, String)>,
+        reply: oneshot::Sender<Result<(), String>>,
+    },
+    RecordQualityGateVerdict {
+        module_name: String,
+        execution_path: String,
+        tdd_phase: String,
+        passed: bool,
+        diagnostics_json: String,
+        reply: oneshot::Sender<Result<i64, String>>,
+    },
 }
 
 /// Sanitizes a raw stack trace into a safe FTS5 disjunctive query (`"tok1" OR "tok2"`),
@@ -368,6 +381,12 @@ impl VaultStorageHandle {
             VaultWriteCommand::UpsertSkill { reply, .. } => {
                 let _ = reply.send(Err(err_msg.to_string()));
             }
+            VaultWriteCommand::SyncWikiGraph { reply, .. } => {
+                let _ = reply.send(Err(err_msg.to_string()));
+            }
+            VaultWriteCommand::RecordQualityGateVerdict { reply, .. } => {
+                let _ = reply.send(Err(err_msg.to_string()));
+            }
         }
     }
 
@@ -541,6 +560,95 @@ impl VaultStorageHandle {
                     }
                 })
             }
+            VaultWriteCommand::SyncWikiGraph {
+                nodes,
+                edges,
+                reply,
+            } => {
+                let mut sql_err: Option<String> = None;
+
+                for (node_id, relative_path, node_kind, sha256_hex) in &nodes {
+                    if let Err(e) = tx.execute(
+                        "INSERT INTO wiki_nodes (node_id, relative_path, node_kind, sha256_hex, updated_at)
+                         VALUES (?1, ?2, ?3, ?4, ?5)
+                         ON CONFLICT(node_id) DO UPDATE SET
+                            relative_path = excluded.relative_path,
+                            node_kind = excluded.node_kind,
+                            sha256_hex = excluded.sha256_hex,
+                            updated_at = excluded.updated_at",
+                        params![node_id, relative_path, node_kind, sha256_hex, now_ms],
+                    ) {
+                        sql_err = Some(format!("SQL error upserting wiki_node '{}': {}", node_id, e));
+                        break;
+                    }
+                }
+
+                if sql_err.is_none() {
+                    for (source_id, target_id) in &edges {
+                        if let Err(e) = tx.execute(
+                            "INSERT OR IGNORE INTO wiki_edges (source_id, target_id)
+                             VALUES (?1, ?2)",
+                            params![source_id, target_id],
+                        ) {
+                            sql_err = Some(format!(
+                                "SQL error inserting wiki_edge '{} -> {}': {}",
+                                source_id, target_id, e
+                            ));
+                            break;
+                        }
+                    }
+                }
+
+                Box::new(move |commit_status| match (commit_status, sql_err) {
+                    (Ok(()), None) => {
+                        let _ = reply.send(Ok(()));
+                    }
+                    (Err(commit_err), _) => {
+                        let _ = reply.send(Err(commit_err));
+                    }
+                    (_, Some(err)) => {
+                        let _ = reply.send(Err(err));
+                    }
+                })
+            }
+            VaultWriteCommand::RecordQualityGateVerdict {
+                module_name,
+                execution_path,
+                tdd_phase,
+                passed,
+                diagnostics_json,
+                reply,
+            } => {
+                let passed_int: i64 = if passed { 1 } else { 0 };
+                let res = tx
+                    .execute(
+                        "INSERT INTO quality_gate_verdicts (
+                            module_name, execution_path, tdd_phase, passed, diagnostics_json, created_at
+                         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                        params![
+                            module_name,
+                            execution_path,
+                            tdd_phase,
+                            passed_int,
+                            diagnostics_json,
+                            now_ms
+                        ],
+                    )
+                    .map(|_| tx.last_insert_rowid())
+                    .map_err(|e| format!("SQL error inserting quality_gate_verdict: {}", e));
+
+                Box::new(move |commit_status| match (commit_status, res) {
+                    (Ok(()), Ok(verdict_id)) => {
+                        let _ = reply.send(Ok(verdict_id));
+                    }
+                    (Err(commit_err), _) => {
+                        let _ = reply.send(Err(commit_err));
+                    }
+                    (_, Err(sql_err)) => {
+                        let _ = reply.send(Err(sql_err));
+                    }
+                })
+            }
         }
     }
 
@@ -665,5 +773,66 @@ impl VaultStorageHandle {
             .collect();
 
         Ok(hints)
+    }
+
+    pub async fn sync_wiki_graph(
+        &self,
+        nodes: Vec<(String, String, String, String)>,
+        edges: Vec<(String, String)>,
+    ) -> Result<(), String> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+        self.writer_tx
+            .send(VaultWriteCommand::SyncWikiGraph {
+                nodes,
+                edges,
+                reply: reply_tx,
+            })
+            .await
+            .map_err(|_| "VaultWriterActor channel closed".to_string())?;
+        reply_rx
+            .await
+            .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
+    }
+
+    pub fn count_persisted_wiki_graph(&self) -> Result<(usize, usize), String> {
+        let conn = Connection::open_with_flags(
+            &self.db_path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+        )
+        .map_err(|e| e.to_string())?;
+
+        let node_count: usize = conn
+            .query_row("SELECT COUNT(*) FROM wiki_nodes", [], |r| r.get(0))
+            .map_err(|e| e.to_string())?;
+        let edge_count: usize = conn
+            .query_row("SELECT COUNT(*) FROM wiki_edges", [], |r| r.get(0))
+            .map_err(|e| e.to_string())?;
+
+        Ok((node_count, edge_count))
+    }
+
+    pub async fn record_quality_gate_verdict(
+        &self,
+        module_name: String,
+        execution_path: String,
+        tdd_phase: String,
+        passed: bool,
+        diagnostics_json: String,
+    ) -> Result<i64, String> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+        self.writer_tx
+            .send(VaultWriteCommand::RecordQualityGateVerdict {
+                module_name,
+                execution_path,
+                tdd_phase,
+                passed,
+                diagnostics_json,
+                reply: reply_tx,
+            })
+            .await
+            .map_err(|_| "VaultWriterActor channel closed".to_string())?;
+        reply_rx
+            .await
+            .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
     }
 }

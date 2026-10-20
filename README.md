@@ -67,7 +67,7 @@ Compiled with `opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abo
 | **Idle Resident Memory (RSS)** | $\le 15.0\text{ MB}$ | **`~8.4 MB`** (Zero ML weights in process address space) |
 | **Topological Graph Traversal + ADR Hoisting** | $\le 1.00\text{ ms}$ | **`<= 0.20 ms`** (`petgraph::StableDiGraph` in RAM) |
 | **Gate 0 Native AST Scan (`oxc_parser`)** | $\le 2.00\text{ ms}$ | **`<= 0.80 ms`** (Contiguous arena bump allocation) |
-| **Automated Kernel Test Suites** | $100\%$ Pass | **`36 / 36 Passed`** across 8 integration & E2E suites |
+| **Automated Kernel Test Suites** | $100\%$ Pass | **`41 / 41 Passed`** across 9 integration & E2E suites |
 
 ---
 
@@ -196,9 +196,9 @@ Every code mutation submitted via `verify_and_gate_changes` must clear five sequ
 
 | Gate | Subsystem | Deterministic Invariants Enforced |
 | :--- | :--- | :--- |
-| **Gate 0** | [`oxc_validator.rs`](src/gate_guard/oxc_validator.rs) | Rejects `any` (`NO_EXPLICIT_ANY`), double casts `as unknown as T` (`NO_DOUBLE_CAST_UNKNOWN`), and enforces strict lexical closure inside `prisma.$transaction` (no `tx` aliasing/destructuring, no `.then()` chaining, no unawaited promises, no external `fetch`/`setTimeout`). |
+| **Gate 0** | [`oxc_validator.rs`](src/gate_guard/oxc_validator.rs) | Rejects `any` (`NO_EXPLICIT_ANY`), double casts `as unknown as T` (`NO_DOUBLE_CAST_UNKNOWN`), enforces strict lexical closure inside `prisma.$transaction`, and triggers a **Kernel Syscall Trap** (`detect_public_export_signature_change`) promoting `alpha_fast` to `omega_pantheon` on public export signature mutations. |
 | **Gate 1** | Static Types & Lint | Executes `tsc --noEmit && npm run lint` with zero warnings tolerated. |
-| **Gate 2** | SAST & Secret Guard | Scans for credential leaks and unsafe patterns out-of-band. |
+| **Gate 2** | [`oxc_validator.rs`](src/gate_guard/oxc_validator.rs) | Out-of-band SAST & Secret Leak Guard (`scan_gate2_sast_and_secrets`): blocks hardcoded credentials (`GATE2_HARDCODED_SECRET`: `sk-`, `ghp_`, `AKIA`, PEM private keys) and unsafe execution vectors (`GATE2_SAST_UNSAFE_EXECUTION`: `eval(`, `new Function(`, `dangerouslySetInnerHTML`). |
 | **Gate 3** | [`vitest_sandbox.rs`](src/runner/vitest_sandbox.rs) | Invokes `node --permission` directly on `./node_modules/vitest/vitest.mjs` with `env_clear()`, Win32 UNC prefix stripping (`\\?\`), and read-only source confinement. Verifies genuine `AssertionError` in RED phase (`evaluate_tdd_red_phase`) and $\ge 90\%$ coverage in GREEN phase. |
 | **Gate 4** | Build & Utu Audit | Verifies `npm run build` and runs Utu's stateless cold audit against hoisted `[[ADR-XXX]]` nodes. |
 

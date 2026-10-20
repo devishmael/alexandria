@@ -1,9 +1,16 @@
+use crate::runner::vitest_sandbox::clean_canonical_path;
+use oxc_allocator::Allocator;
+use oxc_ast::ast::Statement;
+use oxc_parser::Parser;
+use oxc_resolver::{ResolveOptions, Resolver};
+use oxc_span::SourceType;
 use petgraph::Direction;
 use petgraph::stable_graph::{NodeIndex, StableDiGraph};
-use petgraph::visit::EdgeRef;
+use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NodeKind {
@@ -171,7 +178,8 @@ pub fn verify_worktree_disjunction(
     let mut colliding_files: Vec<String> = Vec::new();
 
     for (_, files) in tasks {
-        for file_path in files {
+        let task_footprint = resolve_mutable_import_footprint(files);
+        for file_path in task_footprint {
             if !claimed_files.insert(file_path.clone()) {
                 let display = file_path.to_string_lossy().to_string();
                 if !colliding_files.contains(&display) {
@@ -182,6 +190,7 @@ pub fn verify_worktree_disjunction(
     }
 
     if !colliding_files.is_empty() {
+        colliding_files.sort();
         return Err(DisjunctionConflict::AstImportCollision { colliding_files });
     }
 
@@ -267,4 +276,143 @@ pub fn load_vault_graph_from_dir(
     }
 
     (graph, node_map)
+}
+
+pub fn resolve_mutable_import_footprint(files: &[PathBuf]) -> HashSet<PathBuf> {
+    let options = ResolveOptions {
+        extensions: vec![
+            ".ts".into(),
+            ".tsx".into(),
+            ".js".into(),
+            ".jsx".into(),
+            ".json".into(),
+        ],
+        ..ResolveOptions::default()
+    };
+    let resolver = Resolver::new(options);
+
+    let mut footprint: HashSet<PathBuf> = HashSet::new();
+
+    for raw_path in files {
+        let normalized_self = if raw_path.exists() {
+            clean_canonical_path(raw_path).unwrap_or_else(|_| raw_path.clone())
+        } else {
+            raw_path.clone()
+        };
+        footprint.insert(normalized_self.clone());
+
+        if !normalized_self.is_file() {
+            continue;
+        }
+        let Ok(source_text) = std::fs::read_to_string(&normalized_self) else {
+            continue;
+        };
+        let Some(parent_dir) = normalized_self.parent() else {
+            continue;
+        };
+
+        let ext = normalized_self
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("ts");
+        let is_tsx = ext.eq_ignore_ascii_case("tsx") || ext.eq_ignore_ascii_case("jsx");
+
+        let allocator = Allocator::default();
+        let source_type = SourceType::default().with_typescript(true).with_jsx(is_tsx);
+        let parsed = Parser::new(&allocator, &source_text, source_type).parse();
+
+        for stmt in &parsed.program.body {
+            let specifier_opt = match stmt {
+                Statement::ImportDeclaration(imp) => Some(imp.source.value.as_str()),
+                Statement::ExportNamedDeclaration(exp) => {
+                    exp.source.as_ref().map(|s| s.value.as_str())
+                }
+                Statement::ExportAllDeclaration(exp_all) => Some(exp_all.source.value.as_str()),
+                _ => None,
+            };
+
+            if let Some(spec) = specifier_opt {
+                if let Ok(resolution) = resolver.resolve(parent_dir, spec) {
+                    let full_p = resolution.full_path();
+                    let resolved_path = clean_canonical_path(&full_p).unwrap_or(full_p);
+                    footprint.insert(resolved_path);
+                }
+            }
+        }
+    }
+
+    footprint
+}
+
+pub fn serialize_graph_for_sqlite(
+    vault_dir: &Path,
+    graph: &StableDiGraph<WikiNode, ()>,
+) -> (Vec<(String, String, String, String)>, Vec<(String, String)>) {
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
+
+    for idx in graph.node_indices() {
+        let node = &graph[idx];
+        let rel = node
+            .path
+            .strip_prefix(vault_dir)
+            .unwrap_or(&node.path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let kind_str = match node.kind {
+            NodeKind::Module => "Module",
+            NodeKind::Architecture => "Architecture",
+            NodeKind::ConstitutionalAdr => "ConstitutionalAdr",
+        };
+        let mut hex_hash = String::with_capacity(64);
+        for b in node.sha256 {
+            use std::fmt::Write;
+            let _ = write!(&mut hex_hash, "{:02x}", b);
+        }
+        nodes.push((node.id.clone(), rel, kind_str.to_string(), hex_hash));
+    }
+
+    for edge in graph.edge_references() {
+        let src_id = graph[edge.source()].id.clone();
+        let dst_id = graph[edge.target()].id.clone();
+        edges.push((src_id, dst_id));
+    }
+
+    (nodes, edges)
+}
+
+pub fn start_vault_debounced_watcher(
+    vault_dir: PathBuf,
+    debounce_ms: u64,
+) -> Result<notify_debouncer_mini::Debouncer<notify::RecommendedWatcher>, String> {
+    std::fs::create_dir_all(&vault_dir)
+        .map_err(|e| format!("Failed to create vault directory for watcher {:?}: {}", vault_dir, e))?;
+
+    let watched_root = vault_dir.clone();
+    let mut debouncer = notify_debouncer_mini::new_debouncer(
+        Duration::from_millis(debounce_ms),
+        move |res: notify_debouncer_mini::DebounceEventResult| {
+            if let Ok(events) = res {
+                let should_reload = events.iter().any(|ev| {
+                    let rel = ev.path.strip_prefix(&watched_root).unwrap_or(&ev.path);
+                    let in_ignored = rel.components().any(|c| {
+                        let s = c.as_os_str().to_string_lossy();
+                        s.starts_with('.') || s == "private"
+                    });
+                    !in_ignored && ev.path.extension().and_then(|e| e.to_str()) == Some("md")
+                });
+                if should_reload {
+                    let _ = load_vault_graph_from_dir(&watched_root);
+                }
+            }
+        },
+    )
+    .map_err(|e| format!("Failed to initialize 75ms debounced watcher: {}", e))?;
+
+    debouncer
+        .watcher()
+        .watch(&vault_dir, notify::RecursiveMode::Recursive)
+        .map_err(|e| format!("Failed to watch vault directory {:?}: {}", vault_dir, e))?;
+
+    Ok(debouncer)
 }

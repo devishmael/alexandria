@@ -287,3 +287,169 @@ pub fn validate_typescript_source(
     visitor.visit_program(&ret.program);
     Ok(visitor.violations)
 }
+
+pub fn extract_public_export_signatures(
+    source_text: &str,
+    is_tsx: bool,
+) -> Result<Vec<String>, String> {
+    let allocator = Allocator::default();
+    let source_type = SourceType::default().with_typescript(true).with_jsx(is_tsx);
+    let ret = Parser::new(&allocator, source_text, source_type).parse();
+
+    if !ret.errors.is_empty() {
+        return Err(format!("SyntaxError during Oxc parsing: {:?}", ret.errors[0]));
+    }
+
+    let mut signatures: Vec<String> = Vec::new();
+
+    for stmt in &ret.program.body {
+        match stmt {
+            Statement::ExportNamedDeclaration(export_named) => {
+                if let Some(decl) = &export_named.declaration {
+                    match decl {
+                        Declaration::FunctionDeclaration(func) => {
+                            if let Some(id) = &func.id {
+                                signatures.push(format!(
+                                    "export function {}({})",
+                                    id.name.as_str(),
+                                    func.params.items.len()
+                                ));
+                            }
+                        }
+                        Declaration::TSInterfaceDeclaration(iface) => {
+                            signatures.push(format!(
+                                "export interface {}",
+                                iface.id.name.as_str()
+                            ));
+                        }
+                        Declaration::TSTypeAliasDeclaration(type_alias) => {
+                            signatures
+                                .push(format!("export type {}", type_alias.id.name.as_str()));
+                        }
+                        Declaration::ClassDeclaration(cls) => {
+                            if let Some(id) = &cls.id {
+                                signatures.push(format!("export class {}", id.name.as_str()));
+                            }
+                        }
+                        Declaration::TSEnumDeclaration(ts_enum) => {
+                            signatures.push(format!("export enum {}", ts_enum.id.name.as_str()));
+                        }
+                        Declaration::VariableDeclaration(var_decl) => {
+                            for declarator in &var_decl.declarations {
+                                if let BindingPatternKind::BindingIdentifier(ident) =
+                                    &declarator.id.kind
+                                {
+                                    signatures.push(format!(
+                                        "export const {}",
+                                        ident.name.as_str()
+                                    ));
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
+                for spec in &export_named.specifiers {
+                    signatures.push(format!("export specifier {}", spec.exported.name()));
+                }
+            }
+            Statement::ExportDefaultDeclaration(export_default) => {
+                match &export_default.declaration {
+                    ExportDefaultDeclarationKind::FunctionDeclaration(func) => {
+                        let name = func
+                            .id
+                            .as_ref()
+                            .map(|id| id.name.as_str())
+                            .unwrap_or("default");
+                        signatures.push(format!(
+                            "export default function {}({})",
+                            name,
+                            func.params.items.len()
+                        ));
+                    }
+                    ExportDefaultDeclarationKind::ClassDeclaration(cls) => {
+                        let name = cls
+                            .id
+                            .as_ref()
+                            .map(|id| id.name.as_str())
+                            .unwrap_or("default");
+                        signatures.push(format!("export default class {}", name));
+                    }
+                    _ => {
+                        signatures.push("export default expression".to_string());
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    signatures.sort();
+    signatures.dedup();
+    Ok(signatures)
+}
+
+pub fn detect_public_export_signature_change(
+    baseline_source: &str,
+    modified_source: &str,
+    is_tsx: bool,
+) -> Result<bool, String> {
+    let base_sigs = extract_public_export_signatures(baseline_source, is_tsx)?;
+    let mod_sigs = extract_public_export_signatures(modified_source, is_tsx)?;
+    Ok(base_sigs != mod_sigs)
+}
+
+pub fn scan_gate2_sast_and_secrets(source_text: &str) -> Vec<AstViolation> {
+    let mut violations = Vec::new();
+
+    let secret_markers: [(&str, &str); 4] = [
+        ("sk-", "OpenAI/Stripe-style secret key prefix 'sk-'"),
+        ("ghp_", "GitHub Personal Access Token prefix 'ghp_'"),
+        ("AKIA", "AWS Access Key ID prefix 'AKIA'"),
+        (
+            "-----BEGIN PRIVATE KEY-----",
+            "PEM-encoded private key block",
+        ),
+    ];
+
+    for (pattern, label) in secret_markers {
+        if let Some(idx) = source_text.find(pattern) {
+            violations.push(AstViolation {
+                rule: "GATE2_HARDCODED_SECRET",
+                message: format!(
+                    "Gate 2 Secret Leak Guard: detected hardcoded credential ({}) in source.",
+                    label
+                ),
+                byte_offset: idx as u32,
+            });
+        }
+    }
+
+    let unsafe_execution_markers: [(&str, &str); 3] = [
+        ("eval(", "dynamic code evaluation via 'eval(...)'"),
+        (
+            "new Function(",
+            "dynamic function constructor 'new Function(...)'",
+        ),
+        (
+            "dangerouslySetInnerHTML",
+            "unsanitized DOM injection via 'dangerouslySetInnerHTML'",
+        ),
+    ];
+
+    for (pattern, label) in unsafe_execution_markers {
+        if let Some(idx) = source_text.find(pattern) {
+            violations.push(AstViolation {
+                rule: "GATE2_SAST_UNSAFE_EXECUTION",
+                message: format!(
+                    "Gate 2 SAST Scanner: forbidden unsafe execution vector ({}).",
+                    label
+                ),
+                byte_offset: idx as u32,
+            });
+        }
+    }
+
+    violations
+}

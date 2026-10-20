@@ -1,10 +1,12 @@
 use crate::collector::skill_etl::{
     AlexandriaHookSpec, collect_and_refactor_directory, export_refactored_json_bundle,
 };
-use crate::gate_guard::oxc_validator::validate_typescript_source;
+use crate::gate_guard::oxc_validator::{
+    detect_public_export_signature_change, scan_gate2_sast_and_secrets, validate_typescript_source,
+};
 use crate::graph::resolver::{
     DisjunctionConflict, load_vault_graph_from_dir, resolve_context_with_adr_hoisting,
-    verify_worktree_disjunction,
+    serialize_graph_for_sqlite, verify_worktree_disjunction,
 };
 use crate::runner::vitest_sandbox::{RedPhaseVerdict, VitestJsonReport, evaluate_tdd_red_phase};
 use crate::storage::actor::VaultStorageHandle;
@@ -356,6 +358,11 @@ pub async fn dispatch_alexandria_tool_with_context(
             let enforced_path = classify_execution_path(instruction, &target_files);
             let (graph, node_map) = load_vault_graph_from_dir(&ctx.vault_dir);
 
+            if let Some(storage) = &ctx.storage {
+                let (nodes, edges) = serialize_graph_for_sqlite(&ctx.vault_dir, &graph);
+                let _ = storage.sync_wiki_graph(nodes, edges).await;
+            }
+
             let start_node_idx = module_name
                 .and_then(|m| node_map.get(m).copied())
                 .or_else(|| node_map.get("index").copied());
@@ -427,6 +434,12 @@ pub async fn dispatch_alexandria_tool_with_context(
                 let adr_file = decisions_dir.join(format!("{}.md", title));
                 let _ = fs::write(&adr_file, decision_content);
                 adr_path_str = Some(adr_file.to_string_lossy().to_string());
+            }
+
+            if let Some(storage) = &ctx.storage {
+                let (graph, _) = load_vault_graph_from_dir(&ctx.vault_dir);
+                let (nodes, edges) = serialize_graph_for_sqlite(&ctx.vault_dir, &graph);
+                let _ = storage.sync_wiki_graph(nodes, edges).await;
             }
 
             let payload = json!({
@@ -683,6 +696,56 @@ pub async fn dispatch_alexandria_tool_with_context(
             let mut violated_rules: Vec<String> = Vec::new();
             let mut diagnostics_list: Vec<String> = Vec::new();
 
+            let requested_exec_path = args
+                .get("executionPath")
+                .and_then(|v| v.as_str())
+                .unwrap_or("alpha_fast");
+            let mut promoted_execution_path = requested_exec_path.to_string();
+            let mut syscall_trap_triggered = false;
+
+            if requested_exec_path == "alpha_fast" {
+                if let Some(baseline_str) = args.get("baselineSource").and_then(|v| v.as_str()) {
+                    if let Some((file_label, modified_str)) = sources_to_scan.first() {
+                        let is_tsx = file_label.ends_with(".tsx") || file_label.ends_with(".jsx");
+                        if detect_public_export_signature_change(
+                            baseline_str,
+                            modified_str,
+                            is_tsx,
+                        )
+                        .unwrap_or(false)
+                        {
+                            syscall_trap_triggered = true;
+                            promoted_execution_path = "omega_pantheon".to_string();
+                            diagnostics_list.push(format!(
+                                "[SYSCALL_TRAP @ {}] Public export signature mutation detected; execution path promoted to omega_pantheon.",
+                                file_label
+                            ));
+                        }
+                    }
+                } else if let Some(baseline_map) =
+                    args.get("baselineSources").and_then(|v| v.as_object())
+                {
+                    for (file_label, modified_str) in &sources_to_scan {
+                        if let Some(base_str) =
+                            baseline_map.get(file_label).and_then(|v| v.as_str())
+                        {
+                            let is_tsx =
+                                file_label.ends_with(".tsx") || file_label.ends_with(".jsx");
+                            if detect_public_export_signature_change(base_str, modified_str, is_tsx)
+                                .unwrap_or(false)
+                            {
+                                syscall_trap_triggered = true;
+                                promoted_execution_path = "omega_pantheon".to_string();
+                                diagnostics_list.push(format!(
+                                    "[SYSCALL_TRAP @ {}] Public export signature mutation detected; execution path promoted to omega_pantheon.",
+                                    file_label
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+
             for (file_label, source_code) in &sources_to_scan {
                 let is_tsx = file_label.ends_with(".tsx") || file_label.ends_with(".jsx");
                 match validate_typescript_source(source_code, is_tsx) {
@@ -701,6 +764,16 @@ pub async fn dispatch_alexandria_tool_with_context(
                         violated_rules.push("OXC_SYNTAX_ERROR".to_string());
                         diagnostics_list.push(format!("[{}] {}", file_label, parse_err));
                     }
+                }
+
+                for gate2_v in scan_gate2_sast_and_secrets(source_code) {
+                    if !violated_rules.contains(&gate2_v.rule.to_string()) {
+                        violated_rules.push(gate2_v.rule.to_string());
+                    }
+                    diagnostics_list.push(format!(
+                        "[{} @ {} offset {}] {}",
+                        gate2_v.rule, file_label, gate2_v.byte_offset, gate2_v.message
+                    ));
                 }
             }
 
@@ -742,6 +815,7 @@ pub async fn dispatch_alexandria_tool_with_context(
             let mut attempt_num: u32 = 1;
             let mut failure_id_opt: Option<String> = None;
             let mut historical_hints: Vec<String> = Vec::new();
+            let mut verdict_id_opt: Option<i64> = None;
 
             if !passed {
                 if let Some(storage) = &ctx.storage {
@@ -774,6 +848,38 @@ pub async fn dispatch_alexandria_tool_with_context(
                     .await;
             }
 
+            if let Some(storage) = &ctx.storage {
+                let valid_exec_path = if promoted_execution_path == "omega_pantheon" {
+                    "omega_pantheon".to_string()
+                } else {
+                    "alpha_fast".to_string()
+                };
+                let valid_tdd_phase = match tdd_phase {
+                    "red_expect_assertion_failure"
+                    | "green_expect_pass"
+                    | "refactor_full_gate" => tdd_phase.to_string(),
+                    _ => "green_expect_pass".to_string(),
+                };
+                let diag_json = json!({
+                    "violatedRules": violated_rules,
+                    "diagnostics": diagnostics_joined,
+                    "syscallTrapTriggered": syscall_trap_triggered
+                })
+                .to_string();
+                if let Ok(vid) = storage
+                    .record_quality_gate_verdict(
+                        target_module.to_string(),
+                        valid_exec_path,
+                        valid_tdd_phase,
+                        passed,
+                        diag_json,
+                    )
+                    .await
+                {
+                    verdict_id_opt = Some(vid);
+                }
+            }
+
             let payload = json!({
                 "tool": tool_name,
                 "status": "dispatched_by_kernel",
@@ -781,6 +887,9 @@ pub async fn dispatch_alexandria_tool_with_context(
                 "passed": passed,
                 "violatedRules": violated_rules,
                 "redPhaseFailureKind": red_phase_kind,
+                "syscallTrapTriggered": syscall_trap_triggered,
+                "promotedExecutionPath": promoted_execution_path,
+                "verdictId": verdict_id_opt,
                 "circuitBreakerState": cb_state,
                 "attemptNumber": attempt_num,
                 "diagnostics": diagnostics_joined,
