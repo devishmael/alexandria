@@ -536,6 +536,24 @@ fn build_capsule_from_metadata_and_body(
     }
 }
 
+fn parse_loose_yaml_frontmatter(raw: &str) -> Value {
+    let mut map = serde_json::Map::new();
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#') || trimmed.is_empty() {
+            continue;
+        }
+        if let Some((k, v)) = trimmed.split_once(':') {
+            let key = k.trim().trim_matches(|c| c == '"' || c == '\'');
+            let val = v.trim().trim_matches(|c| c == '"' || c == '\'');
+            if !key.is_empty() && !val.is_empty() {
+                map.insert(key.to_string(), Value::String(val.to_string()));
+            }
+        }
+    }
+    Value::Object(map)
+}
+
 pub fn parse_raw_skill_or_hook(
     file_path: &Path,
     raw_content: &str,
@@ -550,12 +568,7 @@ pub fn parse_raw_skill_or_hook(
         "md" | "markdown" => {
             let (frontmatter_opt, body) = split_frontmatter_and_body(raw_content);
             let meta_val: Value = if let Some(yaml_str) = frontmatter_opt {
-                serde_yml::from_str(yaml_str).map_err(|e| {
-                    format!(
-                        "Failed to parse YAML frontmatter in {:?}: {}",
-                        file_path, e
-                    )
-                })?
+                serde_yml::from_str(yaml_str).unwrap_or_else(|_| parse_loose_yaml_frontmatter(yaml_str))
             } else {
                 Value::Object(serde_json::Map::new())
             };
@@ -564,9 +577,10 @@ pub fn parse_raw_skill_or_hook(
             ))
         }
         "yaml" | "yml" => {
-            let meta_val: Value = serde_yml::from_str(raw_content).map_err(|e| {
-                format!("Failed to parse YAML skill/hook in {:?}: {}", file_path, e)
-            })?;
+            let meta_val: Value = match serde_yml::from_str(raw_content) {
+                Ok(v) => v,
+                Err(_) => parse_loose_yaml_frontmatter(raw_content),
+            };
             let body = meta_val
                 .get("instructions_markdown")
                 .or_else(|| meta_val.get("instructionsMarkdown"))
@@ -620,13 +634,24 @@ fn collect_files_recursively(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), S
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or_default();
-        if name.starts_with('.') || name == "node_modules" || name == "target" {
+        if name.starts_with('.')
+            || name == "node_modules"
+            || name == "target"
+            || name == "dist"
+            || name == "build"
+            || name == "coverage"
+        {
             continue;
         }
         if path.is_dir() {
             collect_files_recursively(&path, out)?;
         } else if path.is_file() {
-            if name == MANIFEST_FILENAME {
+            if name == MANIFEST_FILENAME
+                || name == "package.json"
+                || name == "package-lock.json"
+                || name == "tsconfig.json"
+                || name == "lake-manifest.json"
+            {
                 continue;
             }
             let ext = path
@@ -650,10 +675,12 @@ pub fn collect_and_refactor_directory(
 
     let mut capsules = Vec::new();
     for file_path in candidate_files {
-        let raw_content = fs::read_to_string(&file_path)
-            .map_err(|e| format!("Failed to read file {:?}: {}", file_path, e))?;
-        let capsule = parse_raw_skill_or_hook(&file_path, &raw_content)?;
-        capsules.push(capsule);
+        let Ok(raw_content) = fs::read_to_string(&file_path) else {
+            continue;
+        };
+        if let Ok(capsule) = parse_raw_skill_or_hook(&file_path, &raw_content) {
+            capsules.push(capsule);
+        }
     }
 
     capsules.sort_by(|a, b| a.skill_id.cmp(&b.skill_id));
