@@ -240,7 +240,17 @@ pub async fn dispatch_mcp_method_with_context(
                                 "query": { "type": "string", "description": "Free-text search query matching triggers, titles, and instructions." },
                                 "domain": {
                                     "type": "string",
-                                    "enum": ["backend", "architecture", "devops", "frontend", "testing", "database", "api", "hook"],
+                                    "enum": [
+                                        "backend",
+                                        "architecture",
+                                        "devops",
+                                        "frontend",
+                                        "testing",
+                                        "database",
+                                        "api",
+                                        "hook",
+                                        "ide"
+                                    ],
                                     "description": "Optional canonical domain filter."
                                 },
                                 "limit": { "type": "integer", "minimum": 1, "maximum": 50, "description": "Maximum number of capsules to return (default: 10, max: 50)." }
