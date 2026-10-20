@@ -251,7 +251,9 @@ Every code mutation submitted via `verify_and_gate_changes` must clear five sequ
 | **Gate 4** | Build & Utu Audit | Verifies `npm run build` and runs Utu's stateless cold audit against hoisted `[[ADR-XXX]]` nodes. |
 
 ### Single-Turn Court-Martial Protocol (`courtMartialDocket`)
-$$\text{consecutive\_failures}(M) \ge 3 \implies \text{State}(M) \leftarrow \texttt{tripped\_abort}$$
+
+$$\text{Failures}(M) \ge 3 \implies \text{State}(M) \leftarrow \text{TrippedAbort}$$
+
 When a module fails 3 consecutive gate attempts, the kernel trips the circuit breaker, logs a `FAIL-XXX` forensic incident, and emits a structured **`courtMartialDocket`** in the `verify_and_gate_changes` payload:
 - **`defendantAgent`:** `"enki"`
 - **`prosecutorAgent`:** `"utu"`
