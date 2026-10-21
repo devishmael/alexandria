@@ -55,6 +55,7 @@ alexandria/
 │   │   └── skill_etl.rs           # Skill/hook ETL engine, JSON normalization, canonical schema
 │   ├── gate_guard/
 │   │   ├── mod.rs                 # GateGuard module export
+│   │   ├── fact_forcing.rs        # Fact-Forcing GateGuard (zero blind edits, E_FACT_FORCING)
 │   │   └── oxc_validator.rs       # AST parsing via Oxc, TypeScript visitor, Gate 2 SAST scanner
 │   ├── graph/
 │   │   ├── mod.rs                 # Knowledge graph module export
@@ -77,11 +78,13 @@ alexandria/
 │       └── hybrid_memory.rs       # 64-dim int8 embedding generator, RRF fusion, token budgeting
 └── tests/
     ├── cli_e2e_test.rs            # End-to-End CLI scaffolding, version banner, and custom vaults
+    ├── fact_forcing_and_checkpoint_test.rs # Fact-Forcing E_FACT_FORCING and session checkpoints
     ├── graph_resolver_test.rs     # Depth=1, cycle prevention, ADR hoisting, worktree disjunction
     ├── kernel_spec_completeness_test.rs # Gate 2 SAST, watcher, syscall traps, SQLite persistence
     ├── mcp_integration_test.rs    # Real tool invocation, FTS fallback, AST rejections
     ├── mcp_server_test.rs         # Protocol handshakes, ping-pong, tools/list, hook evaluation
     ├── oxc_validator_test.rs      # Explicit any, double casting, Prisma closures, unawaited promises
+    ├── project_isolation_test.rs  # Project-Scoped DB Isolation (ADR-009, zero cross-project leak)
     ├── skill_collector_test.rs    # Directory ingestion, manifest generation, vault seeding
     ├── storage_actor_test.rs      # MPSC concurrency, SQLite WAL, FTS5 sanitization, monotonic IDs
     ├── v25_organism_and_vector_test.rs # Hybrid vector store, RRF, AST pruning, Court-Martial dockets
@@ -97,7 +100,7 @@ The MCP server operates over standard I/O using JSON-RPC 2.0. It exposes 8 deter
 1. `prepare_task_context`: Analyzes target files and instructions to classify execution path (`alpha_fast` vs `omega_pantheon`), resolves the depth=1 topological knowledge graph with ADR hoisting up to 6 levels, prunes TypeScript AST contexts for focus symbols, and recalls episodic memory.
 2. `upsert_architectural_contract`: Formalizes architectural decisions (ADRs) and module contracts in markdown within the knowledge vault before code modification.
 3. `resolve_skill_capsule`: Injects procedural knowledge capsules into the prompt suffix or ingests external skill directories.
-4. `search_capsules`: Searches the curated 189 master capsules via SQLite FTS5 BM25 ranking with optional domain filtering.
+4. `search_capsules`: Searches the curated 225 master capsules via SQLite FTS5 BM25 ranking with optional domain filtering.
 5. `read_capsule`: Retrieves complete specifications, invariants, instructions, and hooks for any capsule ID.
 6. `spawn_isolated_worktrees`: Validates that parallel agent worktrees have disjoint dependency graphs using `petgraph` and `oxc_resolver`.
 7. `verify_and_gate_changes`: Executes Gate 0 AST inspection, Gate 2 SAST secret scanning, and evaluates lifecycle hooks (`pre_verify`).
