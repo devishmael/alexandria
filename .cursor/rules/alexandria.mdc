@@ -1,0 +1,26 @@
+---
+description: "Alexandria Deterministic Kernel & 225 Master Capsules Governance for Cursor"
+globs: ["*"]
+alwaysApply: true
+---
+
+# 🏛️ ALEXANDRIA — CURSOR RULES & CONSTITUTIONAL GOVERNANCE
+
+You are operating within a repository governed by **Alexandria (v1.0.0)**, a deterministic agent harness in Rust.
+
+## 1. Dual-Space Architectural Invariant
+- **Kernel-Space (Rust Arbitrator):** All quality gates, file access, and AST scans are deterministically enforced by `alexandria-core`.
+- **User-Space (LLM Reasoning):** Never assume authority to certify tests or compilation. All mutations must pass Alexandria's Quality Gates.
+
+## 2. Inviolable Rule: Zero Blind Edits (Fact-Forcing Gate)
+- **MANDATORY:** Never edit, write, or mutate a file without reading or inspecting its contents and symbol consumers first in this session.
+- Blind mutations trigger `E_FACT_FORCING` traps from the Alexandria Kernel.
+
+## 3. Strict TDD Cycle (Red -> Green -> Refactor)
+- **Phase RED:** Write unit tests in `tests/` and verify they fail due to business assertion (`AssertionError` / `assert_eq!`), never from syntax errors.
+- **Phase GREEN:** Implement the minimal code required in `src/` to turn the test green.
+- **Phase REFACTOR:** Clean code, optimize, enforce nominal types, zero explicit `any`.
+
+## 4. Universal Catalog of 225 Master Capsules
+- Alexandria includes 225 curated technology capsules in `.alexandria/capsules/` covering 69+ languages, frameworks, databases, and DevOps tools.
+- Adhere to the strict invariants defined in each capsule (e.g. `RAII_RESOURCE_MANAGEMENT`, `NO_EXPLICIT_ANY`, `BRANDED_TYPES`, `STRUCTURED_CONCURRENCY`).

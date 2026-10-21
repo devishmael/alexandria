@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Cargo Test (All Targets)",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["test", "--all-targets"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "Cargo Check",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["check", "--all-targets"],
+      "group": "build",
+      "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "Alexandria MCP Server",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["run", "--bin", "alexandria", "--", "mcp"],
+      "problemMatcher": []
+    }
+  ]
+}

@@ -5,6 +5,7 @@ use crate::vector_store::hybrid_memory::{
     compute_deterministic_int8_embedding, distill_into_micro_chunk,
 };
 use rusqlite::{Connection, OptionalExtension, params};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -13,6 +14,20 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::{mpsc, oneshot};
 
 static INCIDENT_SEQ: AtomicU64 = AtomicU64::new(1);
+
+/// A persisted transactional snapshot of an agent session state, recorded
+/// prior to lossy context compaction or session handoffs.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SessionCheckpoint {
+    pub checkpoint_id: String,
+    pub session_id: String,
+    pub trigger_kind: String,
+    pub active_adrs_json: String,
+    pub modified_files_json: String,
+    pub test_status_json: String,
+    pub summary_markdown: String,
+    pub created_at: i64,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SkillCapsuleRecord {
@@ -74,6 +89,10 @@ pub enum VaultWriteCommand {
         token_estimate: usize,
         embedding_int8_json: String,
         reply: oneshot::Sender<Result<String, String>>,
+    },
+    SaveSessionCheckpoint {
+        checkpoint: SessionCheckpoint,
+        reply: oneshot::Sender<Result<(), String>>,
     },
 }
 
@@ -494,6 +513,9 @@ impl VaultStorageHandle {
             VaultWriteCommand::RecordEpisodicMemoryChunk { reply, .. } => {
                 let _ = reply.send(Err(err_msg.to_string()));
             }
+            VaultWriteCommand::SaveSessionCheckpoint { reply, .. } => {
+                let _ = reply.send(Err(err_msg.to_string()));
+            }
         }
     }
 
@@ -797,6 +819,39 @@ impl VaultStorageHandle {
                 Box::new(move |commit_status| match (commit_status, res) {
                     (Ok(()), Ok(cid)) => {
                         let _ = reply.send(Ok(cid));
+                    }
+                    (Err(commit_err), _) => {
+                        let _ = reply.send(Err(commit_err));
+                    }
+                    (_, Err(sql_err)) => {
+                        let _ = reply.send(Err(sql_err));
+                    }
+                })
+            }
+            VaultWriteCommand::SaveSessionCheckpoint { checkpoint, reply } => {
+                let res = tx
+                    .execute(
+                        "INSERT OR REPLACE INTO session_checkpoints (
+                            checkpoint_id, session_id, trigger_kind, active_adrs_json,
+                            modified_files_json, test_status_json, summary_markdown, created_at
+                         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                        params![
+                            checkpoint.checkpoint_id,
+                            checkpoint.session_id,
+                            checkpoint.trigger_kind,
+                            checkpoint.active_adrs_json,
+                            checkpoint.modified_files_json,
+                            checkpoint.test_status_json,
+                            checkpoint.summary_markdown,
+                            checkpoint.created_at,
+                        ],
+                    )
+                    .map(|_| ())
+                    .map_err(|e| format!("SQL error inserting session_checkpoint: {}", e));
+
+                Box::new(move |commit_status| match (commit_status, res) {
+                    (Ok(()), Ok(())) => {
+                        let _ = reply.send(Ok(()));
                     }
                     (Err(commit_err), _) => {
                         let _ = reply.send(Err(commit_err));
@@ -1310,6 +1365,58 @@ impl VaultStorageHandle {
         reply_rx
             .await
             .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
+    }
+
+    pub async fn save_session_checkpoint(
+        &self,
+        checkpoint: SessionCheckpoint,
+    ) -> Result<(), String> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+        self.writer_tx
+            .send(VaultWriteCommand::SaveSessionCheckpoint {
+                checkpoint,
+                reply: reply_tx,
+            })
+            .await
+            .map_err(|_| "VaultWriterActor channel closed".to_string())?;
+        reply_rx
+            .await
+            .map_err(|_| "VaultWriterActor oneshot reply cancelled".to_string())?
+    }
+
+    pub async fn get_latest_session_checkpoint(
+        &self,
+        session_id: String,
+    ) -> Result<Option<SessionCheckpoint>, String> {
+        let conn = Connection::open_with_flags(
+            &self.db_path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+        )
+        .map_err(|e| e.to_string())?;
+
+        conn.query_row(
+            "SELECT checkpoint_id, session_id, trigger_kind, active_adrs_json,
+                    modified_files_json, test_status_json, summary_markdown, created_at
+             FROM session_checkpoints
+             WHERE session_id = ?1
+             ORDER BY created_at DESC
+             LIMIT 1",
+            params![session_id],
+            |row| {
+                Ok(SessionCheckpoint {
+                    checkpoint_id: row.get(0)?,
+                    session_id: row.get(1)?,
+                    trigger_kind: row.get(2)?,
+                    active_adrs_json: row.get(3)?,
+                    modified_files_json: row.get(4)?,
+                    test_status_json: row.get(5)?,
+                    summary_markdown: row.get(6)?,
+                    created_at: row.get(7)?,
+                })
+            },
+        )
+        .optional()
+        .map_err(|e| e.to_string())
     }
 
     pub fn compute_organism_telemetry(&self) -> Result<serde_json::Value, String> {

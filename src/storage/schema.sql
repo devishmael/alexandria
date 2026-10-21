@@ -192,3 +192,18 @@ CREATE TRIGGER IF NOT EXISTS episodic_memory_au AFTER UPDATE ON episodic_vector_
     INSERT INTO episodic_memory_fts(rowid, chunk_id, module_name, tags_json, compact_summary)
     VALUES (new.rowid, new.chunk_id, new.module_name, new.tags_json, new.compact_summary);
 END;
+
+-- 9. Transactional Pre-Compact Session Checkpoints
+CREATE TABLE IF NOT EXISTS session_checkpoints (
+    checkpoint_id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    trigger_kind TEXT NOT NULL CHECK(trigger_kind IN ('pre_compact', 'manual', 'circuit_breaker')),
+    active_adrs_json TEXT NOT NULL DEFAULT '[]',
+    modified_files_json TEXT NOT NULL DEFAULT '[]',
+    test_status_json TEXT NOT NULL DEFAULT '{}',
+    summary_markdown TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_checkpoints_session ON session_checkpoints(session_id, created_at DESC);
+
