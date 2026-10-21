@@ -1,14 +1,15 @@
 use alexandria::cli::{
-    CliCommand, HELP_BANNER, VERSION_BANNER, execute_autonomous_run, execute_collect_subcommand,
-    execute_init_scaffolding, execute_memory_subcommand, parse_cli_args,
-    resolve_default_vault_db_path,
+    execute_autonomous_run, execute_capsule_command, execute_collect_subcommand,
+    execute_doctor_diagnostic, execute_gate_check, execute_harness_scaffold,
+    execute_init_scaffolding, execute_memory_subcommand, execute_vault_command, parse_cli_args,
+    resolve_default_vault_db_path, CliCommand, HELP_BANNER, VERSION_BANNER,
 };
 use alexandria::lsp::server::run_lsp_stdio_loop;
-use alexandria::mcp::server::{McpKernelContext, run_mcp_stdio_loop_with_context};
-use alexandria::storage::CANONICAL_SCHEMA_SQL;
+use alexandria::mcp::server::{run_mcp_stdio_loop_with_context, McpKernelContext};
 use alexandria::storage::actor::VaultStorageHandle;
+use alexandria::storage::CANONICAL_SCHEMA_SQL;
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -57,6 +58,58 @@ fn main() -> ExitCode {
                     "[ALEXANDRIA KERNEL] Workspace initialized successfully: {}",
                     config_path.display()
                 );
+                Ok(())
+            }
+            CliCommand::Doctor => {
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
+                let report = execute_doctor_diagnostic(&cwd)?;
+                println!("{}", report);
+                Ok(())
+            }
+            CliCommand::Gate { target_path } => {
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
+                let path = if Path::new(&target_path).is_absolute() {
+                    PathBuf::from(&target_path)
+                } else {
+                    cwd.join(&target_path)
+                };
+                let (passed, report) = execute_gate_check(&path)?;
+                println!("{}", report);
+                if !passed {
+                    return Err("Quality gate violation detected".to_string());
+                }
+                Ok(())
+            }
+            CliCommand::Capsule {
+                subaction,
+                argument,
+                domain,
+            } => {
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
+                let report = execute_capsule_command(
+                    &cwd,
+                    &subaction,
+                    argument.as_deref(),
+                    domain.as_deref(),
+                )?;
+                println!("{}", report);
+                Ok(())
+            }
+            CliCommand::Harness { target } => {
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
+                let report = execute_harness_scaffold(&cwd, &target)?;
+                println!("{}", report);
+                Ok(())
+            }
+            CliCommand::Vault { action } => {
+                let cwd = env::current_dir()
+                    .map_err(|e| format!("Failed to resolve current working directory: {}", e))?;
+                let report = execute_vault_command(&cwd, &action)?;
+                println!("{}", report);
                 Ok(())
             }
             CliCommand::Collect {

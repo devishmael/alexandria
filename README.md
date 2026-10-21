@@ -130,7 +130,7 @@ cargo test --all-targets
 cargo install --path .
 ```
 
-### 1. `alexandria init` — Initialize Workspace, Headless Vault & Pantheon Agents
+### 1. `alexandria init` — Initialize Workspace, Headless Vault & Multi-Harness Adapters
 Generates `.alexandria.json`, scaffolds the canonical Markdown vault (`wiki/index.md`, `wiki/log.md`, `wiki/failures.md`, `wiki/architecture/`, `wiki/modules/`, `wiki/decisions/`), populates the Pantheon agent descriptors (`.agents/agents/{bel,enki,utu,nabu}.md`), and hardens `.gitignore`.
 ```bash
 alexandria init
@@ -138,13 +138,70 @@ alexandria init
 alexandria init --vault ./wiki --profile mvp-fullstack-ts
 ```
 
-### 2. `alexandria collect` — Polymorphic Skill, Hook & Tool ETL Collector
+### 2. `alexandria doctor` (or `status`) — 5-Point System Diagnostic
+Executes an instant (< 15ms) health check validating binary & PATH, SQLite WAL journal mode and indexed capsules count, project scoping and vault graph node count, multi-harness configuration presence, and live organism telemetry (MTTR and active circuit breakers).
+```bash
+alexandria doctor
+```
+
+### 3. `alexandria gate <path>` (or `check <path>`) — Out-of-Band AST Quality Gates
+Runs in-memory Oxc AST quality gates directly from the terminal without launching an LLM:
+- **Gate 0**: `NO_EXPLICIT_ANY`, `NO_DOUBLE_CAST_UNKNOWN`, `PRISMA_TX_*` in $\le 2\text{ ms}$.
+- **Gate 2**: SAST & secret leak detection (`sk-`, `ghp_`, `AKIA`, `eval`, `new Function`).
+Exits with code `0` on clean pass or code `1` on violation (ideal for pre-commit hooks and CI/CD).
+```bash
+# Check a single file:
+alexandria gate src/index.ts
+
+# Check an entire directory tree:
+alexandria gate src/
+```
+
+### 4. `alexandria capsule` — Direct Access to 225 Curated Master Capsules
+Provides instant terminal browsing, search, and inspection across the curated technical capsules:
+```bash
+# List all capsules or filter by domain:
+alexandria capsule list
+alexandria capsule list --domain backend
+
+# Instant SQLite FTS5 BM25 search across capsules:
+alexandria capsule search postgresql
+
+# Display full instructions markdown, invariants, and code examples:
+alexandria capsule show database:postgres-pro
+```
+
+### 5. `alexandria harness add <target>` — Multi-Harness Scaffolding
+Scaffolds targeted or universal harness configuration files on demand:
+```bash
+# Available targets: cursor, antigravity, claude, codex, all
+alexandria harness add cursor
+alexandria harness add all
+```
+
+### 6. `alexandria vault` — Knowledge Vault Governance & SQLite Sync
+Inspects graph metrics, validates wikilink integrity, views certified operational logs, and synchronizes markdown files into SQLite WAL:
+```bash
+# View vault node/edge metrics and disjunction readiness:
+alexandria vault status
+
+# Verify zero broken wikilinks and graph acyclicity:
+alexandria vault validate
+
+# View certified operational epochs with SHA-256 IAM seals:
+alexandria vault log
+
+# Synchronize ./wiki/ markdown documents into wiki_nodes and wiki_edges:
+alexandria vault sync
+```
+
+### 7. `alexandria collect` — Polymorphic Skill, Hook & Tool ETL Collector
 Scans any input directory recursively (`.md`, `SKILL.md`, `.yaml`/`.yml`, `.json`), refactors them into Alexandria's canonical `AlexandriaCapsuleJson` (`alexandria.capsule.v2.4`) bundle and `alexandria-capsules.manifest.json`, and synchronizes them into `~/.alexandria/vault.db` (`skills` + `skills_fts`).
 ```bash
 alexandria collect ./raw-skills --out ./.alexandria/capsules
 ```
 
-### 3. `alexandria memory` — Token-Efficient Hybrid Vector Store CLI
+### 8. `alexandria memory` — Token-Efficient Hybrid Vector Store CLI
 Add user-supplied or agent-distilled episodic memories (automatically compressed into $\le 50$-word micro-chunks with 64-dim `int8` embeddings) or query them via Reciprocal Rank Fusion (`RRF`) under a strict token budget:
 ```bash
 # Record a user-supplied architectural memory for a specific module:
@@ -154,19 +211,19 @@ alexandria memory add "Enforce strict lexical closure inside Prisma billing tran
 alexandria memory query "prisma transaction billing closure" --budget 150
 ```
 
-### 4. `alexandria mcp` — Start the Model Context Protocol (`2024-11-05`) Server
+### 9. `alexandria mcp` — Start the Model Context Protocol (`2024-11-05`) Server
 Spawns the dedicated SQLite WAL writer thread on `~/.alexandria/vault.db`, seeds the Pantheon `agent_catalog` and the 5 built-in factory capsules, and serves the 6 Prefix-Pinned MCP tools over `stdio`.
 ```bash
 alexandria mcp
 ```
 
-### 5. `alexandria lsp` — Start the Native Language Server Protocol (`3.17`) Engine
+### 10. `alexandria lsp` — Start the Native Language Server Protocol (`3.17`) Engine
 Runs Alexandria's real-time LSP server over `stdio`, publishing sub-2ms Gate 0 (`NO_EXPLICIT_ANY`, `NO_DOUBLE_CAST_UNKNOWN`, `PRISMA_TX_*`) and Gate 2 (`GATE2_HARDCODED_SECRET`, `GATE2_SAST_UNSAFE_EXECUTION`) diagnostics directly inside your IDE as you type or when an agent edits a file.
 ```bash
 alexandria lsp
 ```
 
-### 6. `alexandria run` — Autonomous Zero-Turn Directive Classification
+### 11. `alexandria run` — Autonomous Zero-Turn Directive Classification
 Evaluates an engineering directive, classifies the execution path (`alpha_fast` vs. `omega_pantheon`), and resolves the vault context.
 ```bash
 alexandria run "Refactor Prisma billing transaction with strict lexical closure"
