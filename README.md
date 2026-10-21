@@ -1,6 +1,7 @@
 # 🏛️ Alexandria — The Deterministic Agent Harness
 
 [![Release](https://img.shields.io/badge/Release-v1.0.0-0969da?logo=github)](https://github.com/devishmael/alexandria/releases/tag/v1.0.0)
+[![CI](https://github.com/devishmael/alexandria/actions/workflows/ci.yml/badge.svg)](https://github.com/devishmael/alexandria/actions/workflows/ci.yml)
 [![Tests: 54/54 Passed](https://img.shields.io/badge/Tests-54%2F54_Passed_100%25-brightgreen?logo=rust)](https://github.com/devishmael/alexandria)
 ![Rust Edition](https://img.shields.io/badge/Rust-2024_Edition-orange?logo=rust)
 ![Latency: <= 2ms](https://img.shields.io/badge/Latency-%E2%89%A4_2ms_Oxc_AST-success)
@@ -141,12 +142,19 @@ Compiled with `opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abo
 
 ## 5. Complete CLI Reference Guide
 
-### Build & Install from Source
+### Installation
+
+#### Option 1: One-Line Global Install via Cargo (Recommended)
+```bash
+cargo install --git https://github.com/devishmael/alexandria.git
+```
+
+#### Option 2: Build & Install from Source
 ```bash
 git clone https://github.com/devishmael/alexandria.git
 cd alexandria
 cargo test --all-targets
-cargo build --release
+cargo install --path .
 ```
 
 ### 1. `alexandria init` — Initialize Workspace, Headless Vault & Pantheon Agents
