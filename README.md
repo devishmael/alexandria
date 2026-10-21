@@ -47,7 +47,7 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 
 ## 2. The 3 Golden Architectural Jewels & Paradigm Clash
 
-Following our forensic reverse engineering of user-space prompt orchestrators (such as Affaan Mustafa's `ECC`), Alexandria synthesizes the industry's most powerful agentic concepts into **bare-metal, deterministic Rust implementations**:
+To eliminate the fragility, latency, and context degradation of conventional script-based agent wrappers, Alexandria synthesizes the industry's most powerful agentic governance patterns into **bare-metal, deterministic Rust implementations**:
 
 ### 🥇 Jewel 1: Deterministic Fact-Forcing GateGuard (`E_FACT_FORCING`)
 - **The Problem:** LLMs are prone to hallucinated confidence and blind edits, modifying files without checking their imports, methods, or callers.
@@ -73,7 +73,7 @@ Following our forensic reverse engineering of user-space prompt orchestrators (s
 
 ### ⚔️ The Paradigm Clash: Alexandria vs. User-Space Prompt Systems
 
-| Dimension | User-Space Prompt Systems (e.g. ECC) | Alexandria (v1.0.0 Deterministic Kernel) |
+| Dimension | Conventional Script / Prompt Wrappers | Alexandria (v1.0.0 Deterministic Kernel) |
 | :--- | :--- | :--- |
 | **Execution Space** | **User-Space (Scripts in Node/Python)** | **Kernel-Space (Compiled Rust Binary)** |
 | **Authority Level** | **Probabilistic & Pleading:** Asks the LLM to follow 400-line Markdown prompts. | **Physical & Coercive:** The Rust binary intercepts calls and enforces **Syscall Traps**. |
