@@ -1,0 +1,15 @@
+services:
+  alexandria-engine:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: alexandria-kernel
+    volumes:
+      - ..:/workspace
+    environment:
+      - RUST_LOG=info
+      - ALEXANDRIA_STRICT_TDD=true
+      - ALEXANDRIA_LOG_LEVEL=info
+    stdin_open: true
+    tty: true
+    command: ["mcp"]

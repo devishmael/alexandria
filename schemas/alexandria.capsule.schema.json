@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AlexandriaCapsuleJson",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "capsuleId",
+    "name",
+    "domain",
+    "description",
+    "coreRules",
+    "instructionsMarkdown",
+    "contentSha256"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["alexandria.capsule.v2.4"]
+    },
+    "capsuleId": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "backend",
+        "devops",
+        "database",
+        "frontend",
+        "architecture",
+        "testing",
+        "api",
+        "hook",
+        "ide"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "coreRules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "instructionsMarkdown": {
+      "type": "string"
+    },
+    "contentSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

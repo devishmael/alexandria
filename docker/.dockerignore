@@ -1,0 +1,8 @@
+target/
+.git/
+alexandria/
+.alexandria/
+wiki/
+*.swp
+*.bak
+alexandria-worktrees/

@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AlexandriaManifestJson",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "totalCapsules",
+    "generatedAt",
+    "capsules"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "totalCapsules": {
+      "type": "integer"
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "capsules": {
+      "type": "array"
+    }
+  }
+}
