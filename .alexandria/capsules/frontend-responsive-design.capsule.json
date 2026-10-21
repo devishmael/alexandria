@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:responsive-design",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Mobile-first layout strategies, CSS Grid, Flexbox, fluid clamp() typography, and touch target accessibility (>= 48px).",
+  "triggerKeywords": [
+    "frontend",
+    "responsive",
+    "mobile-first",
+    "css-grid",
+    "flexbox",
+    "typography"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "MOBILE_FIRST_MEDIA_QUERY_ORDER",
+    "MINIMUM_TOUCH_TARGET_48PX",
+    "AVOID_HORIZONTAL_SCROLLBARS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_responsive-design",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Mobile-First Responsive Layout & Fluid Typography\n\nMobile-first layout strategies, CSS Grid, Flexbox, fluid clamp() typography, and touch target accessibility (>= 48px).\n\n## Invariants\n- MOBILE_FIRST_MEDIA_QUERY_ORDER\n- MINIMUM_TOUCH_TARGET_48PX\n- AVOID_HORIZONTAL_SCROLLBARS\n",
+  "contentSha256": "0aa18d2e6f14b7864a36447c626cf997df7042aef366e5133b3c96f80bc21cc8"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:gcp-architect",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Google Cloud Platform enterprise cloud architecture: Cloud Run serverless microservices, Google Kubernetes Engine (GKE), Cloud IAM least privilege, Secret Manager, Cloud Storage, and VPC Service Controls.",
+  "triggerKeywords": [
+    "gcp",
+    "google-cloud",
+    "cloud-run",
+    "gke",
+    "iam",
+    "secret-manager",
+    "cloud"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "IAM_ROLE_LEAST_PRIVILEGE_NO_OWNER_SERVICE_ACCOUNTS",
+    "SECRETS_MANAGED_VIA_SECRET_MANAGER_ONLY",
+    "WORKLOAD_IDENTITY_FOR_GKE_PODS",
+    "INTERNAL_INGRESS_AND_VPC_PEERING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_gcp-architect",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Google Cloud Platform (GCP) Cloud Architecture\n\nArchitect highly secure, scalable cloud infrastructure and serverless workloads on Google Cloud Platform.\n\n## Key Principles & Invariants\n- Adhere strictly to the Principle of Least Privilege: never assign `Editor` or `Owner` roles to automated service accounts.\n- Retrieve all secrets and environment credentials dynamically through Google Secret Manager.\n- Use Workload Identity Federation to bind Kubernetes service accounts to IAM roles without static keys.\n- Enforce internal-only ingress on backend Cloud Run services behind an external Cloud Load Balancer.",
+  "contentSha256": "ff921132ab5fa23ce0c8e4a8a90a904ff8a1fcaeb94bb47868d88f64b82de88d"
+}

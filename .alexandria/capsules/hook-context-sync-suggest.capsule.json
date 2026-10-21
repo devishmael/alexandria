@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:context-sync-suggest",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Obsidian vault synchronization hook: after successful task completion, checks if architectural contracts or ADRs need updating.",
+  "triggerKeywords": [
+    "hook",
+    "context-sync",
+    "vault",
+    "obsidian",
+    "knowledge-base"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SUGGEST_ADR_UPDATE_ON_SCHEMA_MUTATION",
+    "PROMPT_NABU_TO_LOG_EPOCH_ENTRY",
+    "SYNC_WIKI_GRAPH_TO_SQLITE_WAL",
+    "# shellcheck disable=SC2034  # set for the sourced helper, never read by this script",
+    "# all there) may not have the file. Never hard-fail without it — the only"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_context-sync-suggest",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# Legacy opt-out flag for hook-guard.sh. Current builds of that helper ignore it,\n# so it is inert either way; kept so older installs keep behaving as before.\n# shellcheck disable=SC2034  # set for the sourced helper, never read by this script\nHOOK_GUARD_SKIP_STDIN=1\n# hook-guard.sh now ships with claude-forge (libs/hook-guard.sh, installed to\n# ~/.claude/libs/hook-guard.sh by install.sh/install.ps1). The guarded source\n# stays regardless: installs that predate this change, or plugin-only installs\n# (Option A — see README \"Which option should I pick?\", hooks aren't wired at\n# all there) may not have the file. Never hard-fail without it — the only\n# thing this hook needs from it is $PYTHON3, which falls back to the system\n# interpreter below.\n[ -r \"$HOME/.claude/libs/hook-guard.sh\" ] && . \"$HOME/.claude/libs/hook-guard.sh\"\n: \"${PYTHON3:=$(command -v python3 || echo python3)}\"\n# context-sync-suggest.sh - SessionStart Hook\n# 마지막 세션 종료 후 일정 시간이 경과했으면 /context-sync 안내\n# OMC session-start.mjs, project-memory-session.mjs와 독립 공존\n# exit 0 필수\n\nINPUT=$(cat)\n\nMSG=$(echo \"$INPUT\" | $PYTHON3 -c \"\nimport sys, json, os, time\nfrom datetime import datetime, timezone, timedelta\n\ntry:\n    d = json.load(sys.stdin)\nexcept:\n    sys.exit(0)\n\nsid = d.get('session_id', '')\nif not sid:\n    sys.exit(0)\n\n# buffer.jsonl에서 마지막 session_end 찾기\nwork_log = os.path.expanduser('~/.claude/work-log/buffer.jsonl')\nif not os.path.exists(work_log):\n    sys.exit(0)\n\nlast_end = None\ntry:\n    with open(work_log, 'r') as f:\n        for line in f:\n            try:\n                ev = json.loads(line.strip())\n                if ev.get('event') == 'session_end':\n                    last_end = ev.get('ts', '')\n            except:\n                continue\nexcept:\n    sys.exit(0)\n\nif not last_end:\n    sys.exit(0)\n\n# 4시간 이상 경과 시 제안\ntry:\n    last_dt = datetime.fromisoformat(last_end)\n    now = datetime.now(timezone(timedelta(hours=9)))\n    gap_hours = (now - last_dt).total_seconds() / 3600\n    if gap_hours < 4:\n        sys.exit(0)\nexcept:\n    sys.exit(0)\n\ngap_display = f'{int(gap_hours)}시간' if gap_hours < 48 else f'{int(gap_hours/24)}일'\nprint(f'[Context Sync] 마지막 세션 이후 {gap_display} 경과. /context-sync로 놓친 활동을 확인하세요.')\n\" 2>/dev/null)\n\n# 첫 사용자 감지: .forge-onboarded 마커 없으면 /guide 안내\nif [[ ! -f \"$HOME/.claude/.forge-onboarded\" ]]; then\n    if [[ -n \"$MSG\" ]]; then\n        MSG=\"$MSG\n[Claude Forge] 처음이신가요? /guide 로 시작해보세요.\"\n    else\n        MSG=\"[Claude Forge] 처음이신가요? /guide 로 시작해보세요.\"\n    fi\nfi\n\nif [[ -n \"$MSG\" ]]; then\n    $PYTHON3 -c \"\nimport json, sys\nmsg = sys.argv[1]\noutput = {'hookSpecificOutput': {'hookEventName': 'SessionStart', 'additionalContext': msg}}\nprint(json.dumps(output, ensure_ascii=False))\n\" \"$MSG\" 2>/dev/null\nfi\n\nexit 0\n",
+  "contentSha256": "36590a46b29b4283a0d539434aed7b4e3c6e73fa4d81e9654f6f603948f0c86b"
+}

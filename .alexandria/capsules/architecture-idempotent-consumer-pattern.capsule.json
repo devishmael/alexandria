@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:idempotent-consumer-pattern",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Guaranteeing idempotent message processing in distributed message queues: message ID tracking, atomic upsert checks, and payload hashing.",
+  "triggerKeywords": [
+    "architecture",
+    "idempotent-consumer",
+    "messaging",
+    "kafka",
+    "queues"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DEDUPLICATE_MESSAGES_VIA_PERSISTENT_STORE",
+    "PROCESS_AND_RECORD_ID_IN_ATOMIC_TRANSACTION",
+    "CLEANUP_OLD_MESSAGE_IDS_VIA_TTL"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_idempotent-consumer-pattern",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Idempotent Consumer & Message De-duplication\n\nGuaranteeing idempotent message processing in distributed message queues: message ID tracking, atomic upsert checks, and payload hashing.\n\n## Invariants\n- DEDUPLICATE_MESSAGES_VIA_PERSISTENT_STORE\n- PROCESS_AND_RECORD_ID_IN_ATOMIC_TRANSACTION\n- CLEANUP_OLD_MESSAGE_IDS_VIA_TTL\n",
+  "contentSha256": "f20ea5291ed3d84f73f49ff13b807c9fcb3a868d64dd7610f7dd9ab0fa24326f"
+}

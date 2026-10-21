@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "ide:intellij-idea-pro",
+  "domain": "ide",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "IntelliJ IDEA enterprise mastery: advanced structural refactoring, inspection profiles, interactive JVM debugger with memory view, Maven/Gradle integration, database tools, and Git workflows.",
+  "triggerKeywords": [
+    "intellij",
+    "idea",
+    "jetbrains",
+    "jvm",
+    "java",
+    "kotlin",
+    "debugger",
+    "ide"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "INSPECTION_PROFILES_SHARED_IN_VERSION_CONTROL",
+    "GRADLE_OR_MAVEN_BUILD_TOOL_DELEGATION",
+    "STRUCTURAL_SEARCH_AND_REPLACE_TEMPLATES",
+    "MEMORY_PROFILER_HEAP_DUMP_ANALYSIS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "ide_intellij-idea-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# IntelliJ IDEA Enterprise Architecture & Refactoring\n\nMaximize development velocity and code quality in IntelliJ IDEA for JVM and polyglot systems.\n\n## Key Principles & Invariants\n- Store shared inspection profiles and code style configurations under `.idea/inspectionProfiles`.\n- Delegate build, test, and run actions to Maven/Gradle to prevent IDE vs CI build discrepancies.\n- Automate repetitive code migrations using Structural Search and Replace (SSR) templates.\n- Profile runtime heap allocations and thread states using IntelliJ's built-in memory profiler.",
+  "contentSha256": "cf4e71456cf359169c46486518ccc5d3267d91c06bf8d8134949bb33b58b9cd2"
+}

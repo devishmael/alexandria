@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:typescript-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Advanced TypeScript: nominal Branded Types, conditional types, mapped types, template literal types, and strict AST compilation.",
+  "triggerKeywords": [
+    "backend",
+    "typescript",
+    "types",
+    "generics",
+    "nominal-types",
+    "compiler"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "NO_EXPLICIT_ANY_TSANYKEYWORD",
+    "NO_DOUBLE_CASTING_UNKNOWN",
+    "ENFORCE_NOMINAL_BRANDED_TYPES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_typescript-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "/**\n * PostToolUse Hook: TypeScript Pre-flight Check\n *\n * Runs tsc + qlty after Edit/Write on .ts/.tsx files to catch errors immediately.\n * Returns errors as system reminder so Claude can fix before moving on.\n */\nimport { execSync } from 'child_process';\nimport * as path from 'path';\nimport * as fs from 'fs';\nfunction readStdin() {\n    return new Promise((resolve) => {\n        let data = '';\n        process.stdin.setEncoding('utf8');\n        process.stdin.on('readable', () => {\n            let chunk;\n            while ((chunk = process.stdin.read()) !== null) {\n                data += chunk;\n            }\n        });\n        process.stdin.on('end', () => resolve(data));\n    });\n}\nasync function main() {\n    try {\n        const stdinData = await readStdin();\n        const input = JSON.parse(stdinData);\n        // Only process Edit and Write tools\n        if (input.tool_name !== 'Edit' && input.tool_name !== 'Write') {\n            console.log(JSON.stringify({}));\n            return;\n        }\n        // Get file path from response\n        const response = input.tool_response || {};\n        const filePath = response.filePath || response.file_path || input.tool_input?.file_path;\n        if (!filePath || typeof filePath !== 'string') {\n            console.log(JSON.stringify({}));\n            return;\n        }\n        // Only process TypeScript files\n        if (!filePath.endsWith('.ts') && !filePath.endsWith('.tsx')) {\n            console.log(JSON.stringify({}));\n            return;\n        }\n        // Skip node_modules and test files (configurable)\n        if (filePath.includes('node_modules') || filePath.includes('.test.')) {\n            console.log(JSON.stringify({}));\n            return;\n        }\n        // Find the script - check both project and global locations\n        const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();\n        const homeDir = process.env.HOME || '';\n        let scriptPath = path.join(projectDir, 'scripts', 'typescript_check.py');\n        if (!fs.existsSync(scriptPath)) {\n            scriptPath = path.join(homeDir, '.claude', 'scripts', 'typescript_check.py');\n        }\n        if (!fs.existsSync(scriptPath)) {\n            // Script not available, continue silently\n            console.log(JSON.stringify({}));\n            return;\n        }\n        // Run the check script\n        try {\n            const result = execSync(`python3 \"${scriptPath}\" --file \"${filePath}\" --json`, {\n                timeout: 35000,\n                encoding: 'utf8',\n                stdio: ['pipe', 'pipe', 'pipe']\n            });\n            const checkResult = JSON.parse(result);\n            if (checkResult.has_errors) {\n                // Format errors for system reminder\n                const errorLines = [];\n                errorLines.push(`⚠️ TypeScript Pre-flight Check: ${checkResult.summary}`);\n                errorLines.push('');\n                if (checkResult.tsc_errors?.length > 0) {\n                    errorLines.push('**Type Errors:**');\n                    for (const err of checkResult.tsc_errors.slice(0, 5)) {\n                        errorLines.push(`  ${err}`);\n                    }\n                }\n                if (checkResult.qlty_errors?.length > 0) {\n                    errorLines.push('**Lint Issues:**');\n                    for (const err of checkResult.qlty_errors.slice(0, 5)) {\n                        errorLines.push(`  ${err}`);\n                    }\n                }\n                errorLines.push('');\n                errorLines.push('Fix these errors before proceeding.');\n                // Use decision: block with reason to make message visible to Claude\n                // Since this is PostToolUse, edit already happened - \"block\" just shows the error\n                console.log(JSON.stringify({\n                    decision: 'block',\n                    reason: errorLines.join('\\n')\n                }));\n                return;\n            }\n            // No errors - continue silently\n            console.log(JSON.stringify({}));\n        }\n        catch (checkError) {\n            // Check script failed - extract stderr if available\n            if (checkError && typeof checkError === 'object' && 'status' in checkError) {\n                // Non-zero exit means errors found, try to parse stdout\n                const execError = checkError;\n                if (execError.stdout) {\n                    try {\n                        const checkResult = JSON.parse(execError.stdout);\n                        if (checkResult.has_errors) {\n                            console.log(JSON.stringify({\n                                decision: 'block',\n                                reason: `⚠️ TypeScript Pre-flight: ${checkResult.summary}\\n\\nFix before proceeding.`\n                            }));\n                            return;\n                        }\n                    }\n                    catch {\n                        // Couldn't parse, continue\n                    }\n                }\n            }\n            // Other error, continue silently\n            console.log(JSON.stringify({}));\n        }\n    }\n    catch (error) {\n        // Parse error or other issue - don't block\n        console.log(JSON.stringify({}));\n    }\n}\nmain();\n",
+  "contentSha256": "4bda8c2507e8b9c6ed11aabbd14872b13a2b77f8de9b188291cc02fe06a53f0d"
+}

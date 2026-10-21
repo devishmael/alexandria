@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:dynamodb-pro",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Amazon DynamoDB serverless architecture: Single-Table Design, Composite Partition and Sort Keys (PK/SK), Global Secondary Indices (GSI), conditional writes, and RCU/WCU cost optimization.",
+  "triggerKeywords": [
+    "dynamodb",
+    "aws",
+    "nosql",
+    "single-table-design",
+    "gsi",
+    "rcu",
+    "wcu",
+    "serverless"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SINGLE_TABLE_DESIGN_ACCESS_PATTERN_MAPPING",
+    "CONDITIONAL_EXPRESSIONS_ON_WRITES",
+    "SPARSE_GSI_FOR_EFFICIENT_FILTERING",
+    "UNIFORM_PARTITION_KEY_DISTRIBUTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_dynamodb-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Amazon DynamoDB Single-Table Design Architecture\n\nDesign ultra-fast, cost-optimized NoSQL databases in AWS DynamoDB using Single-Table conventions.\n\n## Key Principles & Invariants\n- Map all entity access patterns into a Single-Table Design utilizing overloaded generic `PK` and `SK` keys.\n- Enforce idempotency and optimistic locking using `ConditionExpression` on all write operations.\n- Leverage sparse GSIs to index only the items requiring specific secondary lookup queries.\n- Ensure uniform partition key distribution to prevent throttling and hot partition bottlenecks.",
+  "contentSha256": "8bb7f831370e3530eff23f4c36534243875b03252cc54b385eb8c9b084708c1c"
+}

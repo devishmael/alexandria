@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:sql-server-pro",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Microsoft SQL Server & T-SQL performance architecture: clustered and columnstore indices, Dynamic Management Views (DMV) query profiling, ACID isolation levels, and partitioned tables.",
+  "triggerKeywords": [
+    "sqlserver",
+    "mssql",
+    "tsql",
+    "stored-procedures",
+    "indexing",
+    "dmv",
+    "acid"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "INDEXED_FOREIGN_KEYS_AND_CLUSTERED_PKS",
+    "PARAMETERIZED_QUERIES_NO_SQL_INJECTION",
+    "DMV_EXECUTION_PLAN_ANALYSIS",
+    "DEADLOCK_PRIORITY_AND_RETRY_LOGIC"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_sql-server-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Microsoft SQL Server & T-SQL Performance Architecture\n\nOptimize mission-critical SQL Server relational databases, indexing strategies, and T-SQL stored procedures.\n\n## Key Principles & Invariants\n- Every table must possess a well-chosen clustered index (preferably unique, narrow, and monotonic).\n- Profile query performance using DMVs (`sys.dm_exec_query_stats`, `sys.dm_os_wait_stats`).\n- Parameterize all dynamic SQL executions with `sp_executesql` to prevent plan cache bloat and SQL injection.\n- Configure appropriate deadlock priority and handle error 1205 gracefully in application code.",
+  "contentSha256": "6cc89ceb5a5f5dbcf7095e22498b4668cd1aa69c988a9c7a5cc819c5b24d56a6"
+}

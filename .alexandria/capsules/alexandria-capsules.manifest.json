@@ -1,0 +1,1368 @@
+{
+  "schemaVersion": "alexandria.capsules.manifest.v2.4",
+  "updatedAt": 1792534659,
+  "totalCapsules": 225,
+  "domainBreakdown": {
+    "api": 20,
+    "architecture": 26,
+    "backend": 38,
+    "database": 30,
+    "devops": 32,
+    "frontend": 30,
+    "hook": 16,
+    "ide": 8,
+    "testing": 25
+  },
+  "capsules": [
+    {
+      "skillId": "api:api-designer",
+      "domain": "api",
+      "description": "REST API design conventions: noun-based resources, standard HTTP verbs, idempotency, consistent error schemas (RFC 7807), and pagination.",
+      "contentSha256": "4fa09a0f43a0f3ecbfb2f3e9e1c48378ca6d1b4253374b70e406c8b7b6d88c43"
+    },
+    {
+      "skillId": "api:api-gateway-architecture",
+      "domain": "api",
+      "description": "API Gateway architecture: dynamic routing, mutual TLS (mTLS), JWT validation at the edge, request transformation, and canary traffic splitting.",
+      "contentSha256": "3d97b6f56e557f7e607d7407606321082e3f916f0ae78da9410aa5bb190cfd4c"
+    },
+    {
+      "skillId": "api:async-request-reply-pattern",
+      "domain": "api",
+      "description": "Handling long-running backend operations: returning HTTP 202 Accepted with a Location header pointing to a pollable status endpoint.",
+      "contentSha256": "b268d97a3f81d4f7bbb56fb8066661f62f3782f31adf2a0e88a7e9d7150ef0e1"
+    },
+    {
+      "skillId": "api:content-negotiation",
+      "domain": "api",
+      "description": "API versioning and format negotiation: URL path versioning vs Accept header versioning, deprecation headers (Sunset RFC 8594), and gzip/brotli.",
+      "contentSha256": "64a4d03e79f54ed14b153e2b1522753a7575b4a1d355aba822715f4fb713e807"
+    },
+    {
+      "skillId": "api:error-handling-problem-details",
+      "domain": "api",
+      "description": "Standardized API error responses adhering to RFC 9457 Problem Details: type URI, title, status, detail, instance, and machine-readable validation errors.",
+      "contentSha256": "d3b899b98a9844f05babd223803beaf5325f5d0aa1d5d0fb961b1d2c1acfcb04"
+    },
+    {
+      "skillId": "api:graphql-architect",
+      "domain": "api",
+      "description": "Enterprise GraphQL: schema design best practices, input object mutations, Relay connection specs, and Apollo Federation.",
+      "contentSha256": "305f5b1b9d313dbce37bc280648942b94ae68cfef5f512bc9b8a93e68e822bf3"
+    },
+    {
+      "skillId": "api:graphql-persisted-queries",
+      "domain": "api",
+      "description": "Hardening production GraphQL: Automatic Persisted Queries (APQ), SHA-256 query whitelisting, disabling introspection in production, and depth limits.",
+      "contentSha256": "50754d6cec5182502bfb7e4f7f63d53b8a86aff035270b59ba5db4b9408c1ae1"
+    },
+    {
+      "skillId": "api:grpc-protobuf-engineer",
+      "domain": "api",
+      "description": "High-throughput binary RPC using gRPC and Protocol Buffers: proto3 syntax, stream multiplexing, and deadline propagation.",
+      "contentSha256": "3e23864cf635b2f434f35489ad80834898ef0077ab823521804c09496c233c5b"
+    },
+    {
+      "skillId": "api:http-caching-conditional",
+      "domain": "api",
+      "description": "Web caching headers: Cache-Control (public, private, immutable), ETag generation, If-None-Match, and 304 Not Modified responses.",
+      "contentSha256": "edf70fc341fa42cc41414541321a816dc2707785f14d36546677a37486047e69"
+    },
+    {
+      "skillId": "api:idempotency-key-pattern",
+      "domain": "api",
+      "description": "Implementing the IETF Idempotency-Key specification for payment and mutation APIs: atomic lock, result storage, and cached response return.",
+      "contentSha256": "05747b01c0ff655514a049b18c0aca785ea10858ce17db81696c0c6dcbf4da7b"
+    },
+    {
+      "skillId": "api:json-schema-validation",
+      "domain": "api",
+      "description": "Validating payload structures using standard JSON Schema Draft 2020-12, schema compilation, and compile-time TypeScript type generation.",
+      "contentSha256": "e94962081925435771d02d96267be2e8136a1ca65b331f77b2f34545422d1a66"
+    },
+    {
+      "skillId": "api:mcp-developer",
+      "domain": "api",
+      "description": "Building MCP servers conforming strictly to spec 2024-11-05 over stdio or SSE: tools, resources, prompts, prefix pinning, and JSON-RPC 2.0.",
+      "contentSha256": "3ac4011ad5a168493e20936be16ce7912dcc46af4b8ed7e6be59ef65359e9f91"
+    },
+    {
+      "skillId": "api:openapi-contract-first",
+      "domain": "api",
+      "description": "Contract-first API development with OpenAPI 3.1: automated TypeScript client generation, mock servers, and breaking change detection.",
+      "contentSha256": "ff9a4432d69069f70a363284b8f602ddd66180819100b36ebd3bf13889ee9dc3"
+    },
+    {
+      "skillId": "api:pagination-cursor-seek",
+      "domain": "api",
+      "description": "Keyset and cursor-based pagination for high-volume datasets: eliminating slow OFFSET/LIMIT scans, base64 opaque cursors, and bidirectional navigation.",
+      "contentSha256": "baf2c6372a25fb6b0fa80c20787f162ed2862e8def0f7df70541324db4d608de"
+    },
+    {
+      "skillId": "api:rate-limiting-algorithms",
+      "domain": "api",
+      "description": "Algorithmic rate limiting: token bucket for burst traffic, leaky bucket for steady pacing, and sliding window counters.",
+      "contentSha256": "12b6c526afd41bcf10d9322d29c33ad06522402dc11bb069b6c49616dbb3e91a"
+    },
+    {
+      "skillId": "api:resilient-http-client",
+      "domain": "api",
+      "description": "Robust outbound HTTP client configuration: connection pooling, per-request timeouts, exponential backoff with full jitter, and circuit breaker trips.",
+      "contentSha256": "757cf3bd85a72e0073701eb192d00ef239b59ee31773abe7eb596048c5bbf821"
+    },
+    {
+      "skillId": "api:server-sent-events",
+      "domain": "api",
+      "description": "Unidirectional real-time streaming with Server-Sent Events (SSE): text/event-stream headers, event IDs for resumption, and LLM token chunks.",
+      "contentSha256": "fd13edd4a6333f4ab5cdab588342f2f2307d9c079fd9e8b229c9bed26d445c1b"
+    },
+    {
+      "skillId": "api:sse-multiplexing",
+      "domain": "api",
+      "description": "Multiplexing multiple channel streams over a single SSE connection, buffer flushing, heartbeat frames, and browser reconnection state.",
+      "contentSha256": "bd852c8d28e3cb28052382d288721bae8f763bf6ec8b16cce141b6718222bfc5"
+    },
+    {
+      "skillId": "api:webhook-reliability",
+      "domain": "api",
+      "description": "Reliable webhook publishing and consumption: HMAC-SHA256 signature headers, replay attack protection with timestamps, and exponential backoff.",
+      "contentSha256": "2ef823f22a06f489a196e837a46536ed478700eebd3304d12c7443a01d9c24b7"
+    },
+    {
+      "skillId": "api:websocket-engineer",
+      "domain": "api",
+      "description": "Full-duplex WebSocket communication: binary frames, heartbeat keep-alive, automatic exponential backoff reconnection, and security.",
+      "contentSha256": "f1c5b0bacdd3d6421e19778225f1cd0151913ee9e993e41bfc9e5604794637d8"
+    },
+    {
+      "skillId": "architecture:actor-model-supervision",
+      "domain": "architecture",
+      "description": "Supervision hierarchy in actor systems: One-For-One and One-For-All restart strategies, state snapshotting, and fault isolation.",
+      "contentSha256": "2e8a3b71ceab5f37a03bb90c866b66f251a94caba9c49f5c4a42f34ceff38399"
+    },
+    {
+      "skillId": "architecture:adr-governance",
+      "domain": "architecture",
+      "description": "Architectural governance using Nygard ADR format: Context, Decision, Consequences, Status, and living obsidian graph integration.",
+      "contentSha256": "6c492e03586a930b4beacb2ce1f7d38973785288aa014b86313732f331dba6dc"
+    },
+    {
+      "skillId": "architecture:anti-corruption-layer",
+      "domain": "architecture",
+      "description": "Protecting domain models from external vendor drift: translating third-party schemas into domain aggregates at the integration boundary.",
+      "contentSha256": "d70da4034c62e4c807d270b2b988c036f5c3d07c199728ab342823ec7f613147"
+    },
+    {
+      "skillId": "architecture:api-versioning-deprecation",
+      "domain": "architecture",
+      "description": "Lifecycle governance for legacy APIs: deprecation notices, Sunset HTTP headers, telemetry monitoring of remaining traffic, and final shutdown.",
+      "contentSha256": "608471a51b7b77e392a17c9899e489eeeeb6dc3ae22abd52a56cca8b7f3d8e5c"
+    },
+    {
+      "skillId": "architecture:autonomous-agent-orchestrator",
+      "domain": "architecture",
+      "description": "Multi-agent coordination architecture: bounding sub-agents (Bel: 5, Enki: 3, Utu: 1, Nabu: 1), prefix-pinned caching, and worktree isolation.",
+      "contentSha256": "cff936af91103a81145105fd3dcf6752253e309cf55fd79c3351e2e91719664a"
+    },
+    {
+      "skillId": "architecture:circuit-breaker-actor",
+      "domain": "architecture",
+      "description": "Deterministic Circuit Breaker: closed -> open -> half-open transitions, consecutive failure thresholds, automated reset, and fallback execution.",
+      "contentSha256": "367fa156f143e4fc5a00f6e886f10a35e3dd8aeac954655b791b8db331b4407e"
+    },
+    {
+      "skillId": "architecture:clean-hexagonal-api",
+      "domain": "architecture",
+      "description": "Strict hexagonal layer decoupling: domain core contains zero framework imports, ports define interfaces, adapters handle external I/O.",
+      "contentSha256": "fafb2183e6e58c38afeadb1c36c84f99b31ade4fbd10e3214c2abe69d3c6b723"
+    },
+    {
+      "skillId": "architecture:cloud-architect",
+      "domain": "architecture",
+      "description": "AWS / Cloud well-architected framework: operational excellence, security, reliability, performance efficiency, and cost optimization.",
+      "contentSha256": "410a2059a6b4af6ed49e0bcdb8dcc0c061944d114978136595d409b5c30ff894"
+    },
+    {
+      "skillId": "architecture:cqrs-pattern",
+      "domain": "architecture",
+      "description": "CQRS architecture: separating write models (strict validation, business invariants) from read models (denormalized, optimized for queries).",
+      "contentSha256": "989c8239efa211959e6b9b448f61e5408835aa63ac86ce619e5cfa6f2c431ae4"
+    },
+    {
+      "skillId": "architecture:disaster-recovery-ha",
+      "domain": "architecture",
+      "description": "Disaster recovery strategies (backup/restore, pilot light, warm standby, active-active), automated DNS failover, RTO and RPO metrics.",
+      "contentSha256": "6004f628a40a77e15661a8793a37bef066e3589beadfa7463d3d0a53166fc0d5"
+    },
+    {
+      "skillId": "architecture:distributed-lock-manager",
+      "domain": "architecture",
+      "description": "Distributed synchronization using fencing tokens: monotonically increasing counters to invalidate split-brain writes from delayed clients.",
+      "contentSha256": "bd2faad854405e39be6e9cc1a22aaab8f0b6961cfcb7e93b6410b67289bd7524"
+    },
+    {
+      "skillId": "architecture:domain-driven-design",
+      "domain": "architecture",
+      "description": "Strategic Domain-Driven Design: context mapping (shared kernel, customer-supplier, conformist), anti-corruption layers, and core domain isolation.",
+      "contentSha256": "b020b203fd18318640ed8ec852287850cf6fa8985db6961a86fa385da25711a1"
+    },
+    {
+      "skillId": "architecture:event-driven-architecture",
+      "domain": "architecture",
+      "description": "Asynchronous event architecture: domain events, event choreography vs orchestrator-based Sagas, compensating transactions, and idempotency.",
+      "contentSha256": "0d3247a10cf96fb8f787c718c309e8df44261d73b0e36c2988f9fa3679dfb9e1"
+    },
+    {
+      "skillId": "architecture:event-sourcing-replay",
+      "domain": "architecture",
+      "description": "Event sourcing: appending immutable domain events, projecting read models via stream replay, and periodically writing state snapshots.",
+      "contentSha256": "96c86db265a3eab4a7ecadcf83f1ebd166088dad8b2c101400403a6183e303ac"
+    },
+    {
+      "skillId": "architecture:feature-flags-architect",
+      "domain": "architecture",
+      "description": "Feature flag governance: release toggles, experiment toggles, kill switches, permission toggles, and automated retirement schedules.",
+      "contentSha256": "d653fa9e08615cb1b2e24ee1fd31a7b04b7f13a6a1eb0d7684677c55b5fe63b0"
+    },
+    {
+      "skillId": "architecture:idempotent-consumer-pattern",
+      "domain": "architecture",
+      "description": "Guaranteeing idempotent message processing in distributed message queues: message ID tracking, atomic upsert checks, and payload hashing.",
+      "contentSha256": "f20ea5291ed3d84f73f49ff13b807c9fcb3a868d64dd7610f7dd9ab0fa24326f"
+    },
+    {
+      "skillId": "architecture:microservices-architect",
+      "domain": "architecture",
+      "description": "Microservices architecture: service boundary decomposition, distributed transactions, service discovery, distributed tracing, and resilience.",
+      "contentSha256": "3ce12a269838bdc814de98dbe5fc8ce499d800fb0ba5d3bbc5c92c26b95dce6c"
+    },
+    {
+      "skillId": "architecture:modular-monolith",
+      "domain": "architecture",
+      "description": "Modular monolith architecture: clean internal module packages, restricted cross-module exports, in-process event buses, and fast CI builds.",
+      "contentSha256": "fc5f8ba6418dbcc724220bff2b2cde3e8683664fb303bee4367f5411a0a52b2e"
+    },
+    {
+      "skillId": "architecture:multi-cloud-abstraction-layer",
+      "domain": "architecture",
+      "description": "Abstracting cloud infrastructure dependencies (S3/GCS, SQS/PubSub, KMS) behind generic repository interfaces to prevent vendor lock-in.",
+      "contentSha256": "5387a8ad1bac330a622b4980a7deb8ec45358224c03fc07c69c73bdd9e907af5"
+    },
+    {
+      "skillId": "architecture:multi-tenant-architecture",
+      "domain": "architecture",
+      "description": "Multi-tenant architecture: schema-per-tenant, database-per-tenant, and shared schema with PostgreSQL Row-Level Security (RLS).",
+      "contentSha256": "6eb21427844644f68942c991da28e4925f1d19db923e5dcb5835dc116b2b6bc8"
+    },
+    {
+      "skillId": "architecture:rate-limiting-circuit-mesh",
+      "domain": "architecture",
+      "description": "Bulkhead pattern and service mesh traffic control: allocating isolated thread/connection pools per upstream dependency to prevent cascading failures.",
+      "contentSha256": "446c3568a6e418730fb12ea3f779a564117da0a4ca04cb6540b5fc9a8f04a3b2"
+    },
+    {
+      "skillId": "architecture:read-heavy-cache-aside",
+      "domain": "architecture",
+      "description": "Two-tier caching: in-process L1 cache (Moka/Caffeine, sub-microsecond) backed by distributed L2 cache (Redis), with bus invalidation.",
+      "contentSha256": "5bb5ef27f472caffb79c2abc446e3677c6d98486b39595075778b6823b545b1d"
+    },
+    {
+      "skillId": "architecture:system-designer",
+      "domain": "architecture",
+      "description": "Hierarchical architectural visualization using the C4 model: Context, Containers, Components, and Code diagrams with PlantUML/Mermaid.",
+      "contentSha256": "5c840a7fe3e2a4d7f10c68bf070062c1de93d37670a801936c1966feae21460a"
+    },
+    {
+      "skillId": "architecture:twelve-factor-standards",
+      "domain": "architecture",
+      "description": "Twelve-Factor app methodology: codebase, dependencies, config in environment, backing services as resources, stateless processes, concurrency.",
+      "contentSha256": "7affd3dcd1860ab9a5937265bd13b3b871d2ed99f7c418668e7c8510b7973e65"
+    },
+    {
+      "skillId": "architecture:ubiquitous-language",
+      "domain": "architecture",
+      "description": "Establishing ubiquitous domain language: resolving ambiguity, mapping terms across domain boundaries, and maintaining living terminology contracts.",
+      "contentSha256": "6b62f00eca72ed4909358ecc6660a0d2f545a9f19c552ac716165fd4623453e7"
+    },
+    {
+      "skillId": "architecture:zero-trust-system-boundaries",
+      "domain": "architecture",
+      "description": "Zero-trust network architecture: mutual TLS between all internal services, cryptographically verified service identities (SPIFFE/SPIRE), and explicit authorization.",
+      "contentSha256": "b8cb0377c841ecff64257893a841a7c9bbf0598e2b9bf8a4087d7065359abf8b"
+    },
+    {
+      "skillId": "backend:authentication-jwt-oauth2",
+      "domain": "backend",
+      "description": "Production authentication: OAuth2 Authorization Code Flow with PKCE, rotating short-lived JWTs, secure HTTP-only cookies, and refresh token revocation.",
+      "contentSha256": "333d7b7f5e19df82a2d3e01911c124e7dac0527411ec1d5c14a3cbb0d77e746c"
+    },
+    {
+      "skillId": "backend:background-job-queues",
+      "domain": "backend",
+      "description": "Distributed background job processing with BullMQ and Celery: exponential backoff retries, dead letter queues (DLQ), and idempotency keys.",
+      "contentSha256": "897d46ab01538aa9ef0ebcbf59adbb9ab737d0cfba30b9ae7dc651421d1eccf6"
+    },
+    {
+      "skillId": "backend:bash-scripting",
+      "domain": "backend",
+      "description": "Robust POSIX Shell and Bash scripting: strict error modes (set -euo pipefail), signal cleanup traps, robust CLI flag parsing with getopts, and variable quoting.",
+      "contentSha256": "757ed552c641b2794ce2d9403f7e411570c599105e02112ca2cc33165b902101"
+    },
+    {
+      "skillId": "backend:cli-developer",
+      "domain": "backend",
+      "description": "Production CLI tool design: sub-millisecond startup, subcommands, POSIX flags with clap/cobra, progress indicators, and standard exit codes.",
+      "contentSha256": "dbbeede9150d91e9f6d3fafeaa55d316811845a842aa5a566ced1a6902a989fc"
+    },
+    {
+      "skillId": "backend:code-that-fits-in-your-head",
+      "domain": "backend",
+      "description": "Code maintainability heuristics: 7\u00b12 rule of working memory, flattening cyclomatic complexity, early returns, and parse-don't-validate.",
+      "contentSha256": "ced348b5ab46b70b39d64a375633b49a32a5a9145d9aa0ba27d6575e5cab3721"
+    },
+    {
+      "skillId": "backend:concurrency-actor-model",
+      "domain": "backend",
+      "description": "Actor-based concurrency systems: message passing, mailbox backpressure, lock-free state isolation, and zero race conditions.",
+      "contentSha256": "c648dde91f0ec1ee782bba57b721c74435ea33940e426a0cb6aa6c65f03443ef"
+    },
+    {
+      "skillId": "backend:cpp-pro",
+      "domain": "backend",
+      "description": "Modern C++20: RAII memory management, smart pointers (std::unique_ptr, std::shared_ptr), concepts, and move semantics.",
+      "contentSha256": "5e880b847a2eb8176fc7b9111006693faddfca867908586fcf888a184e0c9c60"
+    },
+    {
+      "skillId": "backend:dart-pro",
+      "domain": "backend",
+      "description": "Dart 3+ engineering: sound null-safety, exhaustive pattern matching, reactive Streams, multi-threaded Isolates for CPU-heavy tasks, and robust CLI/backend architecture.",
+      "contentSha256": "e0e398e5fad43eb655ed8cf57e30174defa6a21179c48b0440571b591d1b4fd0"
+    },
+    {
+      "skillId": "backend:distributed-caching-proxy",
+      "domain": "backend",
+      "description": "High-traffic caching: probabilistic early expiration (XFetch), mutex locks on cache miss to prevent dogpiling/thundering herd, and cache tagging.",
+      "contentSha256": "f56ffe96e2840901289a33d245acd9cf267d1126ac44e4fe91f9a0479c341a9a"
+    },
+    {
+      "skillId": "backend:django-expert",
+      "domain": "backend",
+      "description": "Production Django & Django REST Framework: select_related/prefetch_related optimization, custom auth models, and Celery.",
+      "contentSha256": "bfc226d6b51ae9bdbe111b6e193afb2598863cfd3791d750404b6f4bad609d72"
+    },
+    {
+      "skillId": "backend:domain-modeling",
+      "domain": "backend",
+      "description": "Tactical and strategic domain modeling: aggregate roots, value objects, domain events, invariants boundary enforcement, and pure business logic.",
+      "contentSha256": "c279698d5eb18902493aa4d741d6a2d342b6bef7175213c7a2f765f84ff26713"
+    },
+    {
+      "skillId": "backend:dotnet-core-expert",
+      "domain": "backend",
+      "description": "C# 13 and .NET 9: MediatR CQRS, Entity Framework Core query splitting, Minimal APIs, and ValueTask allocations.",
+      "contentSha256": "b31451c6fd8751db83a859ac70208e97d5b922f22a6b3becb0f40827e53e653d"
+    },
+    {
+      "skillId": "backend:elixir-phoenix-expert",
+      "domain": "backend",
+      "description": "Elixir and Phoenix: Erlang/OTP actor model, supervision trees, GenServer state, Ecto migrations, and LiveView channels.",
+      "contentSha256": "a7bd14f4741593a811cc248c7a81f2d3538b58f70554428ce49f411b52685c4b"
+    },
+    {
+      "skillId": "backend:embedded-systems",
+      "domain": "backend",
+      "description": "Embedded firmware and C/Rust bare-metal development: no_std, static memory allocation, DMA, interrupt service routines, and power efficiency.",
+      "contentSha256": "11811bcfc6fdaf382fa209f62775fbf8ca56972c4390fbe86ab39a839b2f0094"
+    },
+    {
+      "skillId": "backend:express-expert",
+      "domain": "backend",
+      "description": "Enterprise Express.js API design: modular routing, secure middleware chaining with Helmet and CORS, centralized async error-handling middleware, Zod request validation, and graceful shutdown.",
+      "contentSha256": "58f9c1e4438ecb8106212978b612d32b06c0a06638a027d48330ef2ed44b48cf"
+    },
+    {
+      "skillId": "backend:fastapi-expert",
+      "domain": "backend",
+      "description": "High-throughput FastAPI microservices: dependency injection, OpenAPI auto-docs, async database sessions, and streaming.",
+      "contentSha256": "61c2e5906b7040c8b83bb62cf5fbbf966eb2bea50916b2163082cfda58255a53"
+    },
+    {
+      "skillId": "backend:flask-expert",
+      "domain": "backend",
+      "description": "Flask 3+ Python microservices: modular Blueprints architecture, Application Factory pattern, SQLAlchemy 2.0 ORM integration, Pydantic validation, and isolated Pytest fixtures.",
+      "contentSha256": "5f0288a7d51ecfcfa8c479ac2d036d56dcb9c4c1e78817ce4d10558f4dcaf05f"
+    },
+    {
+      "skillId": "backend:golang-pro",
+      "domain": "backend",
+      "description": "Idiomatic Go: goroutines, channels, sync.WaitGroup, context propagation, table-driven tests, and sub-millisecond HTTP microservices.",
+      "contentSha256": "2f3c4a76b8e1c9c640966148802cc27b0023b053e295b7bf5b2909e804a43d2d"
+    },
+    {
+      "skillId": "backend:graphql-dataloader-nplus1",
+      "domain": "backend",
+      "description": "Solving N+1 query problems in GraphQL APIs using DataLoader batching, memoization caches, and Apollo Federation v2 subgraphs.",
+      "contentSha256": "0f59425fa4db52001619c6c51d0f192c99614bf6dad6aabb0ab16f9a475055f5"
+    },
+    {
+      "skillId": "backend:grpc-microservices-mesh",
+      "domain": "backend",
+      "description": "Production gRPC microservices: protobuf schema backward compatibility rules, bidirectional streaming, interceptors, and client-side load balancing.",
+      "contentSha256": "cb0efa9fbb4e5f0620d9870e0f6eb6c01a780371eefb2079f8c9ebd59c739c16"
+    },
+    {
+      "skillId": "backend:kotlin-specialist",
+      "domain": "backend",
+      "description": "Kotlin 2.0: structured concurrency with Coroutines and Flow, Ktor backend microservices, and Kotlin Multiplatform (KMP).",
+      "contentSha256": "c0ec4f2c6da31919ce5b619fe743557f26ff20bd0a820ed82ece35ccb029c2b7"
+    },
+    {
+      "skillId": "backend:laravel-specialist",
+      "domain": "backend",
+      "description": "Laravel 11+ enterprise development: Eloquent ORM relations and query scopes, Artisan console automation, asynchronous background Queues and Jobs, Livewire components, and Service Providers.",
+      "contentSha256": "e52551023ea1103f8cc88805a0f96e2850052fa5346ad872e342a4662b0f784c"
+    },
+    {
+      "skillId": "backend:legacy-modernizer",
+      "domain": "backend",
+      "description": "Incremental legacy modernization using the Strangler Fig pattern, anti-corruption layers (ACL), parallel run verification, and zero downtime.",
+      "contentSha256": "602051506d810cd3f631ef62f2885104fcc3e36555d06bfd20240604c2b3cb9e"
+    },
+    {
+      "skillId": "backend:lua-pro",
+      "domain": "backend",
+      "description": "Lua 5.4 and LuaJIT systems programming: metatable object orientation, functional lexical closures, coroutine cooperative multitasking, and high-performance embedding within C/C++.",
+      "contentSha256": "3fb3318038dd77d76d7f24c6776c9e3e690af87867bc0d2685c50ac8115845fb"
+    },
+    {
+      "skillId": "backend:luau-pro",
+      "domain": "backend",
+      "description": "Luau (Roblox / Typed Lua) development: gradual nominal and structural type system, vector math optimizations, sandboxed runtime security, and strict linter compliance.",
+      "contentSha256": "a7a4f608a5bf227e7009697d98009794c6843740d1c20bc7627eaf8e4b6bf9df"
+    },
+    {
+      "skillId": "backend:nestjs-expert",
+      "domain": "backend",
+      "description": "NestJS enterprise architecture: modular design, controllers, services, guards, interceptors, pipes, and TypeORM/Prisma.",
+      "contentSha256": "2e11b0b45422a422f2ddfa3d046d0afc214ebb4c21284bf79a6ee7b4ef06a7ea"
+    },
+    {
+      "skillId": "backend:nodejs-runtime-tuning",
+      "domain": "backend",
+      "description": "Node.js runtime performance: avoiding event loop lag, libuv thread pool tuning, Worker Threads for CPU intensive tasks, and memory heap profiling.",
+      "contentSha256": "501b887ebc3cfd6073d7ab4021a66f8566092c4acabb8d7de89a19e9f8b71144"
+    },
+    {
+      "skillId": "backend:php-pro",
+      "domain": "backend",
+      "description": "PHP 8.3+ enterprise architecture: declare(strict_types=1), PSR-12 standard, Composer package management, PHPStan level 9 static analysis, and Swoole/RoadRunner async runtimes.",
+      "contentSha256": "89f32646a717813f84031af4871622a0eede062ffbb90641741cd0c961e9322b"
+    },
+    {
+      "skillId": "backend:python-pro",
+      "domain": "backend",
+      "description": "Modern Python 3.12+: strict type hints, asyncio concurrency, Pydantic v2 schemas, pytest fixtures, and GIL considerations.",
+      "contentSha256": "bb46ed9889a74b3bb3256075c7ccb9ea8bf693ccc762af9cd0c7f63b2f208516"
+    },
+    {
+      "skillId": "backend:r-pro",
+      "domain": "backend",
+      "description": "Modern R scientific computing: Tidyverse functional paradigms, high-performance data.table manipulation, ggplot2 data visualization, and reproducible environments with renv.",
+      "contentSha256": "7af956c11650c27a3ef4123265ad25b1cf3869287719c6b322fa8b744437ae14"
+    },
+    {
+      "skillId": "backend:rails-expert",
+      "domain": "backend",
+      "description": "Ruby on Rails conventions, ActiveRecord transaction blocks, Sidekiq background jobs, Hotwire/Turbo, and Sorbet typing.",
+      "contentSha256": "e22f69c718672c01736ef8af4903a34749a566e7d488ad1b8a15a55ab4640b2d"
+    },
+    {
+      "skillId": "backend:rate-limiting-distributed",
+      "domain": "backend",
+      "description": "Distributed rate limiting algorithms: sliding window logs with Redis sorted sets, token bucket with Lua scripts, and client fingerprinting.",
+      "contentSha256": "516973e55c4f7f4fb212c33e6b910e20df9ab33716f2595b40e3e9d52703c8e6"
+    },
+    {
+      "skillId": "backend:rust-engineer",
+      "domain": "backend",
+      "description": "Idiomatic Rust, borrow checker mastery, zero-cost abstractions, Tokio async runtime, and robust Error handling with thiserror.",
+      "contentSha256": "2ee236810cbdf041097db1e89da09cb504118e9ec2135b1bb93fce11d341cee0"
+    },
+    {
+      "skillId": "backend:spring-boot-engineer",
+      "domain": "backend",
+      "description": "Spring Boot 3, Java 21 Virtual Threads, Spring Security 6, Spring Data JPA, and GraalVM Native Image compilation.",
+      "contentSha256": "a4993634f34aba10cb88191faf3e3450865a861a121b49eb7b7ab68ee0d86c27"
+    },
+    {
+      "skillId": "backend:stream-processing-kafka",
+      "domain": "backend",
+      "description": "Distributed event streaming with Kafka/Redpanda: partition key strategy, consumer group rebalancing, exactly-once semantics, and compaction.",
+      "contentSha256": "5881632bb5da6f04ef37b7d36d8787b6f2fa9bfc1a252bdc7f335d878d3eaa52"
+    },
+    {
+      "skillId": "backend:swift-pro",
+      "domain": "backend",
+      "description": "Swift 5.9+ modern architecture: structured concurrency (Async/Await, TaskGroups), Actor isolation for race-free concurrency, ARC memory safety, and zero-cost safety abstractions.",
+      "contentSha256": "a05c880941cb59f888179b2e20a3f7f01ff8b171dbf642884e2ef06da2b3c001"
+    },
+    {
+      "skillId": "backend:typescript-pro",
+      "domain": "backend",
+      "description": "Advanced TypeScript: nominal Branded Types, conditional types, mapped types, template literal types, and strict AST compilation.",
+      "contentSha256": "4bda8c2507e8b9c6ed11aabbd14872b13a2b77f8de9b188291cc02fe06a53f0d"
+    },
+    {
+      "skillId": "backend:websocket-stateful-cluster",
+      "domain": "backend",
+      "description": "Horizontally scaled stateful WebSockets: Redis adapter for broadcast, connection drain on shutdown, heartbeat ping-pong, and reconnection state recovery.",
+      "contentSha256": "705531670e9927e2e6199cf8b155ccc8c437c9d37cc29b6450f1b29d5e470565"
+    },
+    {
+      "skillId": "database:acid-isolation-levels",
+      "domain": "database",
+      "description": "Understanding Read Committed, Repeatable Read, and Serializable: preventing dirty reads, non-repeatable reads, phantom reads, and write skew.",
+      "contentSha256": "934bb1f7b11cb5472bf2250ce65e5e67e05e3a025c13b131298b3c9b7f2aa36a"
+    },
+    {
+      "skillId": "database:backup-point-in-time-recovery",
+      "domain": "database",
+      "description": "Point-In-Time Recovery (PITR): base backups, continuous WAL archiving to S3, pg_dump strategies, and automated recovery drills.",
+      "contentSha256": "a4fb679ceac61447487e97568822c0c8bd354ac6f1e13ae5fc90367271f9f8d4"
+    },
+    {
+      "skillId": "database:cassandra-pro",
+      "domain": "database",
+      "description": "Apache Cassandra distributed architecture: Cassandra Query Language (CQL), query-first data modeling, Partition Key and Clustering Column optimization, tunable consistency, and tombstone mitigation.",
+      "contentSha256": "c6bac289f9ee70d56d4d3fddb567b84049d6d2fad71332316c3d91a29591f4c8"
+    },
+    {
+      "skillId": "database:change-data-capture",
+      "domain": "database",
+      "description": "Transactional Outbox pattern and Change Data Capture via Debezium: guaranteed at-least-once event publication from database WAL logs.",
+      "contentSha256": "3375b13bdd3bc22846071fa1786176d0f99c1678c7b72809ca21cad50f58a443"
+    },
+    {
+      "skillId": "database:clickhouse-olap-analytics",
+      "domain": "database",
+      "description": "Columnar storage for billion-row aggregations: MergeTree table engines, primary key sorting, sparse indexing, and materialized views.",
+      "contentSha256": "ab02830d78e89c453598050db14d365fe764725ea7020faf68b77ae1edd45636"
+    },
+    {
+      "skillId": "database:connection-pool-tuning",
+      "domain": "database",
+      "description": "Formulaic connection pool sizing: pool size = (core_count * 2) + effective_spindle_count, connection timeout limits, and leak detection.",
+      "contentSha256": "346b29ab741f8ee2e1e1b7f255d4fd3efb393ce1eb3a03f836c58ad80878a78d"
+    },
+    {
+      "skillId": "database:data-anonymization-gdpr",
+      "domain": "database",
+      "description": "Data privacy in persistence: deterministic pseudonymization, cryptographic hashing of identifiers, automated PII scrubbing, and hard deletion.",
+      "contentSha256": "f7c958ffb13d3dabd2892537731db6ec02f5830d1b1baa4aa1d56fe9d22d7160"
+    },
+    {
+      "skillId": "database:database-optimizer",
+      "domain": "database",
+      "description": "Relational query optimization: covering indexes, eliminating sequential scans, query plan cost analysis, and composite index ordering.",
+      "contentSha256": "6e5588b432ddaba01eeefbfc5eb713b5df16556340866feb834de09c0f38bef3"
+    },
+    {
+      "skillId": "database:deadlock-detection-prevention",
+      "domain": "database",
+      "description": "Preventing database deadlocks: acquiring locks in globally deterministic alphabetical order, short transaction scopes, and retry loops.",
+      "contentSha256": "5b9a2ec677a09918f201592ce4b58fed1bf9a7aac8f0f807f3232fba048d4192"
+    },
+    {
+      "skillId": "database:drizzle-orm-performance",
+      "domain": "database",
+      "description": "Drizzle ORM: zero-overhead type-safe SQL queries, relations query builder, drizzle-kit schema migrations, and prepared statements.",
+      "contentSha256": "33703dc6931a65ffce54a9e51bc19f7b0cd3b9b065da78b52e48ef491179e349"
+    },
+    {
+      "skillId": "database:dynamodb-pro",
+      "domain": "database",
+      "description": "Amazon DynamoDB serverless architecture: Single-Table Design, Composite Partition and Sort Keys (PK/SK), Global Secondary Indices (GSI), conditional writes, and RCU/WCU cost optimization.",
+      "contentSha256": "8bb7f831370e3530eff23f4c36534243875b03252cc54b385eb8c9b084708c1c"
+    },
+    {
+      "skillId": "database:firestore-pro",
+      "domain": "database",
+      "description": "Firebase Cloud Firestore NoSQL architecture: collection and subcollection modeling, Security Rules for client-side access control, denormalization, transactional batch writes, and offline persistence.",
+      "contentSha256": "5e1a5a5fbec56e28d1f67a8e78d24450b53014308f16c00230c68e22d1d5ffe3"
+    },
+    {
+      "skillId": "database:fts5-sqlite-search",
+      "domain": "database",
+      "description": "High-speed local full-text search with SQLite FTS5: porter tokenizer, prefix queries, highlight functions, and custom BM25 weight ranking.",
+      "contentSha256": "aff3b13538154a05ffda679451cdf2d060f3a54e57a29b0d5b2850c22b578af5"
+    },
+    {
+      "skillId": "database:graph-databases-neo4j",
+      "domain": "database",
+      "description": "Graph data modeling: nodes, relationships, properties, Cypher traversal optimization, and index-free adjacency.",
+      "contentSha256": "5ca7846639ae939d14da994d325628fde33eeac78e341fbfb68703ad588bd85a"
+    },
+    {
+      "skillId": "database:mongodb-expert",
+      "domain": "database",
+      "description": "MongoDB 7+ document database architecture: Aggregation Pipelines, compound and multikey indices, multi-document ACID transactions, schema design patterns, and sharding partition keys.",
+      "contentSha256": "621bc417673d752528ae9b7fa806e32aaac89c10ee6e3de156e52e7ef6f76346"
+    },
+    {
+      "skillId": "database:mysql-pro",
+      "domain": "database",
+      "description": "MySQL 8+ database engineering: InnoDB storage engine tuning, B-Tree index optimization, EXPLAIN ANALYZE execution plan dissection, Repeatable Read MVCC isolation, and replication.",
+      "contentSha256": "3f7455d5c13f28b03e73bd4509c89ad13f0dc17a6398aa759f933296ab3438aa"
+    },
+    {
+      "skillId": "database:nosql-document-stores",
+      "domain": "database",
+      "description": "NoSQL data modeling (MongoDB, DynamoDB): single-table design, composite partition/sort keys, access pattern first modeling, and TTL.",
+      "contentSha256": "898a019d5aef2dd848cda08d288d7c52eabdce5cd7db8db0128a686990a13b5c"
+    },
+    {
+      "skillId": "database:oracle-pro",
+      "domain": "database",
+      "description": "Oracle Database enterprise administration and PL/SQL: Packages, Triggers, Tablespace management, Range/List/Hash partitioning, Execution Plan tuning with DBMS_XPLAN, and Autonomous Transactions.",
+      "contentSha256": "aa5315646e1c25abc6b7715147673d9f669ff07793acd294d12505a0dc5943cb"
+    },
+    {
+      "skillId": "database:postgres-pro",
+      "domain": "database",
+      "description": "PostgreSQL production engineering: EXPLAIN (ANALYZE, BUFFERS), JSONB GIN indexing, vacuum tuning, and PgBouncer transaction pooling.",
+      "contentSha256": "dd7c5cff9d6ad25b36148fbf073d2c1e17d7f72ec3c8a25db5644e309026e299"
+    },
+    {
+      "skillId": "database:prisma-acid-closure",
+      "domain": "database",
+      "description": "Total lexical closure in prisma.$transaction under 25ms, forbidding .then(), tx aliasing, external network calls, and dangling promises.",
+      "contentSha256": "080d27540ff7f259f8fa992b33c75e760bf78b7c656546cd024423ded0040e1d"
+    },
+    {
+      "skillId": "database:read-replicas-lag-mitigation",
+      "domain": "database",
+      "description": "Handling replication delay: pinning user sessions to primary after write for 5 seconds, checking LSN positions, and monitoring byte lag.",
+      "contentSha256": "9a3db371e5de114403779a62545905b68ab9d6b1e350766ef5adb23f90e77d5a"
+    },
+    {
+      "skillId": "database:redis-cache-patterns",
+      "domain": "database",
+      "description": "Redis enterprise caching: cache-aside, write-through, probabilistic early expiration, memory eviction policies, and Redlock distributed locking.",
+      "contentSha256": "79ba9f09c1d623cfe5cec3625d5f7a36721b87d33dff4f76d24d4f2e7f168819"
+    },
+    {
+      "skillId": "database:sharding-and-partitioning",
+      "domain": "database",
+      "description": "Horizontal table partitioning (range, list, hash) in PostgreSQL, shard key selection, cross-partition query elimination, and read replicas.",
+      "contentSha256": "86a63f7d62131427f0f2ef9fc7945d77b10a65bb4c92ab078b8afad65cef7476"
+    },
+    {
+      "skillId": "database:soft-deletes-vs-hard-deletes",
+      "domain": "database",
+      "description": "Patterns for record lifecycle: deleted_at timestamps, unique index collisions with soft deletes, immutable audit trail tables, and archiving.",
+      "contentSha256": "43e7ccdb429ada93386981b88acf34210ed5346ee280910b7164f318057da319"
+    },
+    {
+      "skillId": "database:sql-server-pro",
+      "domain": "database",
+      "description": "Microsoft SQL Server & T-SQL performance architecture: clustered and columnstore indices, Dynamic Management Views (DMV) query profiling, ACID isolation levels, and partitioned tables.",
+      "contentSha256": "6cc89ceb5a5f5dbcf7095e22498b4668cd1aa69c988a9c7a5cc819c5b24d56a6"
+    },
+    {
+      "skillId": "database:sqlite-wal-storage",
+      "domain": "database",
+      "description": "SQLite WAL mode (synchronous = NORMAL), single-writer MPSC queue architecture, zero SQLITE_BUSY, and FTS5 search indexes.",
+      "contentSha256": "01e68a9ce0795d0376e32ce4559fe0cd5163cb1de481c0ad1bb1f0e8e631f7ea"
+    },
+    {
+      "skillId": "database:supabase-pro",
+      "domain": "database",
+      "description": "Supabase backend-as-a-service architecture: PostgreSQL Row Level Security (RLS) policies, GoTrue Auth integration, Deno Edge Functions, Realtime WebSocket subscriptions, and Storage buckets.",
+      "contentSha256": "e5e30db622d5b6ebc4af741671280d9545064014eaec7c231c2fc2f43ea22d3d"
+    },
+    {
+      "skillId": "database:time-series-timescaledb",
+      "domain": "database",
+      "description": "Time-series engineering: TimescaleDB hypertables, automated chunk partitioning, continuous aggregates, and data retention policies.",
+      "contentSha256": "9d66b7e3facd41af2413c41514fc252b8b0e88e150054c032ff416337e8ab855"
+    },
+    {
+      "skillId": "database:vector-store-pgvector",
+      "domain": "database",
+      "description": "Vector embeddings storage with pgvector: HNSW and IVFFlat index tuning, cosine/L2 distance operators, and Reciprocal Rank Fusion (RRF).",
+      "contentSha256": "f32a2c25503a9ec242f0dff8aa78028623e0f7062825cbb1fc84bbbaf9d4e6cd"
+    },
+    {
+      "skillId": "database:zero-downtime-migrations",
+      "domain": "database",
+      "description": "Expand and contract pattern for database schema migrations: backwards-compatible columns, dual-writing, backfilling, and contract phase.",
+      "contentSha256": "a3ec88fbcdb735c9344111b8c813d7abd1c89699596797de8fec04c607aadb2c"
+    },
+    {
+      "skillId": "devops:ansible-configuration-management",
+      "domain": "devops",
+      "description": "Automated configuration management with Ansible: idempotent playbooks, Ansible Vault for secret variables, and modular role structures.",
+      "contentSha256": "6d4b454004f5d9b4cbdaa3a3f693df03d47f073638b8d712e9ff9a6518fe040d"
+    },
+    {
+      "skillId": "devops:argo-cd-gitops",
+      "domain": "devops",
+      "description": "Declarative GitOps deployment with Argo CD: single source of truth in Git, automated sync, drift detection, and sync windows.",
+      "contentSha256": "1a9bd20f4ec86bc48818022e3e212ffaa0edd22b29201e0b9bda896939d37b55"
+    },
+    {
+      "skillId": "devops:aws-iam-least-privilege",
+      "domain": "devops",
+      "description": "Cloud IAM hardening: eliminating wildcard permissions (Action: *), role assumption session durations, and IAM Access Analyzer reviews.",
+      "contentSha256": "78e87083011e0e11e8f0eb1603c53645ceb4cbbacbb886ff5c73f8a50d736d29"
+    },
+    {
+      "skillId": "devops:azure-architect",
+      "domain": "devops",
+      "description": "Microsoft Azure cloud systems architecture: Azure App Services, Azure Kubernetes Service (AKS), Azure SQL Database, Microsoft Entra ID (Azure AD), Managed Identities, and Azure Key Vault.",
+      "contentSha256": "02883521cea4bcc5d3f2b4b3a883bc147e92eea7a50e96ac3450dfbdd77c57fd"
+    },
+    {
+      "skillId": "devops:bitbucket-pipelines",
+      "domain": "devops",
+      "description": "Bitbucket Pipelines workflow engineering: bitbucket-pipelines.yml, custom deployment steps, branch permissions, pull request merge checks, service containers, and secure repository variables.",
+      "contentSha256": "9b791a9a00ef6b61c0dddba002c7d80bb14a83996a7926984e000b3f0add8c61"
+    },
+    {
+      "skillId": "devops:cert-manager-letsencrypt",
+      "domain": "devops",
+      "description": "Automated SSL/TLS certificate issuance and renewal in Kubernetes: Let's Encrypt ACME HTTP-01/DNS-01 challenges and expiration alerts.",
+      "contentSha256": "0a2347c1ac70c176c6d065f8a8554423883a5cb3606809ba62521ea2ca120c6a"
+    },
+    {
+      "skillId": "devops:ci-cd-github-actions",
+      "domain": "devops",
+      "description": "Enterprise GitHub Actions workflows: matrix builds across OS/architectures, dependency caching, OIDC cloud auth, and artifact signing.",
+      "contentSha256": "e9f5b31804c763b4e9b80a0c1a0a83c63a1ca601a18519d7abbc9d3ca46295b8"
+    },
+    {
+      "skillId": "devops:continuous-profiling-pyroscope",
+      "domain": "devops",
+      "description": "Always-on continuous profiling in production with Grafana Pyroscope: CPU sampling, memory allocation flamegraphs, and zero overhead.",
+      "contentSha256": "0b628dc89f30feb08690fb357b1fe54c9aec36fd91f845ed2118b27015f461a6"
+    },
+    {
+      "skillId": "devops:coredns-internal-service-discovery",
+      "domain": "devops",
+      "description": "Kubernetes internal DNS tuning: CoreDNS autopath optimization, ndots:5 avoidance, caching plugins, and fallback forwarders.",
+      "contentSha256": "76716fdd336c598a38608212a6cf121031782d96ccc6886df9e4dcac1adda6dd"
+    },
+    {
+      "skillId": "devops:cosign-container-signing",
+      "domain": "devops",
+      "description": "Supply chain security: signing container images with Sigstore Cosign, keyless OIDC signing, and Kyverno admission policy verification.",
+      "contentSha256": "214d7d7e86a4c2b32d6f473b6365856e173e42be2822c327c60a3ba29795f35d"
+    },
+    {
+      "skillId": "devops:disaster-recovery-drills",
+      "domain": "devops",
+      "description": "Regular automated drills to verify backups: restoring snapshots to isolated sandbox environments, running smoke tests, and measuring RTO.",
+      "contentSha256": "060faee6e486fdaa63e79d20f13df43f0ef8ffc8ab996bb8388db48a0b33116e"
+    },
+    {
+      "skillId": "devops:docker-containerization",
+      "domain": "devops",
+      "description": "Production Docker: multi-stage builds, rootless execution, distroless minimal base images, and .dockerignore optimization.",
+      "contentSha256": "140e3deebce0f798cdc3d120c0e7b2e6304ac1f010b33e56fbb5888a5931d70b"
+    },
+    {
+      "skillId": "devops:falco-runtime-security",
+      "domain": "devops",
+      "description": "Runtime threat detection in Kubernetes using Falco eBPF: detecting unexpected shells in pods, sensitive file access (/etc/shadow), and privilege escalation.",
+      "contentSha256": "9a5a21b44701c6ae033fa042a4ff146e5dd7502acae38903ca2780f75e26e08e"
+    },
+    {
+      "skillId": "devops:finops-cloud-cost",
+      "domain": "devops",
+      "description": "FinOps cloud financial management: mandatory resource cost tagging, Kubernetes request/limit rightsizing, and automated idle teardown.",
+      "contentSha256": "6dd1a3c32707853650fc556451924fe8f81284e0aa93d8aaf48ff0862bb17d85"
+    },
+    {
+      "skillId": "devops:fluentbit-log-aggregation",
+      "domain": "devops",
+      "description": "High-performance structured logging: Fluent Bit daemonset, JSON log parsing, multiline exception handling, and OpenSearch/Loki shipping.",
+      "contentSha256": "e97dbdeda006f38da2787771cf199d89912925fed3639065dc027a1187bd2864"
+    },
+    {
+      "skillId": "devops:gcp-architect",
+      "domain": "devops",
+      "description": "Google Cloud Platform enterprise cloud architecture: Cloud Run serverless microservices, Google Kubernetes Engine (GKE), Cloud IAM least privilege, Secret Manager, Cloud Storage, and VPC Service Controls.",
+      "contentSha256": "ff921132ab5fa23ce0c8e4a8a90a904ff8a1fcaeb94bb47868d88f64b82de88d"
+    },
+    {
+      "skillId": "devops:git-worktrees-iam",
+      "domain": "devops",
+      "description": "Agentic Git IAM: isolated parallel Git worktrees per subagent, branch naming conventions, GPG/SSH commit signing, and cryptographic trailers.",
+      "contentSha256": "98ede7ceb43aded7f69eccdb6b31e378d85f0daed45996e64d3b1264ba514ad4"
+    },
+    {
+      "skillId": "devops:gitlab-ci-expert",
+      "domain": "devops",
+      "description": "GitLab CI/CD pipeline automation: .gitlab-ci.yml DAG stages, Docker-in-Docker runners, multi-project pipeline triggers, caching strategies, and protected environments with approval gates.",
+      "contentSha256": "2548685ccb73c9ae4db9fe9f0cf9de42e847dace16abf0c001324e68db94851a"
+    },
+    {
+      "skillId": "devops:helm-chart-packaging",
+      "domain": "devops",
+      "description": "Packaging cloud-native applications with Helm: values.yaml schema validation, chart testing with ct, and semantic version releases.",
+      "contentSha256": "08a29a7371b0498b676a610a420c278b51a54918cf6921a0926e2665aee383b3"
+    },
+    {
+      "skillId": "devops:kubernetes-specialist",
+      "domain": "devops",
+      "description": "Kubernetes production manifests: Pod Security Standards, HPA autoscaling, resource limits/requests, liveness/readiness probes, and Helm.",
+      "contentSha256": "08a29a7371b0498b676a610a420c278b51a54918cf6921a0926e2665aee383b3"
+    },
+    {
+      "skillId": "devops:linux-sysadmin",
+      "domain": "devops",
+      "description": "Linux systems engineering: sysctl network buffer tuning, systemd service sandboxing, file descriptor ulimits, and eBPF tracing with bpftrace.",
+      "contentSha256": "5fd45b9c8447957866803174fac38cf6e8fae742a459409f94c7bb928529e1b3"
+    },
+    {
+      "skillId": "devops:monitoring-expert",
+      "domain": "devops",
+      "description": "Observability metrics: Prometheus Four Golden Signals (Latency, Traffic, Errors, Saturation), Alertmanager routing, and Grafana panels.",
+      "contentSha256": "21fbe5ace5439064820098aeafd2507833c9dd6f3916df0acfaca81c79ea12a8"
+    },
+    {
+      "skillId": "devops:netlify-deployment",
+      "domain": "devops",
+      "description": "Netlify modern web deployment: Netlify Functions, Edge Functions, automated branch previews, form handling, custom redirect rules (_redirects), and split testing configurations.",
+      "contentSha256": "322fd1a5d20c9233c6ff817d36ff53c09b7dc090066dd84aad92dc4763f0e0de"
+    },
+    {
+      "skillId": "devops:nginx-reverse-proxy",
+      "domain": "devops",
+      "description": "Hardened NGINX reverse proxy: TLS 1.3 only, HSTS headers, Brotli compression, rate limiting zones, and keepalive upstream pools.",
+      "contentSha256": "b2c4816a43b1b29a1b2ae01331ea844fbb5ed910d2cb5c2a6e12499cc3f647ff"
+    },
+    {
+      "skillId": "devops:opentelemetry-tracing",
+      "domain": "devops",
+      "description": "Distributed tracing with OpenTelemetry: W3C traceparent context propagation across HTTP/gRPC, span attributes, and Jaeger visualization.",
+      "contentSha256": "673e1d3766dc241f58a6eafb9052e722e4f3f8aa9e69eff91c4d560cc11c6c16"
+    },
+    {
+      "skillId": "devops:owasp-zero-trust",
+      "domain": "devops",
+      "description": "OWASP Zero-Trust security rules prohibiting unparameterized raw SQL, eval(), dangerouslySetInnerHTML, and hardcoded credential leaks.",
+      "contentSha256": "8640f7d6a7e0be98193d0de7cf7e16fece32e1f1df9a206f528ff6650581ee16"
+    },
+    {
+      "skillId": "devops:secret-management",
+      "domain": "devops",
+      "description": "Enterprise secret governance: HashiCorp Vault, AWS KMS envelope encryption, ephemeral dynamic database credentials, and secret rotation.",
+      "contentSha256": "11e81fd7ba1da16a20821cd423f9e217d40c6eb2c0fbfe36c5f1bdd467992c3c"
+    },
+    {
+      "skillId": "devops:security-pipeline-sast",
+      "domain": "devops",
+      "description": "CI security pipeline: static application security testing (SAST), software composition analysis (Trivy), and CycloneDX SBOM generation.",
+      "contentSha256": "17ee7d1b0136c84f221e181f857dc9fc3bc19a4dd501127fb0be6a1c442b3582"
+    },
+    {
+      "skillId": "devops:sre-engineer",
+      "domain": "devops",
+      "description": "Site Reliability Engineering: defining Service Level Indicators (SLI), Service Level Objectives (SLO), Error Budgets, and blameless postmortems.",
+      "contentSha256": "b462842f4a658e8f75f48cd6a66fdd37747d8833398dd1617723f4f7e96fff3b"
+    },
+    {
+      "skillId": "devops:terraform-engineer",
+      "domain": "devops",
+      "description": "Terraform & OpenTofu: modular infrastructure, remote state locking with S3 and DynamoDB, tfsec security scanning, and drift detection.",
+      "contentSha256": "2638c32e79e4854bee16ae889502eaeb6cfbbde5b0aeceeff3d11fd37d31353b"
+    },
+    {
+      "skillId": "devops:vercel-deployment",
+      "domain": "devops",
+      "description": "Vercel edge deployment engineering: Edge Runtime optimization, Serverless Functions, Preview Deployments, Edge Config, Incremental Static Regeneration (ISR), and Web Vitals analytics.",
+      "contentSha256": "c66f30df63395621f3eb531169be22a9a370275b41221ee3dfa7257763706c08"
+    },
+    {
+      "skillId": "devops:wireguard-vpn-mesh",
+      "domain": "devops",
+      "description": "Secure infrastructure networking with WireGuard and Tailscale: noise protocol, public-key routing, and zero-trust ACLs.",
+      "contentSha256": "f951a45ebde0ddad9818f02eb0dc3934c60722b6067b387f49a4edb06e8a10ed"
+    },
+    {
+      "skillId": "frontend:a11y-wcag-guardian",
+      "domain": "frontend",
+      "description": "WCAG 2.2 Level AA accessibility compliance, semantic HTML, ARIA landmarks, keyboard focus trap, and screen reader testing.",
+      "contentSha256": "c623cb426e4c3692eada98c321cfb1c77615122bb321d446c921fc0550b47ca1"
+    },
+    {
+      "skillId": "frontend:angular-architect",
+      "domain": "frontend",
+      "description": "Angular 18 standalone components, signals, RxJS state streams, OnPush change detection, and dependency injection.",
+      "contentSha256": "f2f1d0e1ddbd9f0ad4b484a6494579e7e69193004bfd3a2aae8a058d39ce3579"
+    },
+    {
+      "skillId": "frontend:astro-ssg-expert",
+      "domain": "frontend",
+      "description": "Astro content collections, zero-JS by default, component islands (client:load, client:visible), and markdown authoring.",
+      "contentSha256": "df039fd6d69dd6123e9bfc3fae543987647c755b724bc9d8cc86b7879796cc58"
+    },
+    {
+      "skillId": "frontend:canvas-webgl-graphics",
+      "domain": "frontend",
+      "description": "HTML5 Canvas, Three.js, WebGL shader pipelines, requestAnimationFrame loops, and GPU memory management.",
+      "contentSha256": "0dcdd0583369dc674bdc1dcdf605d9b1afa511cbc6b1c074824f9d62cd4406b4"
+    },
+    {
+      "skillId": "frontend:data-fetching-tanstack",
+      "domain": "frontend",
+      "description": "Server state caching with TanStack Query, stale-while-revalidate, optimistic updates, and infinite scrolling pagination.",
+      "contentSha256": "f3be5d171240457dee2b5c12ed665a6b4e53e8c55900b1dc39ae127a4714afcf"
+    },
+    {
+      "skillId": "frontend:design-system-engineer",
+      "domain": "frontend",
+      "description": "Enterprise design system engineering, token hierarchy, compound component patterns, and automated visual regression in Storybook.",
+      "contentSha256": "9e5cd17c953233c974eb0c91b5fbe90493dd78415f8ec64c7352eccef409757a"
+    },
+    {
+      "skillId": "frontend:electron-desktop-architect",
+      "domain": "frontend",
+      "description": "Electron and Tauri desktop security: contextIsolation, sandboxing, safe IPC channels, and native window lifecycle.",
+      "contentSha256": "c5228dbc1def724bc796b47c2615ba93a907708ba2489b7ff5500aea7d97f9eb"
+    },
+    {
+      "skillId": "frontend:flutter-expert",
+      "domain": "frontend",
+      "description": "Flutter widget trees, Impeller graphics engine, BLoC and Riverpod state patterns, and platform channel interop.",
+      "contentSha256": "a982bbe048771577b3f9aee052f6c172087d20895a03fbd49a96f342e943b4a3"
+    },
+    {
+      "skillId": "frontend:form-handling-zod",
+      "domain": "frontend",
+      "description": "Performant uncontrolled form architecture with React Hook Form, TanStack Form, and schema validation with Zod.",
+      "contentSha256": "7ba73c3c49fee779e5520d8efef1f991850daf613c25bdb8f33191f2ba533b5e"
+    },
+    {
+      "skillId": "frontend:frontend-code-review",
+      "domain": "frontend",
+      "description": "Code review guidelines for frontend: tree-shaking verification, bundle size budgets, memory leak audit, and re-render profiling.",
+      "contentSha256": "50151b2f154595ae9d2e423c3b143d3651936619f5c28dd20bb634abf5019f83"
+    },
+    {
+      "skillId": "frontend:godot-developer",
+      "domain": "frontend",
+      "description": "Godot 4+ 2D/3D development: GDScript 2.0 static typing, C# integration, decoupled node composition, signal-driven communication, physics tick optimization, and GLSL shaders.",
+      "contentSha256": "f13b699fa60444a9c18cdbc4dade09c812b7a9d6f4a14d8ce849ce11b16a7591"
+    },
+    {
+      "skillId": "frontend:image-media-optimization",
+      "domain": "frontend",
+      "description": "Automated AVIF and WebP transcoding, responsive srcset attributes, blurry placeholder LQIP, and video streaming.",
+      "contentSha256": "fd13edd4a6333f4ab5cdab588342f2f2307d9c079fd9e8b229c9bed26d445c1b"
+    },
+    {
+      "skillId": "frontend:internationalization-i18n",
+      "domain": "frontend",
+      "description": "Internationalization with next-intl and i18next, pluralization, locale formatting, and right-to-left (RTL) layout switching.",
+      "contentSha256": "4f24790de895f97bea4dbe0892625eec871e9500b8e2e66f36c73a4f05687a59"
+    },
+    {
+      "skillId": "frontend:micro-frontends",
+      "domain": "frontend",
+      "description": "Micro-frontend architecture using Webpack/Vite Module Federation, shared dependencies, and isolated CSS scoping.",
+      "contentSha256": "3aebb2dfe2151e6574d12044bb699186d2ac0ae39f04d596d30a0fd7ee069350"
+    },
+    {
+      "skillId": "frontend:monorepo-turborepo-ui",
+      "domain": "frontend",
+      "description": "High-speed frontend monorepos using Turborepo and pnpm workspaces, remote caching, and internal UI package builds.",
+      "contentSha256": "1be9b69d2f7f171c8f9c3a8667b1e48cb0775b77492d03d54488f7dd24b11df3"
+    },
+    {
+      "skillId": "frontend:nextjs-developer",
+      "domain": "frontend",
+      "description": "Next.js App Router, React Server Components (RSC), Server Actions, ISR, and dynamic edge rendering.",
+      "contentSha256": "dbcb3807c1aa16b44cc49292b48b2827091c33185ebd9aeaebb41ef6076b4a1b"
+    },
+    {
+      "skillId": "frontend:nuxt-developer",
+      "domain": "frontend",
+      "description": "Nuxt 3+ full-stack Vue engineering: universal Server-Side Rendering (SSR), Static Site Generation (SSG), file-based routing, Nitro engine, reactive composables, and SEO meta tags.",
+      "contentSha256": "708724e3d49de6e594f82f266e897e1817ebe47e96755eb1038959424b726bef"
+    },
+    {
+      "skillId": "frontend:progressive-web-apps",
+      "domain": "frontend",
+      "description": "Progressive Web Apps (PWA), web app manifests, Workbox service worker caching strategies, and background sync.",
+      "contentSha256": "539d9003f801fd7d274afc344c28b320dc774b9ee919622c66288f7261178db2"
+    },
+    {
+      "skillId": "frontend:react-expert",
+      "domain": "frontend",
+      "description": "React 19 Server Components, custom hooks, virtual DOM reconciliation, and suspense boundary architecture.",
+      "contentSha256": "fad56a3b604402220ce095f22097f3f9bacbc63f6c3a5f61327245caee1bf3b0"
+    },
+    {
+      "skillId": "frontend:react-native-expert",
+      "domain": "frontend",
+      "description": "React Native New Architecture (TurboModules, Fabric renderer, Hermes runtime), bridging, and native threading.",
+      "contentSha256": "fad56a3b604402220ce095f22097f3f9bacbc63f6c3a5f61327245caee1bf3b0"
+    },
+    {
+      "skillId": "frontend:responsive-design",
+      "domain": "frontend",
+      "description": "Mobile-first layout strategies, CSS Grid, Flexbox, fluid clamp() typography, and touch target accessibility (>= 48px).",
+      "contentSha256": "0aa18d2e6f14b7864a36447c626cf997df7042aef366e5133b3c96f80bc21cc8"
+    },
+    {
+      "skillId": "frontend:state-management-pro",
+      "domain": "frontend",
+      "description": "Predictable unidirectional state management via Zustand, Redux Toolkit, immutable state, and selector memoization.",
+      "contentSha256": "3e2c56b76ac7e575974dd97a649627b69b6f113424fb600a6648259cf86b56fa"
+    },
+    {
+      "skillId": "frontend:storybook-visual-testing",
+      "domain": "frontend",
+      "description": "Component-driven development (CDD) in isolation, interaction tests with @storybook/test, and Chromatic visual testing.",
+      "contentSha256": "c89ce2713bf1aed8987471a35ea5db23bc34dec0126f4dc387388d5364ee280a"
+    },
+    {
+      "skillId": "frontend:svelte-expert",
+      "domain": "frontend",
+      "description": "Svelte 5 runes ($state, $derived, $effect), compiler reactivity, SvelteKit form actions, and SSR hydration.",
+      "contentSha256": "671032a373ad11a7bf027a3654df7863fcfe5c05018bb1d7a18a857626fd1567"
+    },
+    {
+      "skillId": "frontend:tailwind-designer",
+      "domain": "frontend",
+      "description": "Tailwind CSS utility architecture, fluid container queries, CSS variables, dark mode theming, and zero runtime overhead.",
+      "contentSha256": "0ae356da48d81e1d98ee3c6c4decce4c818d755c45d89bb753f0d481223a15cc"
+    },
+    {
+      "skillId": "frontend:tauri-expert",
+      "domain": "frontend",
+      "description": "Tauri v2 desktop & mobile application architecture: secure IPC command bridge between Rust backend and Web frontend, native multi-window management, scoped system permissions, and minimal bundle sizes.",
+      "contentSha256": "95e5b636c47090a7615efe078793ccf97e1c25b75dc38e3df272d4d280de3066"
+    },
+    {
+      "skillId": "frontend:unity-developer",
+      "domain": "frontend",
+      "description": "Unity C# game systems engineering: ScriptableObject architecture, Entity Component System (ECS), Memory Profiler analysis, GC allocation minimization, and shader optimization.",
+      "contentSha256": "5858e5a2b67e3c2c8e6d0fc5112f41c873f23a5d931769b44b059aa8ea919ef3"
+    },
+    {
+      "skillId": "frontend:vue-expert",
+      "domain": "frontend",
+      "description": "Vue 3 Composition API, <script setup>, reactivity model, Pinia stores, and Vue Router guard patterns.",
+      "contentSha256": "144489b9b80c9df3a4ad8508b6300f2369aa0087285afbf5773e7a33a31ed3df"
+    },
+    {
+      "skillId": "frontend:web-security-frontend",
+      "domain": "frontend",
+      "description": "Frontend defensive security: Content Security Policy (CSP) headers, Subresource Integrity (SRI), and safe DOM rendering.",
+      "contentSha256": "7542444dd2b4bd27b25bc8da4596a3602bfc5ccf39b2564d052e9b6e3f209821"
+    },
+    {
+      "skillId": "frontend:web-vitals-optimizer",
+      "domain": "frontend",
+      "description": "Core Web Vitals optimization (LCP < 2.5s, INP < 200ms, CLS < 0.1), critical CSS inlining, and lazy loading.",
+      "contentSha256": "a4f3eeec155d465f3d84487667cad23eaa8db7dd3ae39e6b01a4d2119414ace2"
+    },
+    {
+      "skillId": "hook:auto-verify-fix",
+      "domain": "hook",
+      "description": "File watcher hook: upon file save in src/, runs associated unit test in tests/ within isolated sandbox and reports diagnostics.",
+      "contentSha256": "1c2b8d62f01f29117dd8247307d935a7bce4ac011eddd10d18e2000109447dc6"
+    },
+    {
+      "skillId": "hook:context-sync-suggest",
+      "domain": "hook",
+      "description": "Obsidian vault synchronization hook: after successful task completion, checks if architectural contracts or ADRs need updating.",
+      "contentSha256": "36590a46b29b4283a0d539434aed7b4e3c6e73fa4d81e9654f6f603948f0c86b"
+    },
+    {
+      "skillId": "hook:db-acid-guard",
+      "domain": "hook",
+      "description": "Runtime interceptor: monitors interactive database transactions, aborting any transaction that exceeds 25ms or makes network calls.",
+      "contentSha256": "128e1255de3b579927629f7fe43eadab2d5c0bf496941f0d36b635e2946fdca6"
+    },
+    {
+      "skillId": "hook:emdash-slop-guard",
+      "domain": "hook",
+      "description": "Lexical cleaner hook: removes non-standard Unicode punctuation (em-dashes, smart quotes) from source code before passing to compilers.",
+      "contentSha256": "1997f7e2d7d02afd4a00e9520307854c572e792472977cac1c4a502f59a4cede"
+    },
+    {
+      "skillId": "hook:expensive-mcp-warning",
+      "domain": "hook",
+      "description": "Cost guard hook: alerts when a tool call exceeds typical latency (e.g. web scraping, heavy embeddings) and demands confirmation.",
+      "contentSha256": "3b1367447e64e23f60b78f00fef62267dc293b24390a3b72601e2f7ed41fca5f"
+    },
+    {
+      "skillId": "hook:loop-detection-breaker",
+      "domain": "hook",
+      "description": "Loop detection interceptor: tracks file edit diff hashes; if an agent alternates between identical states across turns, execution is aborted.",
+      "contentSha256": "dc6a16f25ec3433ae0edabc8c886875595926090e61bce10563f939f825215b4"
+    },
+    {
+      "skillId": "hook:output-secret-filter",
+      "domain": "hook",
+      "description": "Egress filter: scans terminal output, error logs, and commit messages for API keys (sk-, ghp_, AKIA) and masks them with [REDACTED].",
+      "contentSha256": "ecd6a75e1831acab6b517afb6336c661c324f499e3618fee75834742fe231ce9"
+    },
+    {
+      "skillId": "hook:post-compact-restore",
+      "domain": "hook",
+      "description": "Post-compact hook: immediately injects hoisted ADRs and active module contracts back into the top of the pruned context window.",
+      "contentSha256": "41af0a294a09acf28e7b8eb64752c9fca4032cea353587481535e374a308fdaa"
+    },
+    {
+      "skillId": "hook:post-fail-court-martial",
+      "domain": "hook",
+      "description": "Post-failure interceptor: counts consecutive quality gate failures on a module; at attempt 3, trips circuit breaker and emits Court-Martial docket.",
+      "contentSha256": "d919662e9193268771b0eec5419a375be0f5acf37ad560c3f481376314917843"
+    },
+    {
+      "skillId": "hook:pre-commit-ast-scanner",
+      "domain": "hook",
+      "description": "Pre-commit hook: scans staged TypeScript diffs with native Oxc parser, rejecting any, double cast unknown, and unawaited Prisma calls.",
+      "contentSha256": "db83ed768251bb7e42801dc977cd1e17e08c7f7e662ac9f1c82cc534ff888c33"
+    },
+    {
+      "skillId": "hook:pre-compact-snapshot",
+      "domain": "hook",
+      "description": "Pre-compact hook: triggered before LLM context compression to distill critical architectural decisions into SQLite WAL micro-chunks.",
+      "contentSha256": "8628e1da6f7a1db5ee091a4d7c4a0eb97ca119b593db5d256f84efc2c92aa1ae"
+    },
+    {
+      "skillId": "hook:pre-exec-token-budget",
+      "domain": "hook",
+      "description": "Pre-execution hook: checks estimated token cost of prompt and file targets, throttling queries when approaching window exhaustion.",
+      "contentSha256": "12b6c526afd41bcf10d9322d29c33ad06522402dc11bb069b6c49616dbb3e91a"
+    },
+    {
+      "skillId": "hook:remote-command-guard",
+      "domain": "hook",
+      "description": "Security sandbox hook: intercepts shell executions, forbidding destructive commands (rm -rf /, format, curl-pipe-sh) and untrusted endpoints.",
+      "contentSha256": "4b1b38cd34f3ff7e743090c58c53f7c0a6f833925eec0e3d04da4a3c116c5e71"
+    },
+    {
+      "skillId": "hook:session-time-report",
+      "domain": "hook",
+      "description": "Session conclusion hook: aggregates elapsed time, tokens consumed, test pass ratio, and computes MTTR for the live dashboard.",
+      "contentSha256": "90927f8b6365ed8107c14858271af996f1e84d684a8cd7cd29ec8182d43a69b9"
+    },
+    {
+      "skillId": "hook:work-tracker-prompt",
+      "domain": "hook",
+      "description": "Turn interceptor: tracks milestones in working.md, updating completed checkboxes [x] and preserving current intent across session boundaries.",
+      "contentSha256": "bad18a719e58ffe3122e760e48c2a15cc9cec68b9b37989b6c9891ee9a57dcae"
+    },
+    {
+      "skillId": "hook:worktree-disjunction-guard",
+      "domain": "hook",
+      "description": "Concurrency hook: checks petgraph and oxc_resolver before authorizing parallel worktrees, ensuring zero AST import collisions.",
+      "contentSha256": "006915209a8248ea26f66bdee5cbb86cf4becc5a82d976d1354f954c01aef5e5"
+    },
+    {
+      "skillId": "ide:android-studio-pro",
+      "domain": "ide",
+      "description": "Android Studio mobile platform engineering: Gradle build logic (Kotlin DSL), Layout Inspector & Compose Preview, Logcat advanced filtering, NDK integration, and APK/AAB bundle signing.",
+      "contentSha256": "62d1539279c61919892fed0836f7e651f5c4b9d576a5736fa7cdf813310ea1a5"
+    },
+    {
+      "skillId": "ide:cursor-rules",
+      "domain": "ide",
+      "description": "Cursor AI editor optimization: custom .cursorrules definition, prompt engineering for Claude 3.5 Sonnet and GPT-4o, codebase indexing tuning, context management, and multi-file agentic composing.",
+      "contentSha256": "96190f107e9180810b2c9c4d4f59f40aefe2a4e64160c4e73694fd634fd5bb01"
+    },
+    {
+      "skillId": "ide:intellij-idea-pro",
+      "domain": "ide",
+      "description": "IntelliJ IDEA enterprise mastery: advanced structural refactoring, inspection profiles, interactive JVM debugger with memory view, Maven/Gradle integration, database tools, and Git workflows.",
+      "contentSha256": "cf4e71456cf359169c46486518ccc5d3267d91c06bf8d8134949bb33b58b9cd2"
+    },
+    {
+      "skillId": "ide:pycharm-pro",
+      "domain": "ide",
+      "description": "PyCharm professional Python development: Virtualenv / Conda / Poetry environment synchronization, visual interactive debugger with variable introspection, profiling with cProfile, and Django/FastAPI support.",
+      "contentSha256": "9011d0ca2279d90f12623f8934c489c8f35df251dae1c7eec2f1ae8a51a0f19b"
+    },
+    {
+      "skillId": "ide:vscode-pro",
+      "domain": "ide",
+      "description": "Visual Studio Code power engineering: workspace settings.json, multi-target debugging in launch.json, custom tasks.json, essential extensions curation, and Remote SSH/Dev Containers setups.",
+      "contentSha256": "b44ebb1a31de48d8355ca0636fb1a18c90e9c2c6fc7b8e5bee37ec4452008e85"
+    },
+    {
+      "skillId": "ide:webstorm-pro",
+      "domain": "ide",
+      "description": "WebStorm JavaScript & TypeScript IDE engineering: deep semantic refactoring, Node.js and Jest/Vitest test runners, ESLint and Prettier automatic synchronization, and npm package dependency management.",
+      "contentSha256": "b71aa44805692e075264f5924f1abb7aac4fd27f8f1c7833dfd7e77c0d8eba4e"
+    },
+    {
+      "skillId": "ide:windsurf-rules",
+      "domain": "ide",
+      "description": "Windsurf editor workflows: Cascade autonomous agent coordination, dynamic context navigation, project rule definitions (.windsurfrules), terminal command evaluation, and multi-file refactoring.",
+      "contentSha256": "c9243394ea96cba9b4ff0f959af2f7e7d485b8f2683ea8e9791824c365157bf6"
+    },
+    {
+      "skillId": "ide:xcode-developer",
+      "domain": "ide",
+      "description": "Apple Xcode environment architecture: Swift Package Manager (SPM) dependency graph, iOS/macOS Simulator management, Instruments performance profiling (Time Profiler, Leaks), and App Store archive signing.",
+      "contentSha256": "f6de3583d5265bba403458d022ec9c7a05c532737bdfe0b596bb2d8ce6dd4a2a"
+    },
+    {
+      "skillId": "testing:accessibility-axe-core",
+      "domain": "testing",
+      "description": "Automating accessibility checks in unit and component tests with axe-core and @axe-core/playwright, detecting WCAG violations.",
+      "contentSha256": "27a6e69459e78d35a7de41a6fbf9f66cfc2ae85e4625c78dda9cf7b807a0e2c3"
+    },
+    {
+      "skillId": "testing:api-mocking-msw",
+      "domain": "testing",
+      "description": "Network-level request interception with Mock Service Worker (MSW): seamless in browser and Node.js without monkey-patching fetch.",
+      "contentSha256": "1d15b573b0a9486b3623311620d6311d14b05faea01ba8c0c4d49b09cc9191b8"
+    },
+    {
+      "skillId": "testing:atomic-symbol-pruning",
+      "domain": "testing",
+      "description": "Surgical AST context pruning and atomic refactoring (< 100 modified lines per turn) isolating focusSymbol and direct helpers.",
+      "contentSha256": "421ca0c3b9a4e392512f5d971f71f093fcf22cd33b3c4d6035a1400fe089ab32"
+    },
+    {
+      "skillId": "testing:chaos-engineer",
+      "domain": "testing",
+      "description": "Chaos engineering: injecting latency, killing random containers, simulating network partitions, and verifying automated system recovery.",
+      "contentSha256": "816229c86e6b4d208c6148e3d690279abb1ee8b5790f4e69fd2f577ee594fc0e"
+    },
+    {
+      "skillId": "testing:chaos-network-latency-toxic",
+      "domain": "testing",
+      "description": "Simulating unreliable networks with Shopify Toxiproxy: injecting latency, jitter, bandwidth limits, and connection timeouts into microservices.",
+      "contentSha256": "5aa7514ccd918b660d4db5b1d874d4fe5a39e050cfd8ab25e0020ef98e0d7a36"
+    },
+    {
+      "skillId": "testing:ci-test-splitting-parallelism",
+      "domain": "testing",
+      "description": "Optimizing CI test runtimes: timing tests, splitting by duration across parallel matrix workers, and flaky test auto-quarantine.",
+      "contentSha256": "9e52fb595606259da22dcf65ecc22337691689e55736585743c3478fa5a6818b"
+    },
+    {
+      "skillId": "testing:code-coverage-ratchet",
+      "domain": "testing",
+      "description": "Differential coverage enforcement: requiring >= 90% branch and statement coverage on newly added or modified lines in Git pull requests.",
+      "contentSha256": "fc4e369953c09e2549deeb87eb4bda4153cf0a4a5d8f7b7317da9b6224b746f6"
+    },
+    {
+      "skillId": "testing:concurrency-race-condition-detector",
+      "domain": "testing",
+      "description": "Detecting data races in multithreaded C++, Go, and Rust using ThreadSanitizer (TSan) during automated test execution.",
+      "contentSha256": "5a0cc8c1cfff6a6b87c18eb963de1f27749df5286c069594712dcc5074b6e648"
+    },
+    {
+      "skillId": "testing:contract-testing-pact",
+      "domain": "testing",
+      "description": "Consumer-driven contract testing with Pact: preventing breaking changes between microservices without deploying end-to-end environments.",
+      "contentSha256": "f5acb4b9639f47f7ddb9d8e9e106b3506bb29a157b40e3849889a2859e8fc59f"
+    },
+    {
+      "skillId": "testing:database-migration-rollback-tests",
+      "domain": "testing",
+      "description": "Testing database migrations: executing UP followed immediately by DOWN followed by UP against realistic data to prove rollback viability.",
+      "contentSha256": "cccd04a906d001581eac4d00104e71cd955f137d160a8cbd02a551517371d182"
+    },
+    {
+      "skillId": "testing:fuzzing-security-parsers",
+      "domain": "testing",
+      "description": "Continuous fuzzing of input parsers (JSON, Markdown, network packets) using LLVM libFuzzer and AddressSanitizer (ASan).",
+      "contentSha256": "720f41293ea02abefbbc8222365324be3552466885dd4129e9808a14fcb68318"
+    },
+    {
+      "skillId": "testing:graphql-schema-breaking-change-check",
+      "domain": "testing",
+      "description": "Automated CI detection of breaking GraphQL schema changes: detecting removed fields, type changes, or added non-null arguments.",
+      "contentSha256": "1c670c3dd6b267df3ffcc59ae35cbb9d4f2e0ef034821171dbdb09deeb0d7a51"
+    },
+    {
+      "skillId": "testing:integration-testcontainers",
+      "domain": "testing",
+      "description": "Running true integration tests against real ephemeral databases (PostgreSQL, Redis, Kafka) spawned via Testcontainers.",
+      "contentSha256": "8f8736677ce827bcae5be1ff709b4d7569feb70946bd9d4c027dc4232d1c6173"
+    },
+    {
+      "skillId": "testing:load-testing-k6",
+      "domain": "testing",
+      "description": "Load and stress testing with Grafana k6: ramp-up scenarios, threshold SLAs (p95 < 200ms), soak tests, and simulating spike traffic.",
+      "contentSha256": "49d4f197cd88d950736be21a1e329e38a03ab339b22de609128256eadf939227"
+    },
+    {
+      "skillId": "testing:mutation-testing",
+      "domain": "testing",
+      "description": "Evaluating test suite efficacy via mutation testing (Stryker, cargo-mutants): mutating condition operators and checking if tests fail.",
+      "contentSha256": "fcc6062b001c506fcd1ba6c9519c9668df6de9202ad77643d1a092d27983f235"
+    },
+    {
+      "skillId": "testing:performance-benchmarking",
+      "domain": "testing",
+      "description": "Statistically sound performance benchmarking using Criterion.rs or benchmark.js, warmup runs, regression checks, and flamegraph profiling.",
+      "contentSha256": "a42b0d8ce88a2d83e4168b71baf51b27f168805d4d7044446eb03147d8ad1d3f"
+    },
+    {
+      "skillId": "testing:playwright-expert",
+      "domain": "testing",
+      "description": "Resilient browser testing with Playwright: auto-waiting locators, page object models (POM), network request mocking, and visual diff testing.",
+      "contentSha256": "22407ad6f341bb062e0fc6bab769f9deb4949392b1b72bae9c0e8d349103a084"
+    },
+    {
+      "skillId": "testing:property-based-fuzzing",
+      "domain": "testing",
+      "description": "Generative property-based testing (proptest, fast-check): verifying universal mathematical invariants across thousands of random inputs.",
+      "contentSha256": "da9114c634e9f2b1d3832d95805261e3c3702e40d6fcb219fe5e2cda335c4b8e"
+    },
+    {
+      "skillId": "testing:snapshot-testing-guard",
+      "domain": "testing",
+      "description": "Disciplined snapshot testing: keeping snapshots small and semantic, avoiding blind -u update flags, and reviewing every DOM diff.",
+      "contentSha256": "487f16b3caf0ff2637849fcec3d2e5786a4f569bb15bbd6f93130807e838c274"
+    },
+    {
+      "skillId": "testing:stress-testing-memory-leaks",
+      "domain": "testing",
+      "description": "Detecting JavaScript/Rust memory leaks: running thousands of continuous iterations and measuring heap retained size before/after garbage collection.",
+      "contentSha256": "06b3736c975c4b091193d82dc8f8dcdf575762bc7067204059ec09d79346c791"
+    },
+    {
+      "skillId": "testing:systematic-debugging",
+      "domain": "testing",
+      "description": "Systematic debugging: reproducing defects with minimal test cases, binary search git bisect, hypothesis testing, and 5-Whys root cause analysis.",
+      "contentSha256": "e213feefa13f7fff424d2e6e2189064a394a16a18330daf44df54a9992c604ac"
+    },
+    {
+      "skillId": "testing:tdd-strict-vitest",
+      "domain": "testing",
+      "description": "Strict RED-GREEN-REFACTOR TDD workflow with Vitest JSON reports, forbidding src/ modifications without prior verified AssertionError.",
+      "contentSha256": "e3dd1c381151c06115bb1e583c420d4ab29717d4757ad1428dd31e373bcbdb65"
+    },
+    {
+      "skillId": "testing:test-master",
+      "domain": "testing",
+      "description": "Testing pyramid strategy: high volume of fast unit tests, targeted integration tests, minimal brittle E2E tests, and deterministic mocking.",
+      "contentSha256": "89a449cb51d5592ba697642b6bbcb69b810ede6ed3011df494a6e42e6ff59eac"
+    },
+    {
+      "skillId": "testing:verification-engine",
+      "domain": "testing",
+      "description": "Zero-hallucination code verification: AST scanning, type check validation, running test suites in sandboxes, and cold audit.",
+      "contentSha256": "ca15a754729ecd99c8818f33609ce11617fbc631d7f5976b2b6b2c2ba5273c29"
+    },
+    {
+      "skillId": "testing:visual-regression-backstop",
+      "domain": "testing",
+      "description": "Visual regression testing: capturing component screenshots across viewports, comparing pixel diffs with pixelmatch, and asserting strict thresholds.",
+      "contentSha256": "ef6e2d68bf241bd5bb411d27880a160fe249d6089e806e3c6c47c7591e217a6e"
+    }
+  ]
+}

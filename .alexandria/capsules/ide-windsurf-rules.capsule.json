@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "ide:windsurf-rules",
+  "domain": "ide",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Windsurf editor workflows: Cascade autonomous agent coordination, dynamic context navigation, project rule definitions (.windsurfrules), terminal command evaluation, and multi-file refactoring.",
+  "triggerKeywords": [
+    "windsurf",
+    "cascade",
+    "codeium",
+    "ai-editor",
+    "flow",
+    "context-awareness",
+    "ide"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EXPLICIT_WINDSURF_RULES_DEFINED",
+    "CASCADE_AGENTIC_WORKFLOW_MONITORING",
+    "CONFINED_TERMINAL_COMMAND_EXECUTION",
+    "STEP_BY_STEP_TDD_ALIGNMENT"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "ide_windsurf-rules",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Windsurf & Cascade Agentic Flow Orchestration\n\nOrchestrate autonomous coding agents with Cascade inside the Windsurf AI environment.\n\n## Key Principles & Invariants\n- Specify project constraints and architecture rules in `.windsurfrules` at repository root.\n- Monitor Cascade's autonomous task list and interrupt execution if divergence occurs.\n- Verify shell commands and sandbox filesystem changes before granting execution approval.\n- Demand RED-GREEN-REFACTOR TDD discipline for all agentic code contributions.",
+  "contentSha256": "c9243394ea96cba9b4ff0f959af2f7e7d485b8f2683ea8e9791824c365157bf6"
+}

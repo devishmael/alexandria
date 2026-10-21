@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:flask-expert",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Flask 3+ Python microservices: modular Blueprints architecture, Application Factory pattern, SQLAlchemy 2.0 ORM integration, Pydantic validation, and isolated Pytest fixtures.",
+  "triggerKeywords": [
+    "flask",
+    "python",
+    "blueprints",
+    "application-factory",
+    "sqlalchemy",
+    "pytest",
+    "microservice"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "APPLICATION_FACTORY_PATTERN_MANDATORY",
+    "BLUEPRINT_MODULAR_ROUTE_ISOLATION",
+    "DATABASE_SESSION_TEARDOWN_LIFECYCLE",
+    "PYDANTIC_PAYLOAD_VALIDATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_flask-expert",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Flask 3+ Modular Microservice Architecture\n\nArchitect modular, testable Python web services following Flask Application Factory and Blueprint conventions.\n\n## Key Principles & Invariants\n- Always instantiate the app using the Application Factory pattern (`create_app()`).\n- Decompose distinct domain boundaries into isolated `Blueprint` modules.\n- Ensure database sessions are automatically cleaned up in `@app.teardown_appcontext`.\n- Validate incoming JSON bodies using `Pydantic` models before business logic dispatch.",
+  "contentSha256": "5f0288a7d51ecfcfa8c479ac2d036d56dcb9c4c1e78817ce4d10558f4dcaf05f"
+}

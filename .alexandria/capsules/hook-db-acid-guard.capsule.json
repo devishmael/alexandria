@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:db-acid-guard",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Runtime interceptor: monitors interactive database transactions, aborting any transaction that exceeds 25ms or makes network calls.",
+  "triggerKeywords": [
+    "hook",
+    "database",
+    "acid",
+    "timeout",
+    "deadlock",
+    "transaction-guard"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ABORT_TRANSACTION_EXCEEDING_25MS",
+    "FORBID_EXTERNAL_HTTP_FETCH_IN_TRANSACTION",
+    "AUTOMATIC_ROLLBACK_ON_ERROR"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_db-acid-guard",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# DB Guard - PreToolUse Hook\n# Blocks dangerous SQL patterns: DROP, TRUNCATE, DELETE without WHERE, ALTER DROP\n#\n# Hook trigger: PreToolUse, matcher: mcp__(supabase|supabase-db)__execute_sql, mcp__(supabase|supabase-db)__apply_migration\n# Exit codes: 0 = allow, 2 = block\n\n# Read tool call JSON from stdin\nINPUT=$(cat)\n\nQUERY=$(echo \"$INPUT\" | python3 -c \"\nimport sys, json\ndata = json.load(sys.stdin)\nti = data.get('tool_input', {})\n# execute_sql uses 'query', apply_migration uses 'sql' or 'statements'\nprint(ti.get('query', ti.get('sql', ti.get('statements', ''))))\n\" 2>/dev/null)\n\nif [[ -z \"$QUERY\" ]]; then\n    # No query found, allow (might be a different tool input format)\n    exit 0\nfi\n\n# Python 기반 SQL 패턴 검사 (CWE-78 방지: grep 파이프라인 대신 Python 사용)\nexport _DB_GUARD_QUERY=\"$QUERY\"\npython3 << 'DB_GUARD_SCRIPT'\nimport os\nimport sys\nimport re\n\nquery = os.environ.get(\"_DB_GUARD_QUERY\", \"\")\nif not query:\n    sys.exit(0)\n\nquery_upper = query.upper()\nsafe_preview = query[:200]\n\n# Block DROP TABLE/DATABASE/SCHEMA\nif re.search(r'\\bDROP\\s+(TABLE|DATABASE|SCHEMA)\\b', query_upper):\n    print(\"BLOCKED: DROP statement detected\", file=sys.stderr)\n    print(f\"Query: {safe_preview}\", file=sys.stderr)\n    sys.exit(2)\n\n# Block TRUNCATE — statement 형태만 (DDL). GRANT/REVOKE의 권한 키워드 TRUNCATE는 허용.\n# DDL: 'TRUNCATE TABLE foo' / 'TRUNCATE foo' / 'TRUNCATE foo, bar'\n# 권한: 'REVOKE INSERT, UPDATE, DELETE, TRUNCATE, ... ON foo FROM ...'\n# 정규식: TRUNCATE 다음에 (TABLE|식별자) 형태의 DDL만 매칭. 콤마 또는 ON이 따라오면 권한 키워드.\n_truncate_ddl = re.search(r'\\bTRUNCATE\\s+(TABLE\\s+|ONLY\\s+|[A-Z_][A-Z0-9_]*\\s*[(,;]|[A-Z_][A-Z0-9_]*\\s*$)', query_upper)\nif _truncate_ddl:\n    print(\"BLOCKED: TRUNCATE statement detected\", file=sys.stderr)\n    print(f\"Query: {safe_preview}\", file=sys.stderr)\n    sys.exit(2)\n\n# Block DELETE without WHERE\nif re.search(r'\\bDELETE\\s+FROM\\b', query_upper) and not re.search(r'\\bWHERE\\b', query_upper):\n    print(\"BLOCKED: DELETE without WHERE clause\", file=sys.stderr)\n    print(f\"Query: {safe_preview}\", file=sys.stderr)\n    sys.exit(2)\n\n# Block ALTER TABLE ... DROP COLUMN (destructive schema change)\n# DROP CONSTRAINT/INDEX는 허용 (중복 인덱스 제거 등)\nif re.search(r'\\bALTER\\s+TABLE\\b.*\\bDROP\\s+COLUMN\\b', query_upper):\n    print(\"BLOCKED: ALTER TABLE DROP COLUMN detected\", file=sys.stderr)\n    print(f\"Query: {safe_preview}\", file=sys.stderr)\n    sys.exit(2)\n\n# Safe query - allow\nsys.exit(0)\nDB_GUARD_SCRIPT\n",
+  "contentSha256": "128e1255de3b579927629f7fe43eadab2d5c0bf496941f0d36b635e2946fdca6"
+}

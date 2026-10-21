@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:micro-frontends",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Micro-frontend architecture using Webpack/Vite Module Federation, shared dependencies, and isolated CSS scoping.",
+  "triggerKeywords": [
+    "frontend",
+    "micro-frontends",
+    "module-federation",
+    "architecture",
+    "vite"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ISOLATED_CSS_SCOPE_ACROSS_MFE",
+    "VERSION_ALIGNMENT_FOR_SHARED_LIBS",
+    "DECOUPLED_ROUTING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_micro-frontends",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Module Federation & Micro-Frontend Architecture\n\nMicro-frontend architecture using Webpack/Vite Module Federation, shared dependencies, and isolated CSS scoping.\n\n## Invariants\n- ISOLATED_CSS_SCOPE_ACROSS_MFE\n- VERSION_ALIGNMENT_FOR_SHARED_LIBS\n- DECOUPLED_ROUTING\n",
+  "contentSha256": "3aebb2dfe2151e6574d12044bb699186d2ac0ae39f04d596d30a0fd7ee069350"
+}

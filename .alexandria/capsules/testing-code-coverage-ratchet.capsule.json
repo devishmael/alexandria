@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:code-coverage-ratchet",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Differential coverage enforcement: requiring >= 90% branch and statement coverage on newly added or modified lines in Git pull requests.",
+  "triggerKeywords": [
+    "testing",
+    "coverage",
+    "ratchet",
+    "quality-gate",
+    "vitest",
+    "ci"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "MINIMUM_90_PERCENT_COVERAGE_ON_NEW_DIFF",
+    "NEVER_ALLOW_COVERAGE_METRIC_TO_REGRESS",
+    "EXCLUDE_GENERATED_CODE_FROM_COVERAGE"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_code-coverage-ratchet",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Differential Code Coverage Ratchet (>= 90%)\n\nDifferential coverage enforcement: requiring >= 90% branch and statement coverage on newly added or modified lines in Git pull requests.\n\n## Invariants\n- MINIMUM_90_PERCENT_COVERAGE_ON_NEW_DIFF\n- NEVER_ALLOW_COVERAGE_METRIC_TO_REGRESS\n- EXCLUDE_GENERATED_CODE_FROM_COVERAGE\n",
+  "contentSha256": "fc4e369953c09e2549deeb87eb4bda4153cf0a4a5d8f7b7317da9b6224b746f6"
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:api-versioning-deprecation",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Lifecycle governance for legacy APIs: deprecation notices, Sunset HTTP headers, telemetry monitoring of remaining traffic, and final shutdown.",
+  "triggerKeywords": [
+    "architecture",
+    "api-deprecation",
+    "sunset",
+    "governance",
+    "lifecycle"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EMIT_DEPRECATION_AND_SUNSET_HEADERS",
+    "MONITOR_CLIENT_MIGRATION_TELEMETRY",
+    "SCHEDULED_DECOMMISSION_RUNBOOK"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_api-versioning-deprecation",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# API Deprecation Lifecycle & Sunset Protocol\n\nLifecycle governance for legacy APIs: deprecation notices, Sunset HTTP headers, telemetry monitoring of remaining traffic, and final shutdown.\n\n## Invariants\n- EMIT_DEPRECATION_AND_SUNSET_HEADERS\n- MONITOR_CLIENT_MIGRATION_TELEMETRY\n- SCHEDULED_DECOMMISSION_RUNBOOK\n",
+  "contentSha256": "608471a51b7b77e392a17c9899e489eeeeb6dc3ae22abd52a56cca8b7f3d8e5c"
+}

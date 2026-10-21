@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:gitlab-ci-expert",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "GitLab CI/CD pipeline automation: .gitlab-ci.yml DAG stages, Docker-in-Docker runners, multi-project pipeline triggers, caching strategies, and protected environments with approval gates.",
+  "triggerKeywords": [
+    "gitlab",
+    "gitlab-ci",
+    "ci-cd",
+    "devops",
+    "runners",
+    "pipelines",
+    "automation"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REPRODUCIBLE_CONTAINERIZED_RUNNER_IMAGES",
+    "CACHE_DEPENDENCIES_BY_LOCKFILE_HASH",
+    "LEAST_PRIVILEGE_CI_JOB_TOKENS",
+    "PROTECTED_ENVIRONMENTS_FOR_PRODUCTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_gitlab-ci-expert",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# GitLab CI/CD Pipeline Architecture & Governance\n\nDesign enterprise-grade, deterministic continuous integration and delivery pipelines in GitLab.\n\n## Key Principles & Invariants\n- Define pipeline stages as a Directed Acyclic Graph (DAG) using `needs:` for parallel execution.\n- Cache dependencies keyed by the hash of lockfiles (`key: files: [package-lock.json]`).\n- Restrict sensitive CI/CD variables strictly to `protected` and `masked` configurations.\n- Require manual human approval gates on deployments targeting production environments.",
+  "contentSha256": "2548685ccb73c9ae4db9fe9f0cf9de42e847dace16abf0c001324e68db94851a"
+}

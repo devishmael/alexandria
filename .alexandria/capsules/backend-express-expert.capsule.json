@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:express-expert",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Enterprise Express.js API design: modular routing, secure middleware chaining with Helmet and CORS, centralized async error-handling middleware, Zod request validation, and graceful shutdown.",
+  "triggerKeywords": [
+    "express",
+    "nodejs",
+    "middleware",
+    "helmet",
+    "zod",
+    "rest",
+    "api",
+    "javascript"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "CENTRALIZED_ASYNC_ERROR_HANDLER",
+    "ZOD_SCHEMA_VALIDATION_ON_ALL_INPUTS",
+    "HELMET_SECURITY_HEADERS_ENFORCED",
+    "GRACEFUL_PROCESS_SHUTDOWN_ON_SIGTERM"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_express-expert",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Enterprise Express.js Architecture & Security\n\nDesign robust, resilient, and secure Node.js RESTful microservices using Express.js.\n\n## Key Principles & Invariants\n- Every endpoint payload must be validated at the boundary using strict `Zod` schemas.\n- Register `helmet()` and restrictive `cors()` middleware before any route handlers.\n- Handle all async controller errors via a single centralized error-handling middleware (`(err, req, res, next)`).\n- Intercept `SIGTERM` and `SIGINT` to gracefully drain database connections before exiting.",
+  "contentSha256": "58f9c1e4438ecb8106212978b612d32b06c0a06638a027d48330ef2ed44b48cf"
+}

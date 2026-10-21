@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:pagination-cursor-seek",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Keyset and cursor-based pagination for high-volume datasets: eliminating slow OFFSET/LIMIT scans, base64 opaque cursors, and bidirectional navigation.",
+  "triggerKeywords": [
+    "api",
+    "pagination",
+    "cursor",
+    "keyset",
+    "performance",
+    "database"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "AVOID_OFFSET_LIMIT_ON_LARGE_TABLES",
+    "USE_INDEXED_COLUMNS_FOR_KEYSET_FILTER",
+    "OPAQUE_BASE64_CURSOR_ENCODING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_pagination-cursor-seek",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# High-Scale Cursor & Keyset Pagination Strategies\n\nKeyset and cursor-based pagination for high-volume datasets: eliminating slow OFFSET/LIMIT scans, base64 opaque cursors, and bidirectional navigation.\n\n## Invariants\n- AVOID_OFFSET_LIMIT_ON_LARGE_TABLES\n- USE_INDEXED_COLUMNS_FOR_KEYSET_FILTER\n- OPAQUE_BASE64_CURSOR_ENCODING\n",
+  "contentSha256": "baf2c6372a25fb6b0fa80c20787f162ed2862e8def0f7df70541324db4d608de"
+}

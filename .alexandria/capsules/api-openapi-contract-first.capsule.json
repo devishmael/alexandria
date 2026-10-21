@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:openapi-contract-first",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Contract-first API development with OpenAPI 3.1: automated TypeScript client generation, mock servers, and breaking change detection.",
+  "triggerKeywords": [
+    "api",
+    "openapi",
+    "swagger",
+    "contract-first",
+    "sdk-generation",
+    "linting"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SINGLE_CANONICAL_OPENAPI_SPEC",
+    "AUTOMATED_CLIENT_SDK_GENERATION",
+    "FAIL_PIPELINE_ON_BREAKING_CHANGES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_openapi-contract-first",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# OpenAPI 3.1 Contract-First API Governance\n\nContract-first API development with OpenAPI 3.1: automated TypeScript client generation, mock servers, and breaking change detection.\n\n## Invariants\n- SINGLE_CANONICAL_OPENAPI_SPEC\n- AUTOMATED_CLIENT_SDK_GENERATION\n- FAIL_PIPELINE_ON_BREAKING_CHANGES\n",
+  "contentSha256": "ff9a4432d69069f70a363284b8f602ddd66180819100b36ebd3bf13889ee9dc3"
+}

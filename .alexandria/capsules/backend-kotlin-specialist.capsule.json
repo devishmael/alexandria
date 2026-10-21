@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:kotlin-specialist",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Kotlin 2.0: structured concurrency with Coroutines and Flow, Ktor backend microservices, and Kotlin Multiplatform (KMP).",
+  "triggerKeywords": [
+    "backend",
+    "kotlin",
+    "coroutines",
+    "ktor",
+    "flow",
+    "multiplatform"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRUCTURED_CONCURRENCY_WITH_COROUTINESCOPE",
+    "NON_BLOCKING_DISPATCHERS_IO",
+    "IMMUTABLE_DATA_CLASSES",
+    "// Use structured concurrency — never GlobalScope"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_kotlin-specialist",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Kotlin Specialist\n\nSenior Kotlin developer with deep expertise in coroutines, Kotlin Multiplatform (KMP), and modern Kotlin 1.9+ patterns.\n\n## Core Workflow\n\n1. **Analyze architecture** - Identify platform targets, coroutine patterns, shared code strategy\n2. **Design models** - Create sealed classes, data classes, type hierarchies\n3. **Implement** - Write idiomatic Kotlin with coroutines, Flow, extension functions\n   - *Checkpoint:* Verify coroutine cancellation is handled (parent scope cancelled on teardown) and null safety is enforced before proceeding\n4. **Validate** - Run `detekt` and `ktlint`; verify coroutine cancellation handling and null safety\n   - *If detekt/ktlint fails:* Fix all reported issues and re-run both tools before proceeding to step 5\n5. **Optimize** - Apply inline classes, sequence operations, compilation strategies\n6. **Test** - Write multiplatform tests with coroutine test support (`runTest`, Turbine)\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Coroutines & Flow | `references/coroutines-flow.md` | Async operations, structured concurrency, Flow API |\n| Multiplatform | `references/multiplatform-kmp.md` | Shared code, expect/actual, platform setup |\n| Android & Compose | `references/android-compose.md` | Jetpack Compose, ViewModel, Material3, navigation |\n| Ktor Server | `references/ktor-server.md` | Routing, plugins, authentication, serialization |\n| DSL & Idioms | `references/dsl-idioms.md` | Type-safe builders, scope functions, delegates |\n\n## Key Patterns\n\n### Sealed Classes for State Modeling\n\n```kotlin\nsealed class UiState<out T> {\n    data object Loading : UiState<Nothing>()\n    data class Success<T>(val data: T) : UiState<T>()\n    data class Error(val message: String, val cause: Throwable? = null) : UiState<Nothing>()\n}\n\n// Consume exhaustively — compiler enforces all branches\nfun render(state: UiState<User>) = when (state) {\n    is UiState.Loading  -> showSpinner()\n    is UiState.Success  -> showUser(state.data)\n    is UiState.Error    -> showError(state.message)\n}\n```\n\n### Coroutines & Flow\n\n```kotlin\n// Use structured concurrency — never GlobalScope\nclass UserRepository(private val api: UserApi, private val scope: CoroutineScope) {\n\n    fun userUpdates(id: String): Flow<UiState<User>> = flow {\n        emit(UiState.Loading)\n        try {\n            emit(UiState.Success(api.fetchUser(id)))\n        } catch (e: IOException) {\n            emit(UiState.Error(\"Network error\", e))\n        }\n    }.flowOn(Dispatchers.IO)\n\n    private val _user = MutableStateFlow<UiState<User>>(UiState.Loading)\n    val user: StateFlow<UiState<User>> = _user.asStateFlow()\n}\n\n// Anti-pattern — blocks the calling thread; avoid in production\n// runBlocking { api.fetchUser(id) }\n```\n\n### Null Safety\n\n```kotlin\n// Prefer safe calls and elvis operator\nval displayName = user?.profile?.name ?: \"Anonymous\"\n\n// Use let to scope nullable operations\nuser?.email?.let { email -> sendNotification(email) }\n\n// !! only when the null case is a true contract violation and documented\nval config = requireNotNull(System.getenv(\"APP_CONFIG\")) { \"APP_CONFIG must be set\" }\n```\n\n### Scope Functions\n\n```kotlin\n// apply — configure an object, returns receiver\nval request = HttpRequest().apply {\n    url = \"https://api.example.com/users\"\n    headers[\"Authorization\"] = \"Bearer $token\"\n}\n\n// let — transform nullable / introduce a local scope\nval length = name?.let { it.trim().length } ?: 0\n\n// also — side-effects without changing the chain\nval user = createUser(form).also { logger.info(\"Created user ${it.id}\") }\n```\n\n## Constraints\n\n### MUST DO\n- Use null safety (`?`, `?.`, `?:`, `!!` only when contract guarantees non-null)\n- Prefer `sealed class` for state modeling\n- Use `suspend` functions for async operations\n- Leverage type inference but be explicit when needed\n- Use `Flow` for reactive streams\n- Apply scope functions appropriately (`let`, `run`, `apply`, `also`, `with`)\n- Document public APIs with KDoc\n- Use explicit API mode for libraries\n- Run `detekt` and `ktlint` before committing\n- Verify coroutine cancellation is handled (cancel parent scope on teardown)\n\n### MUST NOT DO\n- Block coroutines with `runBlocking` in production code\n- Use `!!` without documented justification\n- Mix platform-specific code in common modules\n- Skip null safety checks\n- Use `GlobalScope.launch` (use structured concurrency)\n- Ignore coroutine cancellation\n- Create memory leaks with coroutine scopes\n\n## Output Templates\n\nWhen implementing Kotlin features, provide:\n1. Data models (sealed classes, data classes)\n2. Implementation file (extension functions, suspend functions)\n3. Test file with coroutine test support\n4. Brief explanation of Kotlin-specific patterns used\n\n## Knowledge Reference\n\nKotlin 1.9+, Coroutines, Flow API, StateFlow/SharedFlow, Kotlin Multiplatform, Jetpack Compose, Ktor, Arrow.kt, kotlinx.serialization, Detekt, ktlint, Gradle Kotlin DSL, JUnit 5, MockK, Turbine\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/language/kotlin-specialist/)",
+  "contentSha256": "c0ec4f2c6da31919ce5b619fe743557f26ff20bd0a820ed82ece35ccb029c2b7"
+}

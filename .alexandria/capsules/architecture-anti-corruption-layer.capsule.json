@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:anti-corruption-layer",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Protecting domain models from external vendor drift: translating third-party schemas into domain aggregates at the integration boundary.",
+  "triggerKeywords": [
+    "architecture",
+    "acl",
+    "anti-corruption",
+    "integration",
+    "ddd",
+    "adapters"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "NEVER_EXPOSE_VENDOR_TYPES_IN_DOMAIN_CORE",
+    "TRANSLATE_ERRORS_TO_INTERNAL_DOMAIN_EXCEPTIONS",
+    "ISOLATE_SDK_IMPORTS_INSIDE_ADAPTERS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_anti-corruption-layer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Anti-Corruption Layer (ACL) for Third-Party Services\n\nProtecting domain models from external vendor drift: translating third-party schemas into domain aggregates at the integration boundary.\n\n## Invariants\n- NEVER_EXPOSE_VENDOR_TYPES_IN_DOMAIN_CORE\n- TRANSLATE_ERRORS_TO_INTERNAL_DOMAIN_EXCEPTIONS\n- ISOLATE_SDK_IMPORTS_INSIDE_ADAPTERS\n",
+  "contentSha256": "d70da4034c62e4c807d270b2b988c036f5c3d07c199728ab342823ec7f613147"
+}

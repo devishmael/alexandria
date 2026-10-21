@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:r-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Modern R scientific computing: Tidyverse functional paradigms, high-performance data.table manipulation, ggplot2 data visualization, and reproducible environments with renv.",
+  "triggerKeywords": [
+    "r",
+    "tidyverse",
+    "ggplot2",
+    "datatable",
+    "statistics",
+    "data-science",
+    "renv"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REPRODUCIBLE_RENV_LOCKFILE",
+    "TIDYVERSE_PIPELINE_IMMUTABILITY",
+    "DATA_TABLE_ZERO_COPY_OPERATIONS",
+    "VECTORIZED_MATH_NO_EXPLICIT_FOR_LOOPS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_r-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Modern R Scientific Computing & Reproducible Pipelines\n\nImplement reproducible statistical analysis, high-speed data wrangling, and declarative data visualization in R.\n\n## Key Principles & Invariants\n- All environments must be locked and pinned using `renv.lock` for absolute execution reproducibility.\n- Prefer vectorized operations and functional `purrr` mappings over explicit `for` loops.\n- Use `data.table` syntax for in-place modifications and zero-copy slicing on large datasets.\n- Build declarative visualization pipelines with `ggplot2` adhering to the Grammar of Graphics.",
+  "contentSha256": "7af956c11650c27a3ef4123265ad25b1cf3869287719c6b322fa8b744437ae14"
+}

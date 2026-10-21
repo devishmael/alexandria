@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:tailwind-designer",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Tailwind CSS utility architecture, fluid container queries, CSS variables, dark mode theming, and zero runtime overhead.",
+  "triggerKeywords": [
+    "frontend",
+    "tailwind",
+    "css",
+    "design-tokens",
+    "responsive",
+    "theming"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "NO_ARBITRARY_VALUES_WITHOUT_DESIGN_TOKENS",
+    "MOBILE_FIRST_MEDIA_QUERIES",
+    "PURGE_UNUSED_STYLES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_tailwind-designer",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Tailwind CSS Design System & Utility Architecture\n\nTailwind CSS utility architecture, fluid container queries, CSS variables, dark mode theming, and zero runtime overhead.\n\n## Invariants\n- NO_ARBITRARY_VALUES_WITHOUT_DESIGN_TOKENS\n- MOBILE_FIRST_MEDIA_QUERIES\n- PURGE_UNUSED_STYLES\n",
+  "contentSha256": "0ae356da48d81e1d98ee3c6c4decce4c818d755c45d89bb753f0d481223a15cc"
+}

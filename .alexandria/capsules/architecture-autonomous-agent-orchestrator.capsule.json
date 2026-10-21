@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:autonomous-agent-orchestrator",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Multi-agent coordination architecture: bounding sub-agents (Bel: 5, Enki: 3, Utu: 1, Nabu: 1), prefix-pinned caching, and worktree isolation.",
+  "triggerKeywords": [
+    "architecture",
+    "multi-agent",
+    "orchestration",
+    "harness",
+    "subagents",
+    "pantheon"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENFORCE_STRICT_AGENT_BOUNDS",
+    "VERIFY_GIT_WORKTREE_DISJUNCTION",
+    "COLD_AUDIT_BEFORE_MERGE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_autonomous-agent-orchestrator",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Parallel Agent Orchestration\n\nWhen launching multiple agents in parallel, follow this pattern to avoid context bloat.\n\n## Core Principles\n\n1. **No TaskOutput calls** - TaskOutput returns full agent output, bloating context\n2. **Run in background** - Always use `run_in_background: true`\n3. **File-based confirmation** - Agents write status to files, not return values\n4. **Append, don't overwrite** - Multiple agents can write to same status file\n\n## Output Patterns\n\n### Simple Confirmation (parallel batch work)\nFor tasks where agents just need to confirm completion:\n\n```bash\n# Agent writes to shared status file\necho \"COMPLETE: <task-name> - $(date)\" >> .claude/cache/<batch-name>-status.txt\n```\n\n- Use `>>` to append (not `>` which overwrites)\n- Include timestamp for ordering\n- One line per agent completion\n- Check with: `cat .claude/cache/<batch-name>-status.txt`\n\n### Detailed Output (research/exploration)\nFor tasks requiring detailed findings:\n\n```\n.claude/cache/agents/<task-type>/<agent-id>/\n├── output.md      # Main findings\n├── artifacts/     # Any generated files\n└── status.txt     # Completion confirmation\n```\n\n- Each agent gets own directory\n- Full output preserved for later reading\n- Status file still used for quick completion check\n\n## Task Prompt Template\n\n```markdown\n# Task: <TASK_NAME>\n\n## Your Mission\n<clear objective>\n\n## Output\nWhen done, write confirmation:\n\\`\\`\\`bash\necho \"COMPLETE: <identifier> - $(date)\" >> .claude/cache/<batch>-status.txt\n\\`\\`\\`\n\nDo NOT return large output. Complete work silently.\n```\n\n## Launching Pattern\n\n```typescript\n// Launch all in single message block (parallel)\nTask({\n  description: \"Task 1\",\n  prompt: \"...\",\n  subagent_type: \"general-purpose\",\n  run_in_background: true\n})\nTask({\n  description: \"Task 2\",\n  prompt: \"...\",\n  subagent_type: \"general-purpose\",\n  run_in_background: true\n})\n// ... up to 15 parallel agents\n```\n\n## Monitoring\n\n```bash\n# Check completion status\ncat .claude/cache/<batch>-status.txt\n\n# Count completions\nwc -l .claude/cache/<batch>-status.txt\n\n# Watch for updates\ntail -f .claude/cache/<batch>-status.txt\n```\n\n## Batch Size\n\n- **Max 15 agents** per parallel batch\n- Wait for batch to complete before launching next\n- Use status file to track which completed\n\n## DO\n\n- Use `run_in_background: true` always\n- Have agents write to status files\n- Use append (`>>`) not overwrite (`>`)\n- Give each agent clear, self-contained instructions\n- Include all context in prompt (agents don't share memory)\n\n## DON'T\n\n- Call TaskOutput (bloats context)\n- Return large outputs from agents\n- Launch more than 15 at once\n- Rely on agent return values for orchestration\n\n## Example: Provider Backfill\n\n```bash\n# Status file\n.claude/cache/provider-backfill-status.txt\n\n# Each agent appends on completion\necho \"COMPLETE: anthropic - Thu Jan 2 12:34:56 2025\" >> .claude/cache/provider-backfill-status.txt\necho \"COMPLETE: openai - Thu Jan 2 12:35:12 2025\" >> .claude/cache/provider-backfill-status.txt\n```\n\nCheck progress:\n```bash\ncat .claude/cache/provider-backfill-status.txt\n# COMPLETE: anthropic - Thu Jan 2 12:34:56 2025\n# COMPLETE: openai - Thu Jan 2 12:35:12 2025\n```",
+  "contentSha256": "cff936af91103a81145105fd3dcf6752253e309cf55fd79c3351e2e91719664a"
+}

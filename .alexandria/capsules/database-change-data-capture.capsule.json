@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:change-data-capture",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Transactional Outbox pattern and Change Data Capture via Debezium: guaranteed at-least-once event publication from database WAL logs.",
+  "triggerKeywords": [
+    "database",
+    "cdc",
+    "debezium",
+    "outbox-pattern",
+    "wal",
+    "events"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "TRANSACTIONAL_OUTBOX_IN_SAME_TX_AS_MUTATION",
+    "AT_LEAST_ONCE_DELIVERY_GUARANTEE",
+    "IDEMPOTENT_EVENT_CONSUMERS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_change-data-capture",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Change Data Capture (CDC) & Outbox Pattern\n\nTransactional Outbox pattern and Change Data Capture via Debezium: guaranteed at-least-once event publication from database WAL logs.\n\n## Invariants\n- TRANSACTIONAL_OUTBOX_IN_SAME_TX_AS_MUTATION\n- AT_LEAST_ONCE_DELIVERY_GUARANTEE\n- IDEMPOTENT_EVENT_CONSUMERS\n",
+  "contentSha256": "3375b13bdd3bc22846071fa1786176d0f99c1678c7b72809ca21cad50f58a443"
+}

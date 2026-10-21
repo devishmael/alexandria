@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:loop-detection-breaker",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Loop detection interceptor: tracks file edit diff hashes; if an agent alternates between identical states across turns, execution is aborted.",
+  "triggerKeywords": [
+    "hook",
+    "loop-detection",
+    "cycle-breaker",
+    "oscillation",
+    "resilience"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "TRACK_SLIDING_WINDOW_OF_EDIT_HASHES",
+    "ABORT_WHEN_CYCLE_DETECTED_IN_TURNS",
+    "DEMAND_EXPLICIT_HUMAN_INTERVENTION",
+    "# tool_name can never shift session_id into its slot."
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_loop-detection-breaker",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# loop-detection.sh — PostToolUse hook (Edit/Write matcher)\n# Doom-loop guard: detect repeated edits to the same file and nudge a rethink.\n# Claude Code hook implementation of the LangChain LoopDetectionMiddleware pattern.\n\nset -euo pipefail\n\n# Read JSON payload from stdin\nINPUT=$(cat)\n\n# Extract tool_name, session_id and file_path.\n# Field order matters: file_path is last so `read` keeps paths containing\n# spaces intact. '-' is the placeholder for an absent field, so a missing\n# tool_name can never shift session_id into its slot.\nread -r TOOL_NAME PAYLOAD_SID FILE_PATH <<< \"$(python3 -c \"\nimport json, sys\ntry:\n    data = json.loads(sys.stdin.read())\n    tool = data.get('tool_name', '') or '-'\n    sid = data.get('session_id', '') or '-'\n    fp = data.get('tool_input', {}).get('file_path', '')\n    print(f'{tool} {sid} {fp}')\nexcept Exception:\n    print('- - ')\n\" <<< \"$INPUT\" 2>/dev/null || echo '- - ')\"\n\n# Ignore anything that isn't an Edit/Write tool call\n[[ \"$TOOL_NAME\" != \"Edit\" && \"$TOOL_NAME\" != \"Write\" ]] && exit 0\n[[ -z \"$FILE_PATH\" ]] && exit 0\n\n# Determine session id. The hook payload is the only reliable source: Claude\n# Code does not export CLAUDE_SESSION_ID to hook processes, so keying off the\n# env var alone collapsed every concurrent session onto one machine-global\n# day file and produced cross-session false positives.\nSESSION_ID=\"$PAYLOAD_SID\"\nif [[ -z \"$SESSION_ID\" || \"$SESSION_ID\" == \"-\" ]]; then\n    SESSION_ID=\"${CLAUDE_SESSION_ID:-}\"\nfi\nif [[ -z \"$SESSION_ID\" ]]; then\n    SESSION_ID=\"$(date +%Y%m%d)\"\nfi\n# Keep the id filesystem-safe (it lands in a /tmp path).\nSESSION_ID=\"${SESSION_ID//[^A-Za-z0-9_-]/_}\"\nTRACK_FILE=\"/tmp/claude-loop-detect-${SESSION_ID}.jsonl\"\n\n# Basename only (path normalization for the message)\nBASENAME=$(basename \"$FILE_PATH\")\n\n# Count how many times this file has already been edited this session.\n# grep -c prints \"0\" and exits 1 when there is no match, so `|| echo 0` used to\n# append a second count and make COUNT the two-line string \"0\\n0\" — a bash\n# arithmetic syntax error on the first edit of every file after the first.\nCOUNT=0\nif [[ -f \"$TRACK_FILE\" ]]; then\n    COUNT=$(grep -c \"\\\"$FILE_PATH\\\"\" \"$TRACK_FILE\" 2>/dev/null || true)\n    COUNT=${COUNT:-0}\nfi\n\n# Record this edit\necho \"{\\\"file\\\":\\\"$FILE_PATH\\\",\\\"ts\\\":\\\"$(date -u +%FT%TZ)\\\",\\\"tool\\\":\\\"$TOOL_NAME\\\"}\" >> \"$TRACK_FILE\"\nCOUNT=$((COUNT + 1))\n\n# Threshold check — build the warning text\nMSG=\"\"\nif [[ $COUNT -ge 10 ]]; then\n    MSG=\"[Loop Detection] '$BASENAME' has been edited ${COUNT} times this session — possible doom loop. Suggested: (1) check git diff for what actually changed (2) look for the root cause in a different file (3) reconsider the approach entirely.\"\nelif [[ $COUNT -ge 5 ]]; then\n    MSG=\"[Loop Detection] '$BASENAME' has been edited ${COUNT} times. You're repeatedly editing the same file — consider a different approach.\"\nfi\n\n# PostToolUse: plain stdout text is NOT delivered to Claude's context (transcript-only).\n# Must use hookSpecificOutput.additionalContext (JSON on stdout) — same shape as auto-verify-fix.sh.\nif [[ -n \"$MSG\" ]]; then\n    MSG=\"$MSG\" python3 -c \"\nimport json, os\nprint(json.dumps({'hookSpecificOutput': {'hookEventName': 'PostToolUse', 'additionalContext': os.environ['MSG']}}, ensure_ascii=False))\n\"\nfi\n\nexit 0\n",
+  "contentSha256": "dc6a16f25ec3433ae0edabc8c886875595926090e61bce10563f939f825215b4"
+}

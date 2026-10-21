@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:bash-scripting",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Robust POSIX Shell and Bash scripting: strict error modes (set -euo pipefail), signal cleanup traps, robust CLI flag parsing with getopts, and variable quoting.",
+  "triggerKeywords": [
+    "bash",
+    "shell",
+    "sh",
+    "posix",
+    "scripting",
+    "cli",
+    "automation",
+    "devops"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_SHELL_SET_EUO_PIPEFAIL",
+    "CLEANUP_TRAP_ON_EXIT_AND_SIGNAL",
+    "QUOTE_ALL_VARIABLE_EXPANSIONS",
+    "GETOPTS_DEFENSIVE_FLAG_VALIDATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_bash-scripting",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Robust POSIX Shell & Production Bash Scripting\n\nWrite resilient, defensive, and portable shell automation scripts that fail gracefully and clean up state deterministically.\n\n## Key Principles & Invariants\n- Start every script with `set -euo pipefail` to abort on errors, unbound variables, and piped failures.\n- Register cleanup functions via `trap cleanup EXIT INT TERM` for temporary file eradication.\n- Quote every variable expansion (`\"${VAR}\"`) to prevent word splitting and glob expansion bugs.\n- Parse options defensively using `getopts` and validate all user-supplied paths.",
+  "contentSha256": "757ed552c641b2794ce2d9403f7e411570c599105e02112ca2cc33165b902101"
+}

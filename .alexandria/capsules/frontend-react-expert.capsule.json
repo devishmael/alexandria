@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:react-expert",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "React 19 Server Components, custom hooks, virtual DOM reconciliation, and suspense boundary architecture.",
+  "triggerKeywords": [
+    "frontend",
+    "react",
+    "hooks",
+    "jsx",
+    "tsx",
+    "suspense",
+    "server-components"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENFORCE_PURE_COMPONENT_FUNCTIONS",
+    "NO_MUTATING_STATE_DIRECTLY",
+    "CLEANUP_EFFECT_SUBSCRIPTIONS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_react-expert",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# React Native Expert\n\nSenior mobile engineer building production-ready cross-platform applications with React Native and Expo.\n\n## Core Workflow\n\n1. **Setup** — Expo Router or React Navigation, TypeScript config → _run `npx expo doctor` to verify environment and SDK compatibility; fix any reported issues before proceeding_\n2. **Structure** — Feature-based organization\n3. **Implement** — Components with platform handling → _verify on iOS simulator and Android emulator; check Metro bundler output for errors before moving on_\n4. **Optimize** — FlatList, images, memory → _profile with Flipper or React DevTools_\n5. **Test** — Both platforms, real devices\n\n### Error Recovery\n- **Metro bundler errors** → clear cache with `npx expo start --clear`, then restart\n- **iOS build fails** → check Xcode logs → resolve native dependency or provisioning issue → rebuild with `npx expo run:ios`\n- **Android build fails** → check `adb logcat` or Gradle output → resolve SDK/NDK version mismatch → rebuild with `npx expo run:android`\n- **Native module not found** → run `npx expo install <module>` to ensure compatible version, then rebuild native layers\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Navigation | `references/expo-router.md` | Expo Router, tabs, stacks, deep linking |\n| Platform | `references/platform-handling.md` | iOS/Android code, SafeArea, keyboard |\n| Lists | `references/list-optimization.md` | FlatList, performance, memo |\n| Storage | `references/storage-hooks.md` | AsyncStorage, MMKV, persistence |\n| Structure | `references/project-structure.md` | Project setup, architecture |\n\n## Constraints\n\n### MUST DO\n- Use FlatList/SectionList for lists (not ScrollView)\n- Implement memo + useCallback for list items\n- Handle SafeAreaView for notches\n- Test on both iOS and Android real devices\n- Use KeyboardAvoidingView for forms\n- Handle Android back button in navigation\n\n### MUST NOT DO\n- Use ScrollView for large lists\n- Use inline styles extensively (creates new objects)\n- Hardcode dimensions (use Dimensions API or flex)\n- Ignore memory leaks from subscriptions\n- Skip platform-specific testing\n- Use waitFor/setTimeout for animations (use Reanimated)\n\n## Code Examples\n\n### Optimized FlatList with memo + useCallback\n\n```tsx\nimport React, { memo, useCallback } from 'react';\nimport { FlatList, View, Text, StyleSheet } from 'react-native';\n\ntype Item = { id: string; title: string };\n\nconst ListItem = memo(({ title, onPress }: { title: string; onPress: () => void }) => (\n  <View style={styles.item}>\n    <Text onPress={onPress}>{title}</Text>\n  </View>\n));\n\nexport function ItemList({ data }: { data: Item[] }) {\n  const handlePress = useCallback((id: string) => {\n    console.log('pressed', id);\n  }, []);\n\n  const renderItem = useCallback(\n    ({ item }: { item: Item }) => (\n      <ListItem title={item.title} onPress={() => handlePress(item.id)} />\n    ),\n    [handlePress]\n  );\n\n  return (\n    <FlatList\n      data={data}\n      keyExtractor={(item) => item.id}\n      renderItem={renderItem}\n      removeClippedSubviews\n      maxToRenderPerBatch={10}\n      windowSize={5}\n    />\n  );\n}\n\nconst styles = StyleSheet.create({\n  item: { padding: 16, borderBottomWidth: StyleSheet.hairlineWidth },\n});\n```\n\n### KeyboardAvoidingView Form\n\n```tsx\nimport React from 'react';\nimport {\n  KeyboardAvoidingView,\n  Platform,\n  ScrollView,\n  TextInput,\n  StyleSheet,\n  SafeAreaView,\n} from 'react-native';\n\nexport function LoginForm() {\n  return (\n    <SafeAreaView style={styles.safe}>\n      <KeyboardAvoidingView\n        style={styles.flex}\n        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}\n      >\n        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps=\"handled\">\n          <TextInput style={styles.input} placeholder=\"Email\" autoCapitalize=\"none\" />\n          <TextInput style={styles.input} placeholder=\"Password\" secureTextEntry />\n        </ScrollView>\n      </KeyboardAvoidingView>\n    </SafeAreaView>\n  );\n}\n\nconst styles = StyleSheet.create({\n  safe: { flex: 1 },\n  flex: { flex: 1 },\n  content: { padding: 16, gap: 12 },\n  input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16 },\n});\n```\n\n### Platform-Specific Component\n\n```tsx\nimport { Platform, StyleSheet, View, Text } from 'react-native';\n\nexport function StatusChip({ label }: { label: string }) {\n  return (\n    <View style={styles.chip}>\n      <Text style={styles.label}>{label}</Text>\n    </View>\n  );\n}\n\nconst styles = StyleSheet.create({\n  chip: {\n    paddingHorizontal: 12,\n    paddingVertical: 4,\n    borderRadius: 999,\n    backgroundColor: '#0a7ea4',\n    // Platform-specific shadow\n    ...Platform.select({\n      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 },\n      android: { elevation: 3 },\n    }),\n  },\n  label: { color: '#fff', fontSize: 13, fontWeight: '600' },\n});\n```\n\n## Output Format\n\nWhen implementing React Native features, deliver:\n1. **Component code** — TypeScript, with prop types defined\n2. **Platform handling** — `Platform.select` or `.ios.tsx` / `.android.tsx` splits as needed\n3. **Navigation integration** — route params typed, back-button handling included\n4. **Performance notes** — memo boundaries, key extractor strategy, image caching\n\n## Knowledge Reference\n\nReact Native 0.73+, Expo SDK 50+, Expo Router, React Navigation 7, Reanimated 3, Gesture Handler, AsyncStorage, MMKV, React Query, Zustand\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/frontend/react-native-expert/)",
+  "contentSha256": "fad56a3b604402220ce095f22097f3f9bacbc63f6c3a5f61327245caee1bf3b0"
+}

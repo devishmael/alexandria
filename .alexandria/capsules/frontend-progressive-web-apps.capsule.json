@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:progressive-web-apps",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Progressive Web Apps (PWA), web app manifests, Workbox service worker caching strategies, and background sync.",
+  "triggerKeywords": [
+    "frontend",
+    "pwa",
+    "service-worker",
+    "offline",
+    "cache",
+    "workbox"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SERVICE_WORKER_CACHE_FIRST_FOR_ASSETS",
+    "OFFLINE_FALLBACK_PAGE_REQUIRED",
+    "HTTPS_ENFORCED"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_progressive-web-apps",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Progressive Web Apps & Service Worker Offline Cache\n\nProgressive Web Apps (PWA), web app manifests, Workbox service worker caching strategies, and background sync.\n\n## Invariants\n- SERVICE_WORKER_CACHE_FIRST_FOR_ASSETS\n- OFFLINE_FALLBACK_PAGE_REQUIRED\n- HTTPS_ENFORCED\n",
+  "contentSha256": "539d9003f801fd7d274afc344c28b320dc774b9ee919622c66288f7261178db2"
+}

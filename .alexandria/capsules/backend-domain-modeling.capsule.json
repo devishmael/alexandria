@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:domain-modeling",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Tactical and strategic domain modeling: aggregate roots, value objects, domain events, invariants boundary enforcement, and pure business logic.",
+  "triggerKeywords": [
+    "backend",
+    "domain-modeling",
+    "ddd",
+    "aggregates",
+    "value-objects"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENFORCE_INVARIANTS_INSIDE_AGGREGATE_ROOT",
+    "IMMUTABLE_VALUE_OBJECTS",
+    "DOMAIN_EVENTS_FOR_SIDE_EFFECTS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_domain-modeling",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Domain Modeling\n\nActively build and sharpen the project's domain model as you design. This is the *active* discipline: challenging terms, inventing edge-case scenarios, and writing the glossary and decisions down the moment they crystallise. (Merely *reading* `GLOSSARY.md` for vocabulary is not this skill: that's a one-line habit any skill can do. This skill is for when you're changing the model, not just consuming it.)\n\n## File structure\n\nMost repos have a single context:\n\n```\n/\n├── GLOSSARY.md\n├── docs/\n│   └── adr/\n│       ├── 0001-event-sourced-orders.md\n│       └── 0002-postgres-for-write-model.md\n└── src/\n```\n\nIf a `GLOSSARY-MAP.md` exists at the root, the repo has multiple contexts. The map points to where each one lives:\n\n```\n/\n├── GLOSSARY-MAP.md\n├── docs/\n│   └── adr/                          ← system-wide decisions\n├── src/\n│   ├── ordering/\n│   │   ├── GLOSSARY.md\n│   │   └── docs/adr/                 ← context-specific decisions\n│   └── billing/\n│       ├── GLOSSARY.md\n│       └── docs/adr/\n```\n\nCreate files lazily: only when you have something to write. If no `GLOSSARY.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.\n\n## During the session\n\n### Challenge against the glossary\n\nWhen the user uses a term that conflicts with the existing language in `GLOSSARY.md`, call it out immediately. \"Your glossary defines 'cancellation' as X, but you seem to mean Y. Which is it?\"\n\n### Sharpen fuzzy language\n\nWhen the user uses vague or overloaded terms, propose a precise canonical term. \"You're saying 'account': do you mean the Customer or the User? Those are different things.\"\n\n### Discuss concrete scenarios\n\nWhen domain relationships are being discussed, stress-test them with specific scenarios. Invent scenarios that probe edge cases and force the user to be precise about the boundaries between concepts.\n\n### Cross-reference with code\n\nWhen the user states how something works, check whether the code agrees. If you find a contradiction, surface it: \"Your code cancels entire Orders, but you just said partial cancellation is possible. Which is right?\"\n\n### Update GLOSSARY.md inline\n\nWhen a term is resolved, update `GLOSSARY.md` right there. Don't batch these up: capture them as they happen. Use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md).\n\n`GLOSSARY.md` should be totally devoid of implementation details. Do not treat `GLOSSARY.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.\n\n### Offer ADRs sparingly\n\nOnly offer to create an ADR when all three are true:\n\n1. **Hard to reverse**: the cost of changing your mind later is meaningful\n2. **Surprising without context**: a future reader will wonder \"why did they do it this way?\"\n3. **The result of a real trade-off**: there were genuine alternatives and you picked one for specific reasons\n\nIf any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).",
+  "contentSha256": "c279698d5eb18902493aa4d741d6a2d342b6bef7175213c7a2f765f84ff26713"
+}

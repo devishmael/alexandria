@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:connection-pool-tuning",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Formulaic connection pool sizing: pool size = (core_count * 2) + effective_spindle_count, connection timeout limits, and leak detection.",
+  "triggerKeywords": [
+    "database",
+    "connection-pool",
+    "hikari",
+    "pgbouncer",
+    "performance"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SIZE_POOL_ACCORDING_TO_HARDWARE_LIMITS",
+    "SET_STRICT_CONNECTION_ACQUISITION_TIMEOUTS",
+    "ALWAYS_CLOSE_CONNECTIONS_IN_FINALLY_BLOCK"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_connection-pool-tuning",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Database Connection Pool Sizing & Leak Detection\n\nFormulaic connection pool sizing: pool size = (core_count * 2) + effective_spindle_count, connection timeout limits, and leak detection.\n\n## Invariants\n- SIZE_POOL_ACCORDING_TO_HARDWARE_LIMITS\n- SET_STRICT_CONNECTION_ACQUISITION_TIMEOUTS\n- ALWAYS_CLOSE_CONNECTIONS_IN_FINALLY_BLOCK\n",
+  "contentSha256": "346b29ab741f8ee2e1e1b7f255d4fd3efb393ce1eb3a03f836c58ad80878a78d"
+}

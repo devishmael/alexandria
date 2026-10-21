@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:security-pipeline-sast",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "CI security pipeline: static application security testing (SAST), software composition analysis (Trivy), and CycloneDX SBOM generation.",
+  "triggerKeywords": [
+    "devops",
+    "sast",
+    "sbom",
+    "trivy",
+    "security-pipeline",
+    "vulnerabilities"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "BLOCK_MERGE_ON_CRITICAL_HIGH_CVE",
+    "GENERATE_CYCLONEDX_SBOM_FOR_ARTIFACTS",
+    "AUTOMATED_DEPENDENCY_SECURITY_SCANNING",
+    "| CWE-434 | Unrestricted Upload | Upload without validation |"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_security-pipeline-sast",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "## Overview\n\n보안 파이프라인 스킬은 코드 변경 시 자동으로 CWE Top 25 기반 보안 검증을 수행한다.\n`/handoff-verify --security`, `/commit-push-pr` 실행 시 통합 동작한다.\n보안 체크리스트 참조: `~/.claude/skills/_reference/security-checklist.md`\n\neffort:max가 항상 강제 적용된다. 보안 검증은 축약하지 않는다.\n\n---\n\n## Trigger Conditions\n\n### 파일 패턴 기반 자동 트리거\n\n다음 패턴을 포함하는 파일이 변경되면 보안 파이프라인이 자동으로 실행된다:\n\n| 패턴 | 트리거 수준 | 설명 |\n|------|-------------|------|\n| `**/auth/**` | Full Scan | 인증 관련 모듈 |\n| `**/payment/**` | Full Scan | 결제 처리 모듈 |\n| `**/api/**` | CWE Scan | API 엔드포인트 |\n| `**/middleware/**` | CWE Scan | 미들웨어 |\n| `**/session*` | CWE Scan | 세션 관리 |\n| `**/token*` | CWE Scan | 토큰 처리 |\n| `**/crypto*` | CWE Scan | 암호화 로직 |\n| `**/admin/**` | Full + STRIDE | 관리자 기능 |\n| `**/upload*` | CWE Scan | 파일 업로드 |\n| `**/.env*` | Credential Scan | 환경변수 파일 |\n| `**/config/secret*` | Credential Scan | 시크릿 설정 |\n\n### 커밋 기반 자동 트리거\n\n`/commit-push-pr` 실행 시 staged 파일 목록에서 위 패턴이 감지되면,\n커밋 전 보안 파이프라인이 자동으로 실행된다.\n\n---\n\n## CWE Scanning Rules\n\n### Critical (커밋 차단)\n\n| CWE ID | Rule | Grep Pattern |\n|--------|------|--------------|\n| CWE-89 | SQL Injection | `query\\(.*\\$\\{`, `query\\(.*\\+` |\n| CWE-79 | XSS | `innerHTML`, `dangerouslySetInnerHTML`, `v-html` |\n| CWE-78 | OS Command Injection | `exec\\(.*\\$\\{`, `spawn\\(.*req\\.` |\n| CWE-77 | Command Injection | Template string in shell command |\n| CWE-798 | Hardcoded Credentials | `apiKey\\s*=\\s*['\"]`, `secret\\s*=\\s*['\"]` |\n\n### High (경고, 커밋 허용)\n\n| CWE ID | Rule | Grep Pattern |\n|--------|------|--------------|\n| CWE-22 | Path Traversal | `\\.\\.\\/` with user input |\n| CWE-352 | CSRF | POST handler without csrf check |\n| CWE-287 | Improper Auth | Route without auth middleware |\n| CWE-862 | Missing Authz | Handler without role/permission check |\n| CWE-502 | Unsafe Deserialization | `eval\\(`, `new Function\\(` |\n| CWE-918 | SSRF | `fetch\\(.*req\\.`, `axios.*req\\.` |\n| CWE-434 | Unrestricted Upload | Upload without validation |\n| CWE-269 | Privilege Escalation | Role change without verification |\n\n### Medium (정보 제공)\n\n| CWE ID | Rule | Grep Pattern |\n|--------|------|--------------|\n| CWE-200 | Info Disclosure | `console\\.log.*password\\|token\\|secret` |\n| CWE-20 | Input Validation | Endpoint without schema validation |\n| CWE-327 | Broken Crypto | `md5\\(`, `sha1\\(`, `Math\\.random\\(\\)` |\n| CWE-276 | Incorrect Perms | `origin:\\s*['\"]?\\*`, `0o?777` |\n\n---\n\n## Auto-Fix Rules\n\n자동 수정은 사용자 승인 후 적용한다. 신뢰도가 High인 항목만 자동 수정 대상이다.\n\n### Parameterized Queries (CWE-89)\n\n```\nBefore: db.query(`SELECT * FROM users WHERE id = '${id}'`)\nAfter:  db.query('SELECT * FROM users WHERE id = $1', [id])\n```\n\n### Environment Variables (CWE-798)\n\n```\nBefore: const apiKey = 'sk-proj-abc123'\nAfter:  const apiKey = process.env.API_KEY\n+ .env.example에 API_KEY= 추가\n```\n\n### Safe DOM Manipulation (CWE-79)\n\n```\nBefore: element.innerHTML = userInput\nAfter:  element.textContent = userInput\n```\n\n### Remove Sensitive Logs (CWE-200)\n\n```\nBefore: console.log('Token:', token)\nAfter:  // (line removed)\n```\n\n### Secure Hash (CWE-327)\n\n```\nBefore: const hash = md5(data)\nAfter:  const hash = crypto.createHash('sha256').update(data).digest('hex')\n```\n\n---\n\n## Integration Points\n\n### /handoff-verify (v6)\n\n`/handoff-verify` 커맨드의 검증 단계에서 보안 검사가 포함된다.\nverify-agent가 민감 파일 변경을 감지하면 이 스킬을 자동 호출한다.\n\n### /commit-push-pr\n\n커밋 전 자동 보안 게이트로 동작한다:\n- Critical 발견 시: 커밋 차단 (BLOCKED)\n- High 발견 시: 경고 표시 후 사용자 확인 (WARN)\n- Medium 이하만 존재: 통과 (PASS)\n\n### /security-review (통합됨)\n\n이전 security-review 스킬의 OWASP 체크리스트는 `_reference/security-checklist.md`로 전환.\n전체 보안 리뷰 시 이 스킬의 CWE Top 25 매핑 + STRIDE + 의존성 검사가 수행되며,\n체크리스트 참조 파일을 함께 로드한다.\n\n---\n\n## effort:max Enforcement\n\n이 스킬은 항상 effort:max로 실행된다.\n보안 검증에서 분석 깊이를 줄이는 것은 허용하지 않는다.\n\n적용 범위:\n- CWE 패턴 매칭 시 false positive 최소화를 위한 컨텍스트 분석\n- STRIDE 분류 시 전체 데이터 흐름 추적\n- 자동 수정 제안 시 사이드 이펙트 검증\n- 의존성 검사 시 transitive dependency 포함",
+  "contentSha256": "17ee7d1b0136c84f221e181f857dc9fc3bc19a4dd501127fb0be6a1c442b3582"
+}

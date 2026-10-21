@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "ide:cursor-rules",
+  "domain": "ide",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Cursor AI editor optimization: custom .cursorrules definition, prompt engineering for Claude 3.5 Sonnet and GPT-4o, codebase indexing tuning, context management, and multi-file agentic composing.",
+  "triggerKeywords": [
+    "cursor",
+    "cursorrules",
+    "ai-editor",
+    "llm",
+    "composer",
+    "prompt-engineering",
+    "ide"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PROJECT_SPECIFIC_CURSORRULES_IN_ROOT",
+    "ZERO_CONTEXT_ROT_VIA_EXPLICIT_FILE_TAGGING",
+    "PREVENT_DESTRUCTIVE_AUTO_APPLY_OVERWRITES",
+    "INVARIANT_DRIVEN_PROMPT_CONSTRAINTS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "ide_cursor-rules",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Cursor AI Editor Optimization & Rules Engineering\n\nConfigure Cursor for deterministic agentic coding, context precision, and minimal hallucination.\n\n## Key Principles & Invariants\n- Maintain an authoritative `.cursorrules` file in the project root detailing stack invariants and architectural guidelines.\n- Tag relevant target files explicitly (`@file`) to prevent model hallucination and token churn.\n- Review and verify multi-file diffs in Composer before executing automated applies.\n- Enforce strict typing and test-driven cycles as non-negotiable prompt instructions.",
+  "contentSha256": "96190f107e9180810b2c9c4d4f59f40aefe2a4e64160c4e73694fd634fd5bb01"
+}

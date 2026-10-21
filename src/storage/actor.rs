@@ -220,6 +220,93 @@ impl VaultStorageHandle {
                 .map_err(|e| format!("Failed to seed built-in capsule '{}': {}", cap.skill_id, e))?;
         }
 
+        // Auto-seed any capsules found in workspace .alexandria/capsules or ./capsules
+        for search_dir in &[
+            PathBuf::from(".alexandria/capsules"),
+            PathBuf::from("capsules"),
+        ] {
+            if search_dir.exists() && search_dir.is_dir() {
+                if let Ok(entries) = std::fs::read_dir(search_dir) {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if path.extension().and_then(|s| s.to_str()) == Some("json")
+                            && path.file_name().and_then(|s| s.to_str()) != Some("alexandria-capsules.manifest.json")
+                        {
+                            if let Ok(content) = std::fs::read_to_string(&path) {
+                                if let Ok(cap) = serde_json::from_str::<AlexandriaCapsuleJson>(&content) {
+                                    let trigger_keywords_json = serde_json::to_string(&cap.trigger_keywords).unwrap_or_else(|_| "[]".to_string());
+                                    let required_tools_json = serde_json::to_string(&cap.required_tools).unwrap_or_else(|_| "[]".to_string());
+                                    let invariants_json = serde_json::to_string(&cap.invariants).unwrap_or_else(|_| "[]".to_string());
+                                    let hooks_json = serde_json::to_string(&cap.hooks).unwrap_or_else(|_| "[]".to_string());
+                                    let _ = init_conn.execute(
+                                        "INSERT OR IGNORE INTO skills (
+                                            skill_id, domain, description, trigger_keywords_json,
+                                            required_tools_json, invariants_json, hooks_json,
+                                            instructions_md, updated_at
+                                         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                                        params![
+                                            cap.skill_id,
+                                            cap.domain,
+                                            cap.description,
+                                            trigger_keywords_json,
+                                            required_tools_json,
+                                            invariants_json,
+                                            hooks_json,
+                                            cap.instructions_markdown,
+                                            now_ms
+                                        ],
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Auto-seed episodic vector memory from workspace snapshot if present
+        let snapshot_path = PathBuf::from(".alexandria/vector-store/memory-index.json");
+        if snapshot_path.exists() {
+            if let Ok(raw_json) = std::fs::read_to_string(&snapshot_path) {
+                if let Ok(val) = serde_json::from_str::<serde_json::Value>(&raw_json) {
+                    if let Some(chunks) = val.get("chunks").and_then(|c| c.as_array()) {
+                        for chunk in chunks {
+                            let chunk_id = chunk.get("chunkId").and_then(|v| v.as_str()).unwrap_or("");
+                            let source_kind = chunk.get("sourceKind").and_then(|v| v.as_str()).unwrap_or("episodic_turn");
+                            let agent_id = chunk.get("agentId").and_then(|v| v.as_str()).unwrap_or("architect");
+                            let module_name = chunk.get("moduleName").and_then(|v| v.as_str()).unwrap_or("core");
+                            let tags = chunk.get("tags").cloned().unwrap_or_else(|| serde_json::json!([]));
+                            let compact_summary = chunk.get("compactSummary").and_then(|v| v.as_str()).unwrap_or("");
+                            let token_estimate = chunk.get("tokenEstimate").and_then(|v| v.as_i64()).unwrap_or(20);
+                            let embedding = chunk.get("embeddingInt8").cloned().unwrap_or_else(|| serde_json::json!([]));
+                            let created_at = chunk.get("createdAt").and_then(|v| v.as_i64()).unwrap_or(now_ms);
+
+                            let tags_str = serde_json::to_string(&tags).unwrap_or_else(|_| "[]".into());
+                            let emb_str = serde_json::to_string(&embedding).unwrap_or_else(|_| "[]".into());
+
+                            let _ = init_conn.execute(
+                                "INSERT OR IGNORE INTO episodic_vector_memory (
+                                    chunk_id, source_kind, agent_id, module_name, tags_json,
+                                    compact_summary, token_estimate, embedding_int8_json, created_at
+                                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                                params![
+                                    chunk_id,
+                                    source_kind,
+                                    agent_id,
+                                    module_name,
+                                    tags_str,
+                                    compact_summary,
+                                    token_estimate,
+                                    emb_str,
+                                    created_at
+                                ],
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         drop(init_conn);
 
         let (writer_tx, mut writer_rx) = mpsc::channel::<VaultWriteCommand>(512);

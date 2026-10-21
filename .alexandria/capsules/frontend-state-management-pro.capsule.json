@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:state-management-pro",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Predictable unidirectional state management via Zustand, Redux Toolkit, immutable state, and selector memoization.",
+  "triggerKeywords": [
+    "frontend",
+    "state",
+    "zustand",
+    "redux",
+    "immutability",
+    "memoization"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "IMMUTABLE_STATE_UPDATES",
+    "NORMALIZED_STORE_SCHEMAS",
+    "MEMOIZED_DERIVED_SELECTORS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_state-management-pro",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Predictable State Management Patterns\n\nPredictable unidirectional state management via Zustand, Redux Toolkit, immutable state, and selector memoization.\n\n## Invariants\n- IMMUTABLE_STATE_UPDATES\n- NORMALIZED_STORE_SCHEMAS\n- MEMOIZED_DERIVED_SELECTORS\n",
+  "contentSha256": "3e2c56b76ac7e575974dd97a649627b69b6f113424fb600a6648259cf86b56fa"
+}

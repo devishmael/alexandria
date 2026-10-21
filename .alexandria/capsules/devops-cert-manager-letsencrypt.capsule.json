@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:cert-manager-letsencrypt",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Automated SSL/TLS certificate issuance and renewal in Kubernetes: Let's Encrypt ACME HTTP-01/DNS-01 challenges and expiration alerts.",
+  "triggerKeywords": [
+    "devops",
+    "cert-manager",
+    "tls",
+    "ssl",
+    "letsencrypt",
+    "kubernetes"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "AUTOMATED_RENEWAL_30_DAYS_BEFORE_EXPIRY",
+    "DNS_01_CHALLENGES_FOR_WILDCARD_DOMAINS",
+    "ALERT_ON_CERTIFICATE_ISSUANCE_FAILURES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_cert-manager-letsencrypt",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# cert-manager Automated TLS Certificate Lifecycle\n\nAutomated SSL/TLS certificate issuance and renewal in Kubernetes: Let's Encrypt ACME HTTP-01/DNS-01 challenges and expiration alerts.\n\n## Invariants\n- AUTOMATED_RENEWAL_30_DAYS_BEFORE_EXPIRY\n- DNS_01_CHALLENGES_FOR_WILDCARD_DOMAINS\n- ALERT_ON_CERTIFICATE_ISSUANCE_FAILURES\n",
+  "contentSha256": "0a2347c1ac70c176c6d065f8a8554423883a5cb3606809ba62521ea2ca120c6a"
+}

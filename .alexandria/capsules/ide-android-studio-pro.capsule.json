@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "ide:android-studio-pro",
+  "domain": "ide",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Android Studio mobile platform engineering: Gradle build logic (Kotlin DSL), Layout Inspector & Compose Preview, Logcat advanced filtering, NDK integration, and APK/AAB bundle signing.",
+  "triggerKeywords": [
+    "android-studio",
+    "android",
+    "gradle",
+    "kotlin",
+    "compose",
+    "logcat",
+    "ndk",
+    "ide"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "GRADLE_KOTLIN_DSL_MODULAR_BUILD_LOGIC",
+    "COMPOSE_PREVIEW_ISOLATION_WITHOUT_MOCK_LEAKS",
+    "LOGCAT_FILTERING_NO_PII_LOGGED",
+    "PROGUARD_R8_CODE_SHRINKING_AND_OBFUSCATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "ide_android-studio-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Android Studio Platform Engineering & Jetpack Compose\n\nBuild modern, performant Android apps in Android Studio using Kotlin, Gradle Kotlin DSL, and Jetpack Compose.\n\n## Key Principles & Invariants\n- Structure multi-module build scripts using Gradle Kotlin DSL (`build.gradle.kts`) and Version Catalogs.\n- Isolate Jetpack Compose `@Preview` composables with preview parameter providers.\n- Prevent PII leakage in Logcat output; enforce ProGuard/R8 rules for production builds.\n- Inspect Compose recomposition counts with the Layout Inspector to eliminate unnecessary re-renders.",
+  "contentSha256": "62d1539279c61919892fed0836f7e651f5c4b9d576a5736fa7cdf813310ea1a5"
+}

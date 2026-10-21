@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:cosign-container-signing",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Supply chain security: signing container images with Sigstore Cosign, keyless OIDC signing, and Kyverno admission policy verification.",
+  "triggerKeywords": [
+    "devops",
+    "cosign",
+    "sigstore",
+    "supply-chain",
+    "security",
+    "admission"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REJECT_UNSIGNED_CONTAINER_IMAGES_AT_ADMISSION",
+    "STORE_SIGNATURES_IN_OCI_REGISTRY",
+    "SLSA_PROVENANCE_LEVEL_3_COMPLIANCE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_cosign-container-signing",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Sigstore Cosign Container Image Signing & Verification\n\nSupply chain security: signing container images with Sigstore Cosign, keyless OIDC signing, and Kyverno admission policy verification.\n\n## Invariants\n- REJECT_UNSIGNED_CONTAINER_IMAGES_AT_ADMISSION\n- STORE_SIGNATURES_IN_OCI_REGISTRY\n- SLSA_PROVENANCE_LEVEL_3_COMPLIANCE\n",
+  "contentSha256": "214d7d7e86a4c2b32d6f473b6365856e173e42be2822c327c60a3ba29795f35d"
+}

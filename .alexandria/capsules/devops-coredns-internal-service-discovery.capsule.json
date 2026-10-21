@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:coredns-internal-service-discovery",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Kubernetes internal DNS tuning: CoreDNS autopath optimization, ndots:5 avoidance, caching plugins, and fallback forwarders.",
+  "triggerKeywords": [
+    "devops",
+    "coredns",
+    "dns",
+    "kubernetes",
+    "service-discovery",
+    "networking"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENABLE_COREDNS_CACHE_PLUGIN_WITH_TTL",
+    "OPTIMIZE_CLIENT_NDOTS_TO_AVOID_DNS_FLOODING",
+    "AUTOPATH_FOR_SEARCH_PATH_REDUCTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_coredns-internal-service-discovery",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# CoreDNS Internal Cluster DNS & Latency Tuning\n\nKubernetes internal DNS tuning: CoreDNS autopath optimization, ndots:5 avoidance, caching plugins, and fallback forwarders.\n\n## Invariants\n- ENABLE_COREDNS_CACHE_PLUGIN_WITH_TTL\n- OPTIMIZE_CLIENT_NDOTS_TO_AVOID_DNS_FLOODING\n- AUTOPATH_FOR_SEARCH_PATH_REDUCTION\n",
+  "contentSha256": "76716fdd336c598a38608212a6cf121031782d96ccc6886df9e4dcac1adda6dd"
+}

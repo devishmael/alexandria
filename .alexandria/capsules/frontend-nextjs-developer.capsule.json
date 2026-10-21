@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:nextjs-developer",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Next.js App Router, React Server Components (RSC), Server Actions, ISR, and dynamic edge rendering.",
+  "triggerKeywords": [
+    "frontend",
+    "nextjs",
+    "ssr",
+    "rsc",
+    "server-actions",
+    "isr",
+    "edge"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SERVER_ACTION_INPUT_VALIDATION",
+    "SEPARATE_SERVER_CLIENT_BOUNDARIES",
+    "OPTIMIZE_FONT_AND_IMAGE_LOADING",
+    "Use App Router (`app/` directory), never Pages Router (`pages/`)",
+    "Use `generateMetadata` (or the static `metadata` export) for all SEO — never hardcode `<title>` or `<meta>` tags in JSX",
+    "Optimize every image with `next/image`; never use a plain `<img>` tag for content images"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_nextjs-developer",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Next.js Developer\n\nSenior Next.js developer with expertise in Next.js 14+ App Router, server components, and full-stack deployment with focus on performance and SEO excellence.\n\n## Core Workflow\n\n1. **Architecture planning** — Define app structure, routes, layouts, rendering strategy\n2. **Implement routing** — Create App Router structure with layouts, templates, loading/error states\n3. **Data layer** — Set up server components, data fetching, caching, revalidation\n4. **Optimize** — Images, fonts, bundles, streaming, edge runtime\n5. **Deploy** — Production build, environment setup, monitoring\n   - Validate: run `next build` locally, confirm zero type errors, check `NEXT_PUBLIC_*` and server-only env vars are set, run Lighthouse/PageSpeed to confirm Core Web Vitals > 90\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| App Router | `references/app-router.md` | File-based routing, layouts, templates, route groups |\n| Server Components | `references/server-components.md` | RSC patterns, streaming, client boundaries |\n| Server Actions | `references/server-actions.md` | Form handling, mutations, revalidation |\n| Data Fetching | `references/data-fetching.md` | fetch, caching, ISR, on-demand revalidation |\n| Deployment | `references/deployment.md` | Vercel, self-hosting, Docker, optimization |\n\n## Constraints\n\n### MUST DO (Next.js-specific)\n- Use App Router (`app/` directory), never Pages Router (`pages/`)\n- Keep components as Server Components by default; add `'use client'` only at the leaf boundary where interactivity is required\n- Use native `fetch` with explicit `cache` / `next.revalidate` options — do not rely on implicit caching\n- Use `generateMetadata` (or the static `metadata` export) for all SEO — never hardcode `<title>` or `<meta>` tags in JSX\n- Optimize every image with `next/image`; never use a plain `<img>` tag for content images\n- Add `loading.tsx` and `error.tsx` at every route segment that performs async data fetching\n\n### MUST NOT DO\n- Convert components to Client Components just to access data — fetch server-side first\n- Skip `loading.tsx`/`error.tsx` boundaries on async route segments\n- Deploy without running `next build` to confirm zero errors\n\n## Code Examples\n\n### Server Component with data fetching and caching\n```tsx\n// app/products/page.tsx\nimport { Suspense } from 'react'\n\nasync function ProductList() {\n  // Revalidate every 60 seconds (ISR)\n  const res = await fetch('https://api.example.com/products', {\n    next: { revalidate: 60 },\n  })\n  if (!res.ok) throw new Error('Failed to fetch products')\n  const products: Product[] = await res.json()\n\n  return (\n    <ul>\n      {products.map((p) => (\n        <li key={p.id}>{p.name}</li>\n      ))}\n    </ul>\n  )\n}\n\nexport default function Page() {\n  return (\n    <Suspense fallback={<p>Loading…</p>}>\n      <ProductList />\n    </Suspense>\n  )\n}\n```\n\n### Server Action with form handling and revalidation\n```tsx\n// app/products/actions.ts\n'use server'\n\nimport { revalidatePath } from 'next/cache'\n\nexport async function createProduct(formData: FormData) {\n  const name = formData.get('name') as string\n  await db.product.create({ data: { name } })\n  revalidatePath('/products')\n}\n\n// app/products/new/page.tsx\nimport { createProduct } from '../actions'\n\nexport default function NewProductPage() {\n  return (\n    <form action={createProduct}>\n      <input name=\"name\" placeholder=\"Product name\" required />\n      <button type=\"submit\">Create</button>\n    </form>\n  )\n}\n```\n\n### generateMetadata for dynamic SEO\n```tsx\n// app/products/[id]/page.tsx\nimport type { Metadata } from 'next'\n\nexport async function generateMetadata(\n  { params }: { params: { id: string } }\n): Promise<Metadata> {\n  const product = await fetchProduct(params.id)\n  return {\n    title: product.name,\n    description: product.description,\n    openGraph: { title: product.name, images: [product.imageUrl] },\n  }\n}\n```\n\n## Output Templates\n\nWhen implementing Next.js features, provide:\n1. App structure (route organization)\n2. Layout/page components with proper data fetching\n3. Server actions if mutations needed\n4. Configuration (`next.config.js`, TypeScript)\n5. Brief explanation of rendering strategy chosen\n\n## Knowledge Reference\n\nNext.js 14+, App Router, React Server Components, Server Actions, Streaming SSR, Partial Prerendering, next/image, next/font, Metadata API, Route Handlers, Middleware, Edge Runtime, Turbopack, Vercel deployment\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/frontend/nextjs-developer/)",
+  "contentSha256": "dbcb3807c1aa16b44cc49292b48b2827091c33185ebd9aeaebb41ef6076b4a1b"
+}

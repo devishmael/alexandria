@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:web-security-frontend",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Frontend defensive security: Content Security Policy (CSP) headers, Subresource Integrity (SRI), and safe DOM rendering.",
+  "triggerKeywords": [
+    "frontend",
+    "security",
+    "xss",
+    "csrf",
+    "csp",
+    "sri",
+    "owasp"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "FORBID_DANGEROUSLY_SET_INNER_HTML",
+    "STRICT_CSP_HEADERS_ENFORCED",
+    "SUBRESOURCE_INTEGRITY_REQUIRED"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_web-security-frontend",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Client-Side Defense Against XSS, CSRF & Clickjacking\n\nFrontend defensive security: Content Security Policy (CSP) headers, Subresource Integrity (SRI), and safe DOM rendering.\n\n## Invariants\n- FORBID_DANGEROUSLY_SET_INNER_HTML\n- STRICT_CSP_HEADERS_ENFORCED\n- SUBRESOURCE_INTEGRITY_REQUIRED\n",
+  "contentSha256": "7542444dd2b4bd27b25bc8da4596a3602bfc5ccf39b2564d052e9b6e3f209821"
+}

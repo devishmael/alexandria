@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:concurrency-race-condition-detector",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Detecting data races in multithreaded C++, Go, and Rust using ThreadSanitizer (TSan) during automated test execution.",
+  "triggerKeywords": [
+    "testing",
+    "tsan",
+    "concurrency",
+    "race-conditions",
+    "sanitizers",
+    "rust",
+    "go"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "COMPILE_WITH_THREAD_SANITIZER_ENABLED",
+    "ZERO_DATA_RACE_WARNINGS_TOLERATED",
+    "TEST_UNDER_MAXIMUM_THREAD_CONTENTION"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_concurrency-race-condition-detector",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Race Condition Detection with ThreadSanitizer (TSan)\n\nDetecting data races in multithreaded C++, Go, and Rust using ThreadSanitizer (TSan) during automated test execution.\n\n## Invariants\n- COMPILE_WITH_THREAD_SANITIZER_ENABLED\n- ZERO_DATA_RACE_WARNINGS_TOLERATED\n- TEST_UNDER_MAXIMUM_THREAD_CONTENTION\n",
+  "contentSha256": "5a0cc8c1cfff6a6b87c18eb963de1f27749df5286c069594712dcc5074b6e648"
+}

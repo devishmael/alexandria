@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:php-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "PHP 8.3+ enterprise architecture: declare(strict_types=1), PSR-12 standard, Composer package management, PHPStan level 9 static analysis, and Swoole/RoadRunner async runtimes.",
+  "triggerKeywords": [
+    "php",
+    "php8",
+    "psr12",
+    "composer",
+    "phpstan",
+    "swoole",
+    "roadrunner",
+    "backend"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DECLARE_STRICT_TYPES_MANDATORY",
+    "PHPSTAN_LEVEL_9_COMPLIANCE",
+    "PSR12_CODE_STYLE_ENFORCED",
+    "COMPOSER_DEPENDENCY_AUDIT_CLEAN"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_php-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# PHP 8.3+ Enterprise Architecture & Strict Typing\n\nMaster modern PHP with strict typing, static analysis at maximum rigor, and modern async runtimes.\n\n## Key Principles & Invariants\n- `declare(strict_types=1);` is required at the very top of every PHP file.\n- All code must achieve **PHPStan Level 9** compliance with zero baseline overrides.\n- Adhere strictly to **PSR-12** formatting and PSR-4 namespace autoloading via Composer.\n- Use native constructor property promotion, readonly classes, and typed enums.\n- Use Swoole or RoadRunner coroutines for high-throughput async processing without blocking worker loops.",
+  "contentSha256": "89f32646a717813f84031af4871622a0eede062ffbb90641741cd0c961e9322b"
+}

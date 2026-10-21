@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:fuzzing-security-parsers",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Continuous fuzzing of input parsers (JSON, Markdown, network packets) using LLVM libFuzzer and AddressSanitizer (ASan).",
+  "triggerKeywords": [
+    "testing",
+    "fuzzing",
+    "libfuzzer",
+    "security",
+    "parser",
+    "asan"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "RUN_WITH_ADDRESS_SANITIZER_ASAN",
+    "MINIMIZE_CRASH_CORPUS_REPRODUCERS",
+    "ZERO_PANICS_ON_MALFORMED_INPUTS"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_fuzzing-security-parsers",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Security Protocol & File Parser LibFuzzer Harness\n\nContinuous fuzzing of input parsers (JSON, Markdown, network packets) using LLVM libFuzzer and AddressSanitizer (ASan).\n\n## Invariants\n- RUN_WITH_ADDRESS_SANITIZER_ASAN\n- MINIMIZE_CRASH_CORPUS_REPRODUCERS\n- ZERO_PANICS_ON_MALFORMED_INPUTS\n",
+  "contentSha256": "720f41293ea02abefbbc8222365324be3552466885dd4129e9808a14fcb68318"
+}

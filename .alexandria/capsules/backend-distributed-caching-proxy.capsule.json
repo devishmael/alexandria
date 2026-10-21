@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:distributed-caching-proxy",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "High-traffic caching: probabilistic early expiration (XFetch), mutex locks on cache miss to prevent dogpiling/thundering herd, and cache tagging.",
+  "triggerKeywords": [
+    "backend",
+    "caching",
+    "redis",
+    "stampede",
+    "performance",
+    "proxy"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PROTECT_AGAINST_CACHE_STAMPEDE_DOGPILING",
+    "DISTRIBUTED_MUTEX_ON_CACHE_MISS",
+    "SHORT_CIRCUIT_ON_DB_FAILURES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_distributed-caching-proxy",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Distributed Caching Proxy & Stampede Protection\n\nHigh-traffic caching: probabilistic early expiration (XFetch), mutex locks on cache miss to prevent dogpiling/thundering herd, and cache tagging.\n\n## Invariants\n- PROTECT_AGAINST_CACHE_STAMPEDE_DOGPILING\n- DISTRIBUTED_MUTEX_ON_CACHE_MISS\n- SHORT_CIRCUIT_ON_DB_FAILURES\n",
+  "contentSha256": "f56ffe96e2840901289a33d245acd9cf267d1126ac44e4fe91f9a0479c341a9a"
+}

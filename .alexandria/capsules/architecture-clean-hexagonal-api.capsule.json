@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:clean-hexagonal-api",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Strict hexagonal layer decoupling: domain core contains zero framework imports, ports define interfaces, adapters handle external I/O.",
+  "triggerKeywords": [
+    "architecture",
+    "hexagonal",
+    "clean-architecture",
+    "ports-and-adapters",
+    "ddd"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DOMAIN_CORE_HAS_ZERO_EXTERNAL_DEPENDENCIES",
+    "DEPENDENCIES_POINT_INWARD_ONLY",
+    "INPUT_VALIDATION_AT_PRIMARY_ADAPTERS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_clean-hexagonal-api",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Hexagonal Architecture & Port-Adapter Decoupling\n\nStrict hexagonal layer decoupling: domain core contains zero framework imports, ports define interfaces, adapters handle external I/O.\n\n## Invariants\n- DOMAIN_CORE_HAS_ZERO_EXTERNAL_DEPENDENCIES\n- DEPENDENCIES_POINT_INWARD_ONLY\n- INPUT_VALIDATION_AT_PRIMARY_ADAPTERS\n",
+  "contentSha256": "fafb2183e6e58c38afeadb1c36c84f99b31ade4fbd10e3214c2abe69d3c6b723"
+}

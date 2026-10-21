@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:worktree-disjunction-guard",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Concurrency hook: checks petgraph and oxc_resolver before authorizing parallel worktrees, ensuring zero AST import collisions.",
+  "triggerKeywords": [
+    "hook",
+    "worktree",
+    "concurrency",
+    "disjunction",
+    "parallelism"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REJECT_WORKTREES_WITH_OVERLAPPING_FILES",
+    "CHECK_TRANSITIVE_AST_IMPORTS_DISJUNCTION",
+    "AUTHORIZE_DISJOINT_WORKTREES_ONLY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_worktree-disjunction-guard",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Git Worktree Disjunction & Conflict Pre-Checker\n\nConcurrency hook: checks petgraph and oxc_resolver before authorizing parallel worktrees, ensuring zero AST import collisions.\n\n## Invariants\n- REJECT_WORKTREES_WITH_OVERLAPPING_FILES\n- CHECK_TRANSITIVE_AST_IMPORTS_DISJUNCTION\n- AUTHORIZE_DISJOINT_WORKTREES_ONLY\n",
+  "contentSha256": "006915209a8248ea26f66bdee5cbb86cf4becc5a82d976d1354f954c01aef5e5"
+}

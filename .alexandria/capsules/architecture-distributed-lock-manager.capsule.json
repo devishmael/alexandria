@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:distributed-lock-manager",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Distributed synchronization using fencing tokens: monotonically increasing counters to invalidate split-brain writes from delayed clients.",
+  "triggerKeywords": [
+    "architecture",
+    "distributed-locks",
+    "fencing-tokens",
+    "concurrency",
+    "consensus"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PASS_MONOTONIC_FENCING_TOKEN_TO_STORAGE",
+    "STORAGE_REJECTS_WRITES_WITH_STALE_FENCING_TOKENS",
+    "LOCK_HEARTBEAT_RENEWAL"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_distributed-lock-manager",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Distributed Lock Manager (DLM) & Fencing Tokens\n\nDistributed synchronization using fencing tokens: monotonically increasing counters to invalidate split-brain writes from delayed clients.\n\n## Invariants\n- PASS_MONOTONIC_FENCING_TOKEN_TO_STORAGE\n- STORAGE_REJECTS_WRITES_WITH_STALE_FENCING_TOKENS\n- LOCK_HEARTBEAT_RENEWAL\n",
+  "contentSha256": "bd2faad854405e39be6e9cc1a22aaab8f0b6961cfcb7e93b6410b67289bd7524"
+}

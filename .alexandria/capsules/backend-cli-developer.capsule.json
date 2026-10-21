@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:cli-developer",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Production CLI tool design: sub-millisecond startup, subcommands, POSIX flags with clap/cobra, progress indicators, and standard exit codes.",
+  "triggerKeywords": [
+    "backend",
+    "cli",
+    "clap",
+    "cobra",
+    "rust",
+    "golang",
+    "terminal"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EXIT_CODE_0_ON_SUCCESS_NON_ZERO_ERROR",
+    "EMIT_ERRORS_TO_STDERR",
+    "SUPPORT_NON_INTERACTIVE_CI_MODE",
+    "6. Wire PATH/completions only as narrowly as needed. Never edit shell startup files to add secrets.",
+    "Credential entry name only, never the value."
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_cli-developer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Installing CLI Tools\n\n## Overview\n\nUse this skill to take a CLI from \"not installed\" to \"usable and verified\" without exposing credentials in chat, logs, shell history, or repo files. Treat installation and secret setup as separate phases.\n\n## Workflow\n\n1. Identify the exact CLI, target OS/architecture, intended use, and whether authentication is required.\n2. Check current state with narrow commands such as `command -v tool`, `tool --version`, package-manager queries, and existing config file paths only when needed.\n3. Research current official installation docs before acting unless the user supplied an exact trusted source. Prefer official docs, package registry pages, signed release notes, or the upstream GitHub release.\n4. Choose the least surprising install method:\n   - Existing project manager (`brew`, `npm`, `pipx`, `uv tool`, `cargo install`, `go install`) when official and maintained.\n   - Vendor installer only when it is the official path and its behavior is understood.\n   - Manual binary install only after verifying architecture, checksum/signature when available, permissions, and destination.\n5. Install to a user-writable, reversible location when possible. Avoid `sudo` unless the install path truly requires it and the user has agreed.\n6. Wire PATH/completions only as narrowly as needed. Never edit shell startup files to add secrets.\n7. Configure authentication through a safe channel.\n8. Verify with `tool --version`, `tool doctor` or equivalent, and a non-destructive authenticated command if relevant.\n9. Report what changed, where files were placed, how to undo it, and whether any restart/new shell is needed.\n\n## Secret Handling\n\nNever read, print, summarize, grep, or search for existing secret values in `.env`, shell rc files, keychains, SSH keys, cloud credential files, or password-manager vaults. Do not run broad commands like `env`, `printenv`, or recursive token searches.\n\nFor new credentials, use the safest supported option in this order:\n\n1. Browser/device OAuth or official `tool auth login`.\n2. The platform's secure setup flow or connector for that provider.\n3. OS credential store, such as macOS Keychain, through commands that accept the secret via stdin or hidden prompt.\n4. Tool-specific config command that prompts interactively and does not echo the input.\n5. A local secrets manager such as `op`, `bw`, `pass`, `gopass`, or `direnv` with a secret backend, if the user already uses it.\n6. A plaintext env file only when the user explicitly asks for it or the CLI has no safer option; write placeholders by default and set mode `0600`.\n\nDo not put secret values in command arguments, chat messages, shell history, logs, generated docs, git commits, package manager config, MCP config, or shell startup files. If a command needs a value, prefer an interactive prompt, stdin, or a temporary file with `0600` permissions that is removed immediately after use.\n\nBefore accepting a credential from the user, state the destination and persistence model in one sentence, for example: \"This will store the token in macOS Keychain under service `example-cli`; I will not print it back.\" If the current environment cannot safely accept hidden input, stop and ask the user to run the official login command locally.\n\n## Installation Checks\n\nUse precise commands and avoid noisy discovery. Good checks:\n\n```sh\ncommand -v example\nexample --version\nbrew list --versions example\nnpm view example-cli version\npython3 -m pipx list\n```\n\nFor GitHub release binaries, verify the asset matches OS and CPU architecture. Use `shasum -a 256` when upstream publishes checksums. Prefer signed or notarized macOS artifacts when available.\n\nFor installer scripts fetched over the network, do not pipe directly into a shell unless the user explicitly requests that official install style. Prefer downloading to a temporary file, reading the script enough to understand what it changes, then running it.\n\n## Shell Integration\n\nModify shell files only for PATH, completions, aliases requested by the user, or non-secret configuration. Before editing, identify the active shell and target file. Keep edits idempotent and bounded by clear comments when adding a block.\n\nDo not add API keys, tokens, passwords, or provider credentials to `.zshrc`, `.bashrc`, `.profile`, `.config/fish/config.fish`, or project shell hooks. For env variables that point to non-secret paths or feature flags, explain why they are safe.\n\n## Verification\n\nVerify both installation and authentication without destructive actions:\n\n- Installation: `tool --version`, `tool help`, or package-manager metadata.\n- PATH: open a fresh shell or source only the changed file when safe.\n- Auth: `tool auth status`, `whoami`, `account show`, or a read-only API call.\n- Failure: capture exact non-secret error text and classify whether the issue is PATH, missing dependency, architecture, permissions, network, or authentication.\n\nIf verification requires a paid operation, mutation, or secret display command, do not run it. Use the vendor's status command or ask the user for permission to run a specific safe alternative.\n\n## Rollback\n\nTrack install actions as you go. When finishing, include the uninstall command or manual rollback path:\n\n- Package manager uninstall command.\n- Files, symlinks, launch agents, or completions created.\n- Shell file block added.\n- Credential entry name only, never the value.\n\nFor failed installs, clean temporary files and partial symlinks when that is clearly safe. Ask before deleting user-owned config, caches, or credentials.",
+  "contentSha256": "dbbeede9150d91e9f6d3fafeaa55d316811845a842aa5a566ced1a6902a989fc"
+}

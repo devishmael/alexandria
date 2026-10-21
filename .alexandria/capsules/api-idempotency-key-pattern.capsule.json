@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:idempotency-key-pattern",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Implementing the IETF Idempotency-Key specification for payment and mutation APIs: atomic lock, result storage, and cached response return.",
+  "triggerKeywords": [
+    "api",
+    "idempotency-key",
+    "ietf",
+    "payments",
+    "atomic",
+    "reliability"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REQUIRE_IDEMPOTENCY_KEY_FOR_PAYMENTS",
+    "ATOMIC_LOCK_BEFORE_PROCESSING_PAYLOAD",
+    "CACHE_AND_REPLAY_SAVED_RESPONSES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_idempotency-key-pattern",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# IETF Idempotency-Key Header Standard Implementation\n\nImplementing the IETF Idempotency-Key specification for payment and mutation APIs: atomic lock, result storage, and cached response return.\n\n## Invariants\n- REQUIRE_IDEMPOTENCY_KEY_FOR_PAYMENTS\n- ATOMIC_LOCK_BEFORE_PROCESSING_PAYLOAD\n- CACHE_AND_REPLAY_SAVED_RESPONSES\n",
+  "contentSha256": "05747b01c0ff655514a049b18c0aca785ea10858ce17db81696c0c6dcbf4da7b"
+}

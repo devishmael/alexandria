@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:internationalization-i18n",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Internationalization with next-intl and i18next, pluralization, locale formatting, and right-to-left (RTL) layout switching.",
+  "triggerKeywords": [
+    "frontend",
+    "i18n",
+    "localization",
+    "intl",
+    "rtl",
+    "multilingual"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "NO_HARDCODED_USER_FACING_STRINGS",
+    "SUPPORT_DIR_RTL_AND_LTR",
+    "NUMBER_AND_CURRENCY_FORMATTERS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_internationalization-i18n",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Frontend Internationalization (i18n) & RTL Layouts\n\nInternationalization with next-intl and i18next, pluralization, locale formatting, and right-to-left (RTL) layout switching.\n\n## Invariants\n- NO_HARDCODED_USER_FACING_STRINGS\n- SUPPORT_DIR_RTL_AND_LTR\n- NUMBER_AND_CURRENCY_FORMATTERS\n",
+  "contentSha256": "4f24790de895f97bea4dbe0892625eec871e9500b8e2e66f36c73a4f05687a59"
+}

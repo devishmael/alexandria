@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:data-anonymization-gdpr",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Data privacy in persistence: deterministic pseudonymization, cryptographic hashing of identifiers, automated PII scrubbing, and hard deletion.",
+  "triggerKeywords": [
+    "database",
+    "gdpr",
+    "pii",
+    "anonymization",
+    "compliance",
+    "security"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "MASK_PII_IN_TEST_AND_ANALYTICS_ENVIRONMENTS",
+    "CRYPTOGRAPHIC_SALTED_HASH_FOR_IDENTIFIERS",
+    "AUTOMATED_RIGHT_TO_ERASURE_WORKFLOW"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_data-anonymization-gdpr",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Database PII Masking & GDPR Right-to-be-Forgotten\n\nData privacy in persistence: deterministic pseudonymization, cryptographic hashing of identifiers, automated PII scrubbing, and hard deletion.\n\n## Invariants\n- MASK_PII_IN_TEST_AND_ANALYTICS_ENVIRONMENTS\n- CRYPTOGRAPHIC_SALTED_HASH_FOR_IDENTIFIERS\n- AUTOMATED_RIGHT_TO_ERASURE_WORKFLOW\n",
+  "contentSha256": "f7c958ffb13d3dabd2892537731db6ec02f5830d1b1baa4aa1d56fe9d22d7160"
+}

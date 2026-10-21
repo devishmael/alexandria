@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:data-fetching-tanstack",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Server state caching with TanStack Query, stale-while-revalidate, optimistic updates, and infinite scrolling pagination.",
+  "triggerKeywords": [
+    "frontend",
+    "react-query",
+    "tanstack-query",
+    "caching",
+    "swr",
+    "server-state"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EXPLICIT_QUERY_KEY_FACTORIES",
+    "OPTIMISTIC_UPDATES_ROLLBACK_SAFE",
+    "AVOID_DUPLICATE_NETWORK_REQUESTS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_data-fetching-tanstack",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# TanStack Query Server State & Stale-While-Revalidate\n\nServer state caching with TanStack Query, stale-while-revalidate, optimistic updates, and infinite scrolling pagination.\n\n## Invariants\n- EXPLICIT_QUERY_KEY_FACTORIES\n- OPTIMISTIC_UPDATES_ROLLBACK_SAFE\n- AVOID_DUPLICATE_NETWORK_REQUESTS\n",
+  "contentSha256": "f3be5d171240457dee2b5c12ed665a6b4e53e8c55900b1dc39ae127a4714afcf"
+}

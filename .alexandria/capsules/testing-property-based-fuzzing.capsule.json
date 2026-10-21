@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:property-based-fuzzing",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Generative property-based testing (proptest, fast-check): verifying universal mathematical invariants across thousands of random inputs.",
+  "triggerKeywords": [
+    "testing",
+    "property-based",
+    "fuzzing",
+    "proptest",
+    "fast-check",
+    "invariants"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DEFINE_MATHEMATICAL_INVARIANTS_FOR_PROPERTIES",
+    "SHRINK_FAILING_CASES_TO_MINIMAL_REPRO",
+    "TEST_EDGE_CASES_AUTOMATICALLY"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_property-based-fuzzing",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Property-Based Testing & Generative Fuzzing\n\nGenerative property-based testing (proptest, fast-check): verifying universal mathematical invariants across thousands of random inputs.\n\n## Invariants\n- DEFINE_MATHEMATICAL_INVARIANTS_FOR_PROPERTIES\n- SHRINK_FAILING_CASES_TO_MINIMAL_REPRO\n- TEST_EDGE_CASES_AUTOMATICALLY\n",
+  "contentSha256": "da9114c634e9f2b1d3832d95805261e3c3702e40d6fcb219fe5e2cda335c4b8e"
+}

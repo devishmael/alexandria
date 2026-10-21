@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:flutter-expert",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Flutter widget trees, Impeller graphics engine, BLoC and Riverpod state patterns, and platform channel interop.",
+  "triggerKeywords": [
+    "frontend",
+    "flutter",
+    "dart",
+    "widgets",
+    "bloc",
+    "mobile",
+    "multiplatform"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "CONST_CONSTRUCTORS_FOR_IMMUTABLE_WIDGETS",
+    "BLOC_SEPARATION_OF_CONCERNS",
+    "ISOLATES_FOR_HEAVY_CPU",
+    "void increment() => state = state + 1; // new instance, never mutate"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_flutter-expert",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Flutter Expert\n\nSenior mobile engineer building high-performance cross-platform applications with Flutter 3 and Dart.\n\n## When to Use This Skill\n\n- Building cross-platform Flutter applications\n- Implementing state management (Riverpod, Bloc)\n- Setting up navigation with GoRouter\n- Creating custom widgets and animations\n- Optimizing Flutter performance\n- Platform-specific implementations\n\n## Core Workflow\n\n1. **Setup** — Scaffold project, add dependencies (`flutter pub get`), configure routing\n2. **State** — Define Riverpod providers or Bloc/Cubit classes; verify with `flutter analyze`\n   - If `flutter analyze` reports issues: fix all lints and warnings before proceeding; re-run until clean\n3. **Widgets** — Build reusable, const-optimized components; run `flutter test` after each feature\n   - If tests fail: inspect widget tree with Flutter DevTools, fix failing assertions, re-run `flutter test`\n4. **Test** — Write widget and integration tests; confirm with `flutter test --coverage`\n   - If coverage drops or tests fail: identify untested branches, add targeted tests, re-run before merging\n5. **Optimize** — Profile with Flutter DevTools (`flutter run --profile`), eliminate jank, reduce rebuilds\n   - If jank persists: check rebuild counts in the Performance overlay, isolate expensive `build()` calls, apply `const` or move state closer to consumers\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Riverpod | `references/riverpod-state.md` | State management, providers, notifiers |\n| Bloc | `references/bloc-state.md` | Bloc, Cubit, event-driven state, complex business logic |\n| GoRouter | `references/gorouter-navigation.md` | Navigation, routing, deep linking |\n| Widgets | `references/widget-patterns.md` | Building UI components, const optimization |\n| Structure | `references/project-structure.md` | Setting up project, architecture |\n| Performance | `references/performance.md` | Optimization, profiling, jank fixes |\n\n## Code Examples\n\n### Riverpod Provider + ConsumerWidget (correct pattern)\n\n```dart\n// provider definition — Notifier, not the legacy StateNotifier\nfinal counterProvider = NotifierProvider<CounterNotifier, int>(CounterNotifier.new);\n\nclass CounterNotifier extends Notifier<int> {\n  @override\n  int build() => 0;\n  void increment() => state = state + 1; // new instance, never mutate\n}\n\n// consuming widget — use ConsumerWidget, not StatefulWidget\nclass CounterView extends ConsumerWidget {\n  const CounterView({super.key});\n\n  @override\n  Widget build(BuildContext context, WidgetRef ref) {\n    final count = ref.watch(counterProvider);\n    return Text('$count');\n  }\n}\n```\n\n### Before / After — State Management\n\n```dart\n// ❌ WRONG: app-wide state in setState\nclass _BadCounterState extends State<BadCounter> {\n  int _count = 0;\n  void _inc() => setState(() => _count++); // causes full subtree rebuild\n}\n\n// ✅ CORRECT: scoped Riverpod consumer\nclass GoodCounter extends ConsumerWidget {\n  const GoodCounter({super.key});\n  @override\n  Widget build(BuildContext context, WidgetRef ref) {\n    final count = ref.watch(counterProvider);\n    return IconButton(\n      onPressed: () => ref.read(counterProvider.notifier).increment(),\n      icon: const Icon(Icons.add), // const on static widgets\n    );\n  }\n}\n```\n\n## Constraints\n\n### MUST DO\n- Use `const` constructors wherever possible\n- Implement proper keys for lists\n- Use `Consumer`/`ConsumerWidget` for state (not `StatefulWidget`)\n- Follow Material/Cupertino design guidelines\n- Profile with DevTools, fix jank\n- Test widgets with `flutter_test`\n\n### MUST NOT DO\n- Build widgets inside `build()` method\n- Mutate state directly (always create new instances)\n- Use `setState` for app-wide state\n- Skip `const` on static widgets\n- Ignore platform-specific behavior\n- Block UI thread with heavy computation (use `compute()`)\n\n## Troubleshooting Common Failures\n\n| Symptom | Likely Cause | Recovery |\n|---------|-------------|----------|\n| `flutter analyze` errors | Unresolved imports, missing `const`, type mismatches | Fix flagged lines; run `flutter pub get` if imports are missing |\n| Widget test assertion failures | Widget tree mismatch or async state not settled | Use `tester.pumpAndSettle()` after state changes; verify finder selectors |\n| Build fails after adding package | Incompatible dependency version | Run `flutter pub upgrade --major-versions`; check pub.dev compatibility |\n| Jank / dropped frames | Expensive `build()` calls, uncached widgets, heavy main-thread work | Use `RepaintBoundary`, move heavy work to `compute()`, add `const` |\n| Hot reload not reflecting changes | State held in `Notifier` not reset | Use hot restart (`R` in terminal) to reset full app state |\n\n## Output Templates\n\nWhen implementing Flutter features, provide:\n1. Widget code with proper `const` usage\n2. Provider/Bloc definitions\n3. Route configuration if needed\n4. Test file structure\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/frontend/flutter-expert/)",
+  "contentSha256": "a982bbe048771577b3f9aee052f6c172087d20895a03fbd49a96f342e943b4a3"
+}

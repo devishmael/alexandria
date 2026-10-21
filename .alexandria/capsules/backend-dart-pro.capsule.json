@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:dart-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Dart 3+ engineering: sound null-safety, exhaustive pattern matching, reactive Streams, multi-threaded Isolates for CPU-heavy tasks, and robust CLI/backend architecture.",
+  "triggerKeywords": [
+    "dart",
+    "flutter",
+    "isolates",
+    "streams",
+    "null-safety",
+    "async",
+    "cli"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SOUND_NULL_SAFETY_ENFORCED",
+    "ISOLATE_OFFLOADING_FOR_CPU_BOUND_WORK",
+    "STREAM_SUBSCRIPTION_HERMETIC_CLEANUP",
+    "EXHAUSTIVE_PATTERN_MATCHING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_dart-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Dart 3+ Systems Engineering & Sound Concurrency\n\nDesign robust Dart services and CLI applications leveraging Dart 3 pattern matching, sound null-safety, and isolate concurrency.\n\n## Key Principles & Invariants\n- Maintain 100% sound null-safety without forced non-null assertions (`!`).\n- Offload compute-intensive tasks to background `Isolate`s to maintain frame and event loop latency.\n- Hermetically cancel and dispose all `StreamSubscription` instances to prevent memory leaks.\n- Utilize exhaustive pattern matching and Records (`(int, String)`) for functional data modeling.",
+  "contentSha256": "e0e398e5fad43eb655ed8cf57e30174defa6a21179c48b0440571b591d1b4fd0"
+}

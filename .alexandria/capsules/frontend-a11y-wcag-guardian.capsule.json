@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:a11y-wcag-guardian",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "WCAG 2.2 Level AA accessibility compliance, semantic HTML, ARIA landmarks, keyboard focus trap, and screen reader testing.",
+  "triggerKeywords": [
+    "frontend",
+    "accessibility",
+    "a11y",
+    "wcag",
+    "aria",
+    "screen-reader"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SEMANTIC_HTML_OVER_DIVS",
+    "VISIBLE_FOCUS_OUTLINES_REQUIRED",
+    "ARIA_LABELS_FOR_ICON_BUTTONS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_a11y-wcag-guardian",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Accessibility & WCAG 2.2 AA Compliance\n\nWCAG 2.2 Level AA accessibility compliance, semantic HTML, ARIA landmarks, keyboard focus trap, and screen reader testing.\n\n## Invariants\n- SEMANTIC_HTML_OVER_DIVS\n- VISIBLE_FOCUS_OUTLINES_REQUIRED\n- ARIA_LABELS_FOR_ICON_BUTTONS\n",
+  "contentSha256": "c623cb426e4c3692eada98c321cfb1c77615122bb321d446c921fc0550b47ca1"
+}

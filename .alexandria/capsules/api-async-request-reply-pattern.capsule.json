@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:async-request-reply-pattern",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Handling long-running backend operations: returning HTTP 202 Accepted with a Location header pointing to a pollable status endpoint.",
+  "triggerKeywords": [
+    "api",
+    "http-202",
+    "async",
+    "long-running",
+    "polling",
+    "patterns"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "RETURN_202_ACCEPTED_WITH_LOCATION_HEADER",
+    "INCLUDE_RETRY_AFTER_HEADER_ON_POLL",
+    "IDEMPOTENT_STATUS_CHECK_ENDPOINT"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_async-request-reply-pattern",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Asynchronous Request-Reply Pattern (HTTP 202 Accepted)\n\nHandling long-running backend operations: returning HTTP 202 Accepted with a Location header pointing to a pollable status endpoint.\n\n## Invariants\n- RETURN_202_ACCEPTED_WITH_LOCATION_HEADER\n- INCLUDE_RETRY_AFTER_HEADER_ON_POLL\n- IDEMPOTENT_STATUS_CHECK_ENDPOINT\n",
+  "contentSha256": "b268d97a3f81d4f7bbb56fb8066661f62f3782f31adf2a0e88a7e9d7150ef0e1"
+}

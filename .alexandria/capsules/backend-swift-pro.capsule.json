@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:swift-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Swift 5.9+ modern architecture: structured concurrency (Async/Await, TaskGroups), Actor isolation for race-free concurrency, ARC memory safety, and zero-cost safety abstractions.",
+  "triggerKeywords": [
+    "swift",
+    "ios",
+    "swiftui",
+    "uikit",
+    "actors",
+    "async-await",
+    "arc",
+    "apple"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ACTOR_ISOLATED_MUTABLE_STATE",
+    "NO_RETAIN_CYCLES_WEAK_UNOWNED",
+    "STRUCTURED_CONCURRENCY_TASK_GROUPS",
+    "SOUND_MEMORY_SAFETY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_swift-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Swift 5.9+ Architecture & Structured Concurrency\n\nArchitect performant, thread-safe Swift applications using modern actors, ARC memory management, and structured concurrency.\n\n## Key Principles & Invariants\n- Enforce the **Actor model** to isolate mutable state and eliminate data races at compile time.\n- Use structured concurrency (`async/await` and `withTaskGroup`) instead of unstructured dispatch queues.\n- Prevent retain cycles in closures and delegates using explicit `[weak self]` or `[unowned self]`.\n- Leverage Swift Package Manager (SPM) with pinned semantic versions.",
+  "contentSha256": "a05c880941cb59f888179b2e20a3f7f01ff8b171dbf642884e2ef06da2b3c001"
+}

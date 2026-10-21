@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:elixir-phoenix-expert",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Elixir and Phoenix: Erlang/OTP actor model, supervision trees, GenServer state, Ecto migrations, and LiveView channels.",
+  "triggerKeywords": [
+    "backend",
+    "elixir",
+    "phoenix",
+    "otp",
+    "actor-model",
+    "erlang"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "LET_IT_CRASH_SUPERVISION_TREES",
+    "ISOLATE_PROCESS_STATE_IN_GENSERVER",
+    "ECTO_MULTI_FOR_TRANSACTIONS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_elixir-phoenix-expert",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Elixir OTP Actor Concurrency & Fault Tolerance\n\nElixir and Phoenix: Erlang/OTP actor model, supervision trees, GenServer state, Ecto migrations, and LiveView channels.\n\n## Invariants\n- LET_IT_CRASH_SUPERVISION_TREES\n- ISOLATE_PROCESS_STATE_IN_GENSERVER\n- ECTO_MULTI_FOR_TRANSACTIONS\n",
+  "contentSha256": "a7bd14f4741593a811cc248c7a81f2d3538b58f70554428ce49f411b52685c4b"
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:remote-command-guard",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Security sandbox hook: intercepts shell executions, forbidding destructive commands (rm -rf /, format, curl-pipe-sh) and untrusted endpoints.",
+  "triggerKeywords": [
+    "hook",
+    "security",
+    "command-guard",
+    "sandbox",
+    "shell-protection"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "BLOCK_DESTRUCTIVE_ROOT_SHELL_COMMANDS",
+    "FORBID_PIPE_TO_BASH_EXECUTION",
+    "ALLOWLIST_LOCAL_COMPILER_BINARIES_ONLY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_remote-command-guard",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# Remote Command Guard - PreToolUse Hook\n# 원격 Claude Code 세션에서 위험한 Bash 명령을 차단\n#\n# Hook trigger: PreToolUse, matcher: Bash\n# Exit codes: 0 = 허용, 2 = 차단\n#\n# 차단 범주:\n#   1. 파괴적 삭제 (rm -rf /, rm -rf ~, rm -rf *)\n#   2. 환경변수/시크릿 유출 (env, printenv, echo $SECRET 등)\n#   3. 경로 순회 (/etc/passwd, /etc/shadow 등)\n#   4. 외부 통신 (curl, wget, nc, ncat 등)\n#   5. 권한 변경 (chmod 777, chown, mount 등)\n#   6. 프로세스 종료 (kill -9, pkill 등)\n#   7. 명령 주입 (eval, exec 등)\n\n# 원격 세션이 아니면 검사 건너뜀\nif [[ -z \"${OPENCLAW_SESSION_ID:-}\" ]]; then\n    exit 0\nfi\n\n# stdin에서 JSON 읽기\nINPUT=$(cat)\n\n# 명령어 추출 (python3 -c + 작은따옴표로 셸 확장 방지)\nCOMMAND=$(echo \"$INPUT\" | python3 -c '\nimport sys, json\ndata = json.load(sys.stdin)\nprint(data.get(\"tool_input\", {}).get(\"command\", \"\"))\n' 2>/dev/null)\n\nif [[ -z \"$COMMAND\" ]]; then\n    exit 0\nfi\n\n# 환경변수로 명령어 전달 → heredoc으로 Python 검사 로직 주입\nexport _GUARD_CMD=\"$COMMAND\"\npython3 << 'GUARD_SCRIPT'\nimport os\nimport sys\nimport re\n\ncommand = os.environ.get(\"_GUARD_CMD\", \"\")\nif not command:\n    sys.exit(0)\n\n# 명령어 정규화 (여러 공백 → 단일 공백)\ncmd = re.sub(r'\\s+', ' ', command.strip())\ncmd_lower = cmd.lower()\n\nblocked_reason = None\n\n# === 1. 파괴적 삭제 ===\n# rm -rf / , rm -rf ~ , rm -rf * 등 광범위 삭제만 차단\n# rm /tmp/specific-file.txt 같은 특정 파일 삭제는 허용\ndestructive_patterns = [\n    r'\\brm\\s+-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*\\s',  # rm -rf, rm -rfi 등\n    r'\\brm\\s+-[a-zA-Z]*f[a-zA-Z]*r[a-zA-Z]*\\s',  # rm -fr, rm -fri 등\n    r'\\brm\\b.*\\s+/$',                              # rm / (루트)\n    r'\\brm\\b.*\\s+/\\s',                             # rm / something\n    r'\\brm\\b.*\\s+~/?(\\s|$)',                        # rm ~ 또는 rm ~/\n    r'\\brm\\b.*\\s+\\*(\\s|$)',                         # rm * (현재 디렉토리 전체)\n    r'\\bmkfs\\b',\n    r'\\bdd\\s+.*of=/dev/',\n    r'\\b:\\s*\\(\\)\\s*\\{\\s*:\\s*\\|\\s*:\\s*&\\s*\\}\\s*;',\n]\nfor pat in destructive_patterns:\n    if re.search(pat, cmd_lower):\n        blocked_reason = \"파괴적 삭제 명령 감지\"\n        break\n\n# === 2. 환경변수/시크릿 유출 ===\n# 시크릿 패턴은 원본 cmd에 re.IGNORECASE로 매칭 (환경변수명 대소문자 보존)\nif not blocked_reason:\n    secret_patterns = [\n        r'\\b(env|printenv|set)\\s*$',\n        r'\\b(env|printenv|set)\\s*\\|',\n        r'\\becho\\s+.*\\$[A-Z_]*KEY\\b',\n        r'\\becho\\s+.*\\$[A-Z_]*SECRET\\b',\n        r'\\becho\\s+.*\\$[A-Z_]*TOKEN\\b',\n        r'\\becho\\s+.*\\$[A-Z_]*PASSWORD\\b',\n        r'\\becho\\s+.*\\$[A-Z_]*PASSWD\\b',\n        r'\\becho\\s+.*\\$[A-Z_]*API\\b',\n        r'\\becho\\s+.*\\$[A-Z_]*CREDENTIAL\\b',\n        r'\\becho\\s+.*\\$(AWS_|OPENAI_|ANTHROPIC_|TELEGRAM_|GITHUB_|SUPABASE_)',\n        r'\\bcat\\s+.*\\.env\\b',\n        r'\\bcat\\s+.*\\.netrc\\b',\n        r'\\bcat\\s+.*credentials\\b',\n        r'\\bcat\\s+.*/\\.ssh/',\n        r'\\bexport\\s+-p\\s*$',\n        r'\\bexport\\s+-p\\s*\\|',\n        r'\\bcat\\s+.*seed\\.txt\\b',\n        r'\\bcat\\s+.*wallet\\.json\\b',\n        r'\\bcat\\s+.*keystore\\b',\n    ]\n    for pat in secret_patterns:\n        if re.search(pat, cmd, re.IGNORECASE):\n            blocked_reason = \"시크릿/환경변수 유출 시도 감지\"\n            break\n\n# === 3. 경로 순회 ===\nif not blocked_reason:\n    path_traversal_patterns = [\n        r'/etc/passwd',\n        r'/etc/shadow',\n        r'/etc/sudoers',\n        r'/etc/master\\.passwd',\n        r'\\.\\./(\\.\\./)*(etc|proc|sys|dev)/',\n        r'/proc/self/',\n        r'/proc/\\d+/',\n        r'/sys/class/',\n    ]\n    for pat in path_traversal_patterns:\n        if re.search(pat, cmd_lower):\n            blocked_reason = \"민감 시스템 경로 접근 감지\"\n            break\n\n# === 4. 외부 통신 ===\nif not blocked_reason:\n    network_patterns = [\n        r'\\bcurl\\s',\n        r'\\bwget\\s',\n        r'\\bnc\\s',\n        r'\\bncat\\s',\n        r'\\bnetcat\\s',\n        r'\\btelnet\\s',\n        r'\\bssh\\s',\n        r'\\bscp\\s',\n        r'\\brsync\\s.*:',\n        r'\\bftp\\s',\n        r'\\bsftp\\s',\n        r'\\bsocat\\s',\n        r'\\bpython3?\\s+-m\\s+http\\.server',\n        r'\\bphp\\s+-S\\s',\n        r'\\bnpm\\s+publish\\b',\n        r'\\bnpx\\s.*ngrok',\n    ]\n    # localhost/127.0.0.1 대상 curl/wget은 허용 (개발용)\n    is_local = bool(re.search(\n        r'\\bcurl\\s+.*\\b(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0)\\b', cmd_lower\n    ))\n    if not is_local:\n        for pat in network_patterns:\n            if re.search(pat, cmd_lower):\n                blocked_reason = \"외부 네트워크 통신 시도 감지\"\n                break\n\n# === 5. 권한 변경 ===\nif not blocked_reason:\n    permission_patterns = [\n        r'\\bchmod\\s+777\\b',\n        r'\\bchmod\\s+666\\b',\n        r'\\bchmod\\s+[0-7]*[67][0-7]{2}\\b.*/(etc|usr|var|sys)',\n        r'\\bchown\\s',\n        r'\\bmount\\s',\n        r'\\bumount\\s',\n        r'\\bsudo\\s',\n        r'\\bsu\\s+-?\\s',\n        r'\\bdscl\\s',\n    ]\n    for pat in permission_patterns:\n        if re.search(pat, cmd_lower):\n            blocked_reason = \"권한 변경 명령 감지\"\n            break\n\n# === 6. 프로세스 종료 ===\nif not blocked_reason:\n    process_patterns = [\n        r'\\bkill\\s+-9\\b',\n        r'\\bkill\\s+-KILL\\b',\n        r'\\bkill\\s+-SIGKILL\\b',\n        r'\\bkillall\\s',\n        r'\\bpkill\\s',\n        r'\\bxkill\\b',\n        r'\\bshutdown\\b',\n        r'\\breboot\\b',\n        r'\\bhalt\\b',\n        r'\\binit\\s+[06]\\b',\n    ]\n    for pat in process_patterns:\n        if re.search(pat, cmd_lower):\n            blocked_reason = \"프로세스 종료/시스템 제어 명령 감지\"\n            break\n\n# === 7. 명령 주입 ===\nif not blocked_reason:\n    injection_patterns = [\n        r'\\beval\\s',\n        r'\\bexec\\s',\n        r'\\bsource\\s+/dev/',\n        r'\\bbash\\s+-c\\s.*\\$\\(',\n        r'\\bsh\\s+-c\\s.*\\$\\(',\n        r'`[^`]*\\$\\([^)]+\\)[^`]*`',\n        r'\\|\\s*sh\\b',\n        r'\\|\\s*bash\\b',\n        r'\\|\\s*zsh\\b',\n        r'>\\s*/dev/sd[a-z]',\n        r'>\\s*/dev/nvme',\n        r'\\bbase64\\s+-d\\s*\\|\\s*(sh|bash|zsh)',\n    ]\n    for pat in injection_patterns:\n        if re.search(pat, cmd_lower):\n            blocked_reason = \"명령 주입 패턴 감지\"\n            break\n\nif blocked_reason:\n    safe_cmd = cmd[:200]\n    print(f\"BLOCKED: {blocked_reason}\", file=sys.stderr)\n    print(f\"Command: {safe_cmd}\", file=sys.stderr)\n    sys.exit(2)\n\nsys.exit(0)\nGUARD_SCRIPT\n",
+  "contentSha256": "4b1b38cd34f3ff7e743090c58c53f7c0a6f833925eec0e3d04da4a3c116c5e71"
+}

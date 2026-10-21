@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:stress-testing-memory-leaks",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Detecting JavaScript/Rust memory leaks: running thousands of continuous iterations and measuring heap retained size before/after garbage collection.",
+  "triggerKeywords": [
+    "testing",
+    "memory-leak",
+    "heap-profiling",
+    "garbage-collection",
+    "stress"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "HEAP_DELTA_MUST_RETURN_TO_BASELINE",
+    "FORCE_GC_BEFORE_MEASURING_RETAINED_MEMORY",
+    "PROFILE_DETACHED_DOM_NODES"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_stress-testing-memory-leaks",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Memory Leak & Heap Retention Stress Testing\n\nDetecting JavaScript/Rust memory leaks: running thousands of continuous iterations and measuring heap retained size before/after garbage collection.\n\n## Invariants\n- HEAP_DELTA_MUST_RETURN_TO_BASELINE\n- FORCE_GC_BEFORE_MEASURING_RETAINED_MEMORY\n- PROFILE_DETACHED_DOM_NODES\n",
+  "contentSha256": "06b3736c975c4b091193d82dc8f8dcdf575762bc7067204059ec09d79346c791"
+}

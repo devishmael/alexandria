@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:error-handling-problem-details",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Standardized API error responses adhering to RFC 9457 Problem Details: type URI, title, status, detail, instance, and machine-readable validation errors.",
+  "triggerKeywords": [
+    "api",
+    "errors",
+    "problem-details",
+    "rfc7807",
+    "rfc9457",
+    "rest"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "RETURN_APPLICATION_PROBLEM_JSON_CONTENT_TYPE",
+    "INCLUDE_TYPE_URI_FOR_ALL_ERRORS",
+    "STANDARDIZED_INVALID_PARAMS_SCHEMA"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_error-handling-problem-details",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# RFC 7807 / 9457 Problem Details Standard API Errors\n\nStandardized API error responses adhering to RFC 9457 Problem Details: type URI, title, status, detail, instance, and machine-readable validation errors.\n\n## Invariants\n- RETURN_APPLICATION_PROBLEM_JSON_CONTENT_TYPE\n- INCLUDE_TYPE_URI_FOR_ALL_ERRORS\n- STANDARDIZED_INVALID_PARAMS_SCHEMA\n",
+  "contentSha256": "d3b899b98a9844f05babd223803beaf5325f5d0aa1d5d0fb961b1d2c1acfcb04"
+}

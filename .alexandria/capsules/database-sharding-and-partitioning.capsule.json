@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:sharding-and-partitioning",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Horizontal table partitioning (range, list, hash) in PostgreSQL, shard key selection, cross-partition query elimination, and read replicas.",
+  "triggerKeywords": [
+    "database",
+    "sharding",
+    "partitioning",
+    "read-replicas",
+    "scaling"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "INCLUDE_SHARD_KEY_IN_PRIMARY_KEYS",
+    "ROUTE_READS_TO_REPLICAS_WRITES_TO_PRIMARY",
+    "AVOID_CROSS_PARTITION_JOINS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_sharding-and-partitioning",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Horizontal Database Partitioning & Read-Replica Routing\n\nHorizontal table partitioning (range, list, hash) in PostgreSQL, shard key selection, cross-partition query elimination, and read replicas.\n\n## Invariants\n- INCLUDE_SHARD_KEY_IN_PRIMARY_KEYS\n- ROUTE_READS_TO_REPLICAS_WRITES_TO_PRIMARY\n- AVOID_CROSS_PARTITION_JOINS\n",
+  "contentSha256": "86a63f7d62131427f0f2ef9fc7945d77b10a65bb4c92ab078b8afad65cef7476"
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:accessibility-axe-core",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Automating accessibility checks in unit and component tests with axe-core and @axe-core/playwright, detecting WCAG violations.",
+  "triggerKeywords": [
+    "testing",
+    "accessibility",
+    "axe-core",
+    "a11y",
+    "wcag",
+    "automated-qa"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ZERO_CRITICAL_OR_SERIOUS_AXE_VIOLATIONS",
+    "RUN_AXE_ON_ALL_RENDERED_COMPONENTS",
+    "VERIFY_COLOR_CONTRAST_RATIOS"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_accessibility-axe-core",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Automated Accessibility Auditing with axe-core\n\nAutomating accessibility checks in unit and component tests with axe-core and @axe-core/playwright, detecting WCAG violations.\n\n## Invariants\n- ZERO_CRITICAL_OR_SERIOUS_AXE_VIOLATIONS\n- RUN_AXE_ON_ALL_RENDERED_COMPONENTS\n- VERIFY_COLOR_CONTRAST_RATIOS\n",
+  "contentSha256": "27a6e69459e78d35a7de41a6fbf9f66cfc2ae85e4625c78dda9cf7b807a0e2c3"
+}

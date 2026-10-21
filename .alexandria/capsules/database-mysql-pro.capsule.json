@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:mysql-pro",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "MySQL 8+ database engineering: InnoDB storage engine tuning, B-Tree index optimization, EXPLAIN ANALYZE execution plan dissection, Repeatable Read MVCC isolation, and replication.",
+  "triggerKeywords": [
+    "mysql",
+    "innodb",
+    "sql",
+    "indexing",
+    "query-optimization",
+    "explain-analyze",
+    "database"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "INNODB_STRICT_FOREIGN_KEYS_AND_INDEXES",
+    "NO_FULL_TABLE_SCANS_ON_HOT_TABLES",
+    "EXPLAIN_ANALYZE_VERIFICATION_ON_SLOW_QUERIES",
+    "REPEATABLE_READ_DEADLOCK_HANDLING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_mysql-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# MySQL 8+ & InnoDB High-Performance Database Engineering\n\nDesign, index, and tune relational schemas in MySQL 8 utilizing InnoDB storage engine internals.\n\n## Key Principles & Invariants\n- Index all foreign key columns to eliminate table-level metadata lock bottlenecks during cascade updates.\n- Verify execution plans with `EXPLAIN ANALYZE` to eliminate unindexed full table scans (`ALL`).\n- Design indexes adhering to the Leftmost Prefix Rule for composite B-Trees.\n- Handle Repeatable Read transaction deadlocks with deterministic retry loops.",
+  "contentSha256": "3f7455d5c13f28b03e73bd4509c89ad13f0dc17a6398aa759f933296ab3438aa"
+}

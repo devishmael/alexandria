@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:soft-deletes-vs-hard-deletes",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Patterns for record lifecycle: deleted_at timestamps, unique index collisions with soft deletes, immutable audit trail tables, and archiving.",
+  "triggerKeywords": [
+    "database",
+    "soft-delete",
+    "audit-trail",
+    "indexes",
+    "patterns"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PARTIAL_UNIQUE_INDEXES_FOR_ACTIVE_RECORDS",
+    "IMMUTABLE_INSERT_ONLY_AUDIT_LOGS",
+    "EXPLICIT_ARCHIVING_STRATEGY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_soft-deletes-vs-hard-deletes",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Audit Ledgers & Soft Delete vs Hard Delete Architectures\n\nPatterns for record lifecycle: deleted_at timestamps, unique index collisions with soft deletes, immutable audit trail tables, and archiving.\n\n## Invariants\n- PARTIAL_UNIQUE_INDEXES_FOR_ACTIVE_RECORDS\n- IMMUTABLE_INSERT_ONLY_AUDIT_LOGS\n- EXPLICIT_ARCHIVING_STRATEGY\n",
+  "contentSha256": "43e7ccdb429ada93386981b88acf34210ed5346ee280910b7164f318057da319"
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:nuxt-developer",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Nuxt 3+ full-stack Vue engineering: universal Server-Side Rendering (SSR), Static Site Generation (SSG), file-based routing, Nitro engine, reactive composables, and SEO meta tags.",
+  "triggerKeywords": [
+    "nuxt",
+    "nuxt3",
+    "vue",
+    "vue3",
+    "nitro",
+    "ssr",
+    "ssg",
+    "seo"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "HYDRATION_SAFE_SERVER_DATA_FETCHING",
+    "NITRO_ROUTE_RULE_SECURITY",
+    "COMPOSABLE_STATE_ISOLATION_PER_REQUEST",
+    "AUTOMATIC_META_TAG_INJECTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_nuxt-developer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Nuxt 3+ Full-Stack Vue Engineering\n\nBuild ultra-fast, SEO-optimized universal Vue 3 web applications powered by Nuxt 3 and Nitro.\n\n## Key Principles & Invariants\n- Use `useAsyncData` and `useFetch` to prevent client-server hydration mismatch anomalies.\n- Isolate SSR reactive state per request using `useState` instead of global client-side singletons.\n- Configure Nitro server routes with strict CORS and rate-limiting route rules.\n- Maintain reactive SEO metadata using `useSeoMeta` and OpenGraph tags.",
+  "contentSha256": "708724e3d49de6e594f82f266e897e1817ebe47e96755eb1038959424b726bef"
+}

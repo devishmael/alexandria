@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:mutation-testing",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Evaluating test suite efficacy via mutation testing (Stryker, cargo-mutants): mutating condition operators and checking if tests fail.",
+  "triggerKeywords": [
+    "testing",
+    "mutation-testing",
+    "stryker",
+    "quality",
+    "test-strength"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "HIGH_MUTATION_SCORE_THRESHOLD_OVER_80",
+    "KILL_MUTANTS_ON_BUSINESS_LOGIC_BRANCHES",
+    "IDENTIFY_TESTS_WITH_NO_ASSERTIONS",
+    "5. **Human review for security** - Never fully automate security checks"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_mutation-testing",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Eval Harness Skill\n\nA formal evaluation framework for Claude Code sessions, implementing eval-driven development (EDD) principles.\n\n## Philosophy\n\nEval-Driven Development treats evals as the \"unit tests of AI development\":\n- Define expected behavior BEFORE implementation\n- Run evals continuously during development\n- Track regressions with each change\n- Use pass@k metrics for reliability measurement\n\n## Eval Types\n\n### Capability Evals\nTest if Claude can do something it couldn't before:\n```markdown\n[CAPABILITY EVAL: feature-name]\nTask: Description of what Claude should accomplish\nSuccess Criteria:\n  - [ ] Criterion 1\n  - [ ] Criterion 2\n  - [ ] Criterion 3\nExpected Output: Description of expected result\n```\n\n### Regression Evals\nEnsure changes don't break existing functionality:\n```markdown\n[REGRESSION EVAL: feature-name]\nBaseline: SHA or checkpoint name\nTests:\n  - existing-test-1: PASS/FAIL\n  - existing-test-2: PASS/FAIL\n  - existing-test-3: PASS/FAIL\nResult: X/Y passed (previously Y/Y)\n```\n\n## Grader Types\n\n### 1. Code-Based Grader\nDeterministic checks using code:\n```bash\n# Check if file contains expected pattern\ngrep -q \"export function handleAuth\" src/auth.ts && echo \"PASS\" || echo \"FAIL\"\n\n# Check if tests pass\nnpm test -- --testPathPattern=\"auth\" && echo \"PASS\" || echo \"FAIL\"\n\n# Check if build succeeds\nnpm run build && echo \"PASS\" || echo \"FAIL\"\n```\n\n### 2. Model-Based Grader\nUse Claude to evaluate open-ended outputs:\n```markdown\n[MODEL GRADER PROMPT]\nEvaluate the following code change:\n1. Does it solve the stated problem?\n2. Is it well-structured?\n3. Are edge cases handled?\n4. Is error handling appropriate?\n\nScore: 1-5 (1=poor, 5=excellent)\nReasoning: [explanation]\n```\n\n### 3. Human Grader\nFlag for manual review:\n```markdown\n[HUMAN REVIEW REQUIRED]\nChange: Description of what changed\nReason: Why human review is needed\nRisk Level: LOW/MEDIUM/HIGH\n```\n\n## Metrics\n\n### pass@k\n\"At least one success in k attempts\"\n- pass@1: First attempt success rate\n- pass@3: Success within 3 attempts\n- Typical target: pass@3 > 90%\n\n### pass^k\n\"All k trials succeed\"\n- Higher bar for reliability\n- pass^3: 3 consecutive successes\n- Use for critical paths\n\n## Eval Workflow\n\n### 1. Define (Before Coding)\n```markdown\n## EVAL DEFINITION: feature-xyz\n\n### Capability Evals\n1. Can create new user account\n2. Can validate email format\n3. Can hash password securely\n\n### Regression Evals\n1. Existing login still works\n2. Session management unchanged\n3. Logout flow intact\n\n### Success Metrics\n- pass@3 > 90% for capability evals\n- pass^3 = 100% for regression evals\n```\n\n### 2. Implement\nWrite code to pass the defined evals.\n\n### 3. Evaluate\n```bash\n# Run capability evals\n[Run each capability eval, record PASS/FAIL]\n\n# Run regression evals\nnpm test -- --testPathPattern=\"existing\"\n\n# Generate report\n```\n\n### 4. Report\n```markdown\nEVAL REPORT: feature-xyz\n========================\n\nCapability Evals:\n  create-user:     PASS (pass@1)\n  validate-email:  PASS (pass@2)\n  hash-password:   PASS (pass@1)\n  Overall:         3/3 passed\n\nRegression Evals:\n  login-flow:      PASS\n  session-mgmt:    PASS\n  logout-flow:     PASS\n  Overall:         3/3 passed\n\nMetrics:\n  pass@1: 67% (2/3)\n  pass@3: 100% (3/3)\n\nStatus: READY FOR REVIEW\n```\n\n## Integration Patterns\n\n### Pre-Implementation\n```\n/eval define feature-name\n```\nCreates eval definition file at `.claude/evals/feature-name.md`\n\n### During Implementation\n```\n/eval check feature-name\n```\nRuns current evals and reports status\n\n### Post-Implementation\n```\n/eval report feature-name\n```\nGenerates full eval report\n\n## Eval Storage\n\nStore evals in project:\n```\n.claude/\n  evals/\n    feature-xyz.md      # Eval definition\n    feature-xyz.log     # Eval run history\n    baseline.json       # Regression baselines\n```\n\n## Best Practices\n\n1. **Define evals BEFORE coding** - Forces clear thinking about success criteria\n2. **Run evals frequently** - Catch regressions early\n3. **Track pass@k over time** - Monitor reliability trends\n4. **Use code graders when possible** - Deterministic > probabilistic\n5. **Human review for security** - Never fully automate security checks\n6. **Keep evals fast** - Slow evals don't get run\n7. **Version evals with code** - Evals are first-class artifacts\n\n## Example: Adding Authentication\n\n```markdown\n## EVAL: add-authentication\n\n### Phase 1: Define (10 min)\nCapability Evals:\n- [ ] User can register with email/password\n- [ ] User can login with valid credentials\n- [ ] Invalid credentials rejected with proper error\n- [ ] Sessions persist across page reloads\n- [ ] Logout clears session\n\nRegression Evals:\n- [ ] Public routes still accessible\n- [ ] API responses unchanged\n- [ ] Database schema compatible\n\n### Phase 2: Implement (varies)\n[Write code]\n\n### Phase 3: Evaluate\nRun: /eval check add-authentication\n\n### Phase 4: Report\nEVAL REPORT: add-authentication\n==============================\nCapability: 5/5 passed (pass@3: 100%)\nRegression: 3/3 passed (pass^3: 100%)\nStatus: SHIP IT\n```",
+  "contentSha256": "fcc6062b001c506fcd1ba6c9519c9668df6de9202ad77643d1a092d27983f235"
+}

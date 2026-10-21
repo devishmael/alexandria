@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:graph-databases-neo4j",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Graph data modeling: nodes, relationships, properties, Cypher traversal optimization, and index-free adjacency.",
+  "triggerKeywords": [
+    "database",
+    "neo4j",
+    "graph",
+    "cypher",
+    "knowledge-graph",
+    "traversal"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "INDEX_LOOKUP_NODES_PROPERTIES",
+    "DIRECTIONAL_RELATIONSHIPS_TYPING",
+    "AVOID_UNBOUNDED_GRAPH_TRAVERSALS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_graph-databases-neo4j",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Graph Database Modeling & Cypher Traversal in Neo4j\n\nGraph data modeling: nodes, relationships, properties, Cypher traversal optimization, and index-free adjacency.\n\n## Invariants\n- INDEX_LOOKUP_NODES_PROPERTIES\n- DIRECTIONAL_RELATIONSHIPS_TYPING\n- AVOID_UNBOUNDED_GRAPH_TRAVERSALS\n",
+  "contentSha256": "5ca7846639ae939d14da994d325628fde33eeac78e341fbfb68703ad588bd85a"
+}

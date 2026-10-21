@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:rate-limiting-circuit-mesh",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Bulkhead pattern and service mesh traffic control: allocating isolated thread/connection pools per upstream dependency to prevent cascading failures.",
+  "triggerKeywords": [
+    "architecture",
+    "bulkhead",
+    "service-mesh",
+    "traffic-shaping",
+    "resilience"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ISOLATE_RESOURCE_POOLS_PER_DEPENDENCY",
+    "FAIL_FAST_ON_BULKHEAD_SATURATION",
+    "CIRCUIT_BREAK_CASCADE_PROTECTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_rate-limiting-circuit-mesh",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Service Mesh Traffic Shaping & Bulkheading\n\nBulkhead pattern and service mesh traffic control: allocating isolated thread/connection pools per upstream dependency to prevent cascading failures.\n\n## Invariants\n- ISOLATE_RESOURCE_POOLS_PER_DEPENDENCY\n- FAIL_FAST_ON_BULKHEAD_SATURATION\n- CIRCUIT_BREAK_CASCADE_PROTECTION\n",
+  "contentSha256": "446c3568a6e418730fb12ea3f779a564117da0a4ca04cb6540b5fc9a8f04a3b2"
+}

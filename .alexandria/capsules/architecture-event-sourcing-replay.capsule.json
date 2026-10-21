@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:event-sourcing-replay",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Event sourcing: appending immutable domain events, projecting read models via stream replay, and periodically writing state snapshots.",
+  "triggerKeywords": [
+    "architecture",
+    "event-sourcing",
+    "snapshots",
+    "replay",
+    "audit",
+    "cqrs"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "APPEND_ONLY_EVENT_STREAM_IMMUTABILITY",
+    "PERIODIC_SNAPSHOTS_EVERY_N_EVENTS",
+    "DETERMINISTIC_EVENT_REPLAY_HANDLER"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_event-sourcing-replay",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Event Sourcing Stream Replay & Snapshot Optimization\n\nEvent sourcing: appending immutable domain events, projecting read models via stream replay, and periodically writing state snapshots.\n\n## Invariants\n- APPEND_ONLY_EVENT_STREAM_IMMUTABILITY\n- PERIODIC_SNAPSHOTS_EVERY_N_EVENTS\n- DETERMINISTIC_EVENT_REPLAY_HANDLER\n",
+  "contentSha256": "96c86db265a3eab4a7ecadcf83f1ebd166088dad8b2c101400403a6183e303ac"
+}

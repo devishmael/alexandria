@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:astro-ssg-expert",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Astro content collections, zero-JS by default, component islands (client:load, client:visible), and markdown authoring.",
+  "triggerKeywords": [
+    "frontend",
+    "astro",
+    "ssg",
+    "islands",
+    "content-collections",
+    "performance"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DEFAULT_ZERO_JAVASCRIPT_HYDRATION",
+    "SCHEMA_VALIDATED_CONTENT_COLLECTIONS",
+    "ISLAND_ISOLATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_astro-ssg-expert",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Astro Content Collections & Islands Architecture\n\nAstro content collections, zero-JS by default, component islands (client:load, client:visible), and markdown authoring.\n\n## Invariants\n- DEFAULT_ZERO_JAVASCRIPT_HYDRATION\n- SCHEMA_VALIDATED_CONTENT_COLLECTIONS\n- ISLAND_ISOLATION\n",
+  "contentSha256": "df039fd6d69dd6123e9bfc3fae543987647c755b724bc9d8cc86b7879796cc58"
+}

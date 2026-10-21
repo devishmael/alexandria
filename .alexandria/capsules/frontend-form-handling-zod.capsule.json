@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:form-handling-zod",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Performant uncontrolled form architecture with React Hook Form, TanStack Form, and schema validation with Zod.",
+  "triggerKeywords": [
+    "frontend",
+    "forms",
+    "react-hook-form",
+    "zod",
+    "validation",
+    "ux"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "UNCONTROLLED_FORM_INPUTS_PREFERENTIAL",
+    "SCHEMA_VALIDATION_ON_BLUR_SUBMIT",
+    "ACCESSIBLE_ERROR_MESSAGES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_form-handling-zod",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Type-Safe Form Architecture & Zod Validation\n\nPerformant uncontrolled form architecture with React Hook Form, TanStack Form, and schema validation with Zod.\n\n## Invariants\n- UNCONTROLLED_FORM_INPUTS_PREFERENTIAL\n- SCHEMA_VALIDATION_ON_BLUR_SUBMIT\n- ACCESSIBLE_ERROR_MESSAGES\n",
+  "contentSha256": "7ba73c3c49fee779e5520d8efef1f991850daf613c25bdb8f33191f2ba533b5e"
+}

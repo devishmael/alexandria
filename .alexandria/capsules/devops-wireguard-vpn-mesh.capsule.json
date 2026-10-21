@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:wireguard-vpn-mesh",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Secure infrastructure networking with WireGuard and Tailscale: noise protocol, public-key routing, and zero-trust ACLs.",
+  "triggerKeywords": [
+    "devops",
+    "vpn",
+    "wireguard",
+    "tailscale",
+    "networking",
+    "security"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "CURVE25519_KEY_EXCHANGE_AUTHENTICATION",
+    "STRICT_INGRESS_FIREWALL_ON_VPN_INTERFACES",
+    "AUTOMATED_KEY_ROTATION_SCHEDULES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_wireguard-vpn-mesh",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# WireGuard Point-to-Point Mesh & Tailscale Network Security\n\nSecure infrastructure networking with WireGuard and Tailscale: noise protocol, public-key routing, and zero-trust ACLs.\n\n## Invariants\n- CURVE25519_KEY_EXCHANGE_AUTHENTICATION\n- STRICT_INGRESS_FIREWALL_ON_VPN_INTERFACES\n- AUTOMATED_KEY_ROTATION_SCHEDULES\n",
+  "contentSha256": "f951a45ebde0ddad9818f02eb0dc3934c60722b6067b387f49a4edb06e8a10ed"
+}

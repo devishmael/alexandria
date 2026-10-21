@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:websocket-stateful-cluster",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Horizontally scaled stateful WebSockets: Redis adapter for broadcast, connection drain on shutdown, heartbeat ping-pong, and reconnection state recovery.",
+  "triggerKeywords": [
+    "backend",
+    "websocket",
+    "realtime",
+    "redis",
+    "pubsub",
+    "clustering"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REDIS_PUBSUB_BROADCAST_ACROSS_NODES",
+    "HEARTBEAT_PING_PONG_TIMEOUT_DETECTION",
+    "GRACEFUL_CONNECTION_DRAINING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_websocket-stateful-cluster",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Clustered Real-Time WebSockets via Redis Pub/Sub\n\nHorizontally scaled stateful WebSockets: Redis adapter for broadcast, connection drain on shutdown, heartbeat ping-pong, and reconnection state recovery.\n\n## Invariants\n- REDIS_PUBSUB_BROADCAST_ACROSS_NODES\n- HEARTBEAT_PING_PONG_TIMEOUT_DETECTION\n- GRACEFUL_CONNECTION_DRAINING\n",
+  "contentSha256": "705531670e9927e2e6199cf8b155ccc8c437c9d37cc29b6450f1b29d5e470565"
+}

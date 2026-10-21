@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:rails-expert",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Ruby on Rails conventions, ActiveRecord transaction blocks, Sidekiq background jobs, Hotwire/Turbo, and Sorbet typing.",
+  "triggerKeywords": [
+    "backend",
+    "rails",
+    "ruby",
+    "activerecord",
+    "sidekiq",
+    "mvc"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_STRONG_PARAMETERS_IN_CONTROLLERS",
+    "USE_ACTIVE_RECORD_TRANSACTIONS",
+    "SIDEKIQ_JOB_IDEMPOTENCY",
+    "Offload slow operations to Sidekiq — never run them synchronously in a request cycle"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_rails-expert",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Rails Expert\n\n## Core Workflow\n\n1. **Analyze requirements** — Identify models, routes, real-time needs, background jobs\n2. **Scaffold resources** — `rails generate model User name:string email:string`, `rails generate controller Users`\n3. **Run migrations** — `rails db:migrate` and verify schema with `rails db:schema:dump`\n   - If migration fails: inspect `db/schema.rb` for conflicts, rollback with `rails db:rollback`, fix and retry\n4. **Implement** — Write controllers, models, add Hotwire (see Reference Guide below)\n5. **Validate** — `bundle exec rspec` must pass; `bundle exec rubocop` for style\n   - If specs fail: check error output, fix failing examples, re-run with `--format documentation` for detail\n   - If N+1 queries surface during review: add `includes`/`eager_load` (see Common Patterns) and re-run specs\n6. **Optimize** — Audit for N+1 queries, add missing indexes, add caching\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Hotwire/Turbo | `references/hotwire-turbo.md` | Turbo Frames, Streams, Stimulus controllers |\n| Active Record | `references/active-record.md` | Models, associations, queries, performance |\n| Background Jobs | `references/background-jobs.md` | Sidekiq, job design, queues, error handling |\n| Testing | `references/rspec-testing.md` | Model/request/system specs, factories |\n| API Development | `references/api-development.md` | API-only mode, serialization, authentication |\n\n## Common Patterns\n\n### N+1 Prevention with includes/eager_load\n\n```ruby\n# BAD — triggers N+1\nposts = Post.all\nposts.each { |post| puts post.author.name }\n\n# GOOD — eager load association\nposts = Post.includes(:author).all\nposts.each { |post| puts post.author.name }\n\n# GOOD — eager_load forces a JOIN (useful when filtering on association)\nposts = Post.eager_load(:author).where(authors: { verified: true })\n```\n\n### Turbo Frame Setup (partial page update)\n\n```erb\n<%# app/views/posts/index.html.erb %>\n<%= turbo_frame_tag \"posts\" do %>\n  <%= render @posts %>\n  <%= link_to \"Load More\", posts_path(page: @next_page) %>\n<% end %>\n\n<%# app/views/posts/_post.html.erb %>\n<%= turbo_frame_tag dom_id(post) do %>\n  <h2><%= post.title %></h2>\n  <%= link_to \"Edit\", edit_post_path(post) %>\n<% end %>\n```\n\n```ruby\n# app/controllers/posts_controller.rb\ndef index\n  @posts = Post.includes(:author).page(params[:page])\n  @next_page = @posts.next_page\nend\n```\n\n### Sidekiq Worker Template\n\n```ruby\n# app/jobs/send_welcome_email_job.rb\nclass SendWelcomeEmailJob < ApplicationJob\n  queue_as :default\n  sidekiq_options retry: 3, dead: false\n\n  def perform(user_id)\n    user = User.find(user_id)\n    UserMailer.welcome(user).deliver_now\n  rescue ActiveRecord::RecordNotFound => e\n    Rails.logger.warn(\"SendWelcomeEmailJob: user #{user_id} not found — #{e.message}\")\n    # Do not re-raise; record is gone, no point retrying\n  end\nend\n\n# Enqueue from controller or model callback\nSendWelcomeEmailJob.perform_later(user.id)\n```\n\n### Strong Parameters (controller template)\n\n```ruby\n# app/controllers/posts_controller.rb\nclass PostsController < ApplicationController\n  before_action :set_post, only: %i[show edit update destroy]\n\n  def create\n    @post = Post.new(post_params)\n    if @post.save\n      redirect_to @post, notice: \"Post created.\"\n    else\n      render :new, status: :unprocessable_entity\n    end\n  end\n\n  private\n\n  def set_post\n    @post = Post.find(params[:id])\n  end\n\n  def post_params\n    params.require(:post).permit(:title, :body, :published_at)\n  end\nend\n```\n\n## Constraints\n\n### MUST DO\n- Prevent N+1 queries with `includes`/`eager_load` on every collection query involving associations\n- Write comprehensive specs targeting >95% coverage\n- Use service objects for complex business logic; keep controllers thin\n- Add database indexes for every column used in `WHERE`, `ORDER BY`, or `JOIN`\n- Offload slow operations to Sidekiq — never run them synchronously in a request cycle\n\n### MUST NOT DO\n- Skip migrations for schema changes\n- Use raw SQL without sanitization (`sanitize_sql` or parameterized queries only)\n- Expose internal IDs in URLs without consideration\n\n## Output Templates\n\nWhen implementing Rails features, provide:\n1. Migration file (if schema changes needed)\n2. Model file with associations and validations\n3. Controller with RESTful actions and strong parameters\n4. View files or Hotwire setup\n5. Spec files for models and requests\n6. Brief explanation of architectural decisions\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/backend/rails-expert/)",
+  "contentSha256": "e22f69c718672c01736ef8af4903a34749a566e7d488ad1b8a15a55ab4640b2d"
+}

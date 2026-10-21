@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:auto-verify-fix",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "File watcher hook: upon file save in src/, runs associated unit test in tests/ within isolated sandbox and reports diagnostics.",
+  "triggerKeywords": [
+    "hook",
+    "auto-verify",
+    "tdd",
+    "watcher",
+    "testing",
+    "feedback"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "RUN_ONLY_TESTS_MATCHING_MODIFIED_FILE",
+    "EXECUTE_WITH_NODE_PERMISSION_FLAG",
+    "EMIT_LSP_DIAGNOSTICS_ON_FAILURE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_auto-verify-fix",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# auto-verify-fix.sh - PostToolUse Hook (Edit/Write)\n# Lightweight type/syntax verification after a code file edit → surface fixable errors.\n# exit 0 required (PostToolUse cannot block).\n\nINPUT=$(cat)\n\necho \"$INPUT\" | python3 -c \"\nimport sys, json, os, subprocess, hashlib, re, time\n\ntry:\n    d = json.load(sys.stdin)\nexcept:\n    sys.exit(0)\n\ntool = d.get('tool_name', '')\nif tool not in ('Edit', 'Write'):\n    sys.exit(0)\n\ninp = d.get('tool_input', {})\nfile_path = inp.get('file_path', '')\nif not file_path or not os.path.isfile(file_path):\n    sys.exit(0)\n\n# Extension filter: only .ts, .tsx, .js, .jsx, .py\next = os.path.splitext(file_path)[1].lower()\nif ext not in ('.ts', '.tsx', '.js', '.jsx', '.py'):\n    sys.exit(0)\n\n# Walk up to find the project root (tsconfig.json or package.json)\nsearch_dir = os.path.dirname(os.path.abspath(file_path))\nproject_root = search_dir\nfor _ in range(10):\n    if os.path.exists(os.path.join(project_root, 'tsconfig.json')) or \\\n       os.path.exists(os.path.join(project_root, 'package.json')):\n        break\n    parent = os.path.dirname(project_root)\n    if parent == project_root:\n        project_root = search_dir\n        break\n    project_root = parent\n\n# Detect project type + run the matching verification command\nis_python = (ext == '.py')\nhas_tsconfig = os.path.exists(os.path.join(project_root, 'tsconfig.json'))\n\nif is_python:\n    try:\n        r = subprocess.run(\n            ['python3', '-m', 'py_compile', file_path],\n            capture_output=True, text=True, timeout=8\n        )\n    except:\n        sys.exit(0)\nelif has_tsconfig:\n    try:\n        r = subprocess.run(\n            ['bash', '-c', 'npx tsc --noEmit --pretty \\\"' + file_path + '\\\" 2>&1 | head -30'],\n            capture_output=True, text=True, timeout=8,\n            cwd=project_root\n        )\n    except:\n        sys.exit(0)\nelse:\n    # JS without tsconfig, or no recognized project type — no-op\n    sys.exit(0)\n\noutput = (r.stdout + r.stderr).strip()\nif r.returncode == 0 or not output:\n    sys.exit(0)\n\n# --- repeat-suppression marker ---\n# The session id must come from the payload. Claude Code does not export\n# SESSION_ID to hook processes, so the old env lookup always fell through to\n# the constant 'unknown': every concurrent session shared one marker, and the\n# count>3 suppression below then silenced the hook machine-wide and forever.\nsid = (d.get('session_id')\n       or os.environ.get('CLAUDE_SESSION_ID')\n       or os.environ.get('SESSION_ID')\n       or 'unknown')\nsid = re.sub(r'[^A-Za-z0-9_-]', '_', str(sid))\npath_hash = hashlib.md5(file_path.encode()).hexdigest()\nmarker = f'/tmp/auto-verify-fix-{sid}-{path_hash}'\n\n# A marker older than this is treated as absent, so a stale count (or a\n# fallback key shared across sessions) cannot suppress the hook indefinitely.\nMARKER_TTL_SEC = 6 * 3600\n\ncount = 0\nif os.path.exists(marker):\n    try:\n        if (time.time() - os.path.getmtime(marker)) <= MARKER_TTL_SEC:\n            count = int(open(marker).read().strip())\n    except Exception:\n        count = 0\ncount += 1\ntry:\n    open(marker, 'w').write(str(count))\nexcept:\n    pass\n\nbasename = os.path.basename(file_path)\nif count > 3:\n    # Same error repeating: go quiet, stop nagging.\n    sys.exit(0)\n\n# --- error classification ---\nFIXABLE = [\n    r'Cannot find name',\n    r'is declared but',\n    r'React Hook.*cannot be called',\n    r'Module.*not found',\n    r'Cannot find module',\n    r'has no exported member',\n]\n\nmessages = []\nseen = set()\nfor line in output.split('\\n')[:30]:\n    line = line.strip()\n    if not line or line in seen:\n        continue\n    has_err = 'error' in line.lower() or 'SyntaxError' in line\n    if not has_err:\n        continue\n    seen.add(line)\n    if any(re.search(p, line) for p in FIXABLE):\n        messages.append(f'[auto-fix] {line} -> fix this file.')\n    else:\n        messages.append(f'[verify-warn] {line} -> needs manual check.')\n\n# Nothing meaningful found: go quiet.\nif not messages:\n    sys.exit(0)\n\n# PostToolUse: plain stdout/stderr is NOT injected into Claude's context.\n# Must use hookSpecificOutput.additionalContext (JSON on stdout) instead.\nctx = (\n    f'[verify hook — auto-verify-fix] Verification errors found in the file you just edited ({basename}):\\n'\n    + '\\n'.join(messages[:10])\n    + '\\nNon-blocking signal — review and fix the errors above.'\n)\nout = {'hookSpecificOutput': {'hookEventName': 'PostToolUse', 'additionalContext': ctx}}\nprint(json.dumps(out, ensure_ascii=False))\n\" 2>/dev/null\n\nexit 0\n",
+  "contentSha256": "1c2b8d62f01f29117dd8247307d935a7bce4ac011eddd10d18e2000109447dc6"
+}

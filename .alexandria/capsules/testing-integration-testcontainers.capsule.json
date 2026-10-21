@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:integration-testcontainers",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Running true integration tests against real ephemeral databases (PostgreSQL, Redis, Kafka) spawned via Testcontainers.",
+  "triggerKeywords": [
+    "testing",
+    "testcontainers",
+    "integration-tests",
+    "docker",
+    "database"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "USE_EPHEMERAL_DOCKER_CONTAINERS_FOR_TESTS",
+    "CLEAN_DATABASE_BETWEEN_TEST_SUITES",
+    "PARALLEL_TEST_ISOLATION_VIA_RANDOM_PORTS"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_integration-testcontainers",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Real Database Integration Testing with Testcontainers\n\nRunning true integration tests against real ephemeral databases (PostgreSQL, Redis, Kafka) spawned via Testcontainers.\n\n## Invariants\n- USE_EPHEMERAL_DOCKER_CONTAINERS_FOR_TESTS\n- CLEAN_DATABASE_BETWEEN_TEST_SUITES\n- PARALLEL_TEST_ISOLATION_VIA_RANDOM_PORTS\n",
+  "contentSha256": "8f8736677ce827bcae5be1ff709b4d7569feb70946bd9d4c027dc4232d1c6173"
+}

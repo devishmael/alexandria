@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "ide:vscode-pro",
+  "domain": "ide",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Visual Studio Code power engineering: workspace settings.json, multi-target debugging in launch.json, custom tasks.json, essential extensions curation, and Remote SSH/Dev Containers setups.",
+  "triggerKeywords": [
+    "vscode",
+    "ide",
+    "editor",
+    "settings.json",
+    "launch.json",
+    "debugger",
+    "dev-containers"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "COMMITTED_PROJECT_LAUNCH_AND_TASKS_CONFIG",
+    "RECOMMENDED_EXTENSIONS_LISTED_IN_EXTENSIONS_JSON",
+    "FORMAT_ON_SAVE_AND_LINTING_RULES_SYNCED",
+    "HERMETIC_REMOTE_DEV_CONTAINER_DEFINITION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "ide_vscode-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Visual Studio Code Power Configuration & Workspace Tooling\n\nStandardize VS Code workspaces for automated team consistency, reproducible debugging, and containerized development.\n\n## Key Principles & Invariants\n- Commit workspace `.vscode/launch.json` and `.vscode/tasks.json` to version control.\n- List all required workspace plugins inside `.vscode/extensions.json`.\n- Enforce `editor.formatOnSave` and `editor.codeActionsOnSave` adhering to project linting standards.\n- Provide a reproducible `.devcontainer/devcontainer.json` for hermetic onboarding.",
+  "contentSha256": "b44ebb1a31de48d8355ca0636fb1a18c90e9c2c6fc7b8e5bee37ec4452008e85"
+}

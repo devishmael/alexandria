@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:legacy-modernizer",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Incremental legacy modernization using the Strangler Fig pattern, anti-corruption layers (ACL), parallel run verification, and zero downtime.",
+  "triggerKeywords": [
+    "backend",
+    "legacy",
+    "modernization",
+    "strangler-fig",
+    "refactoring"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ANTI_CORRUPTION_LAYER_ACROSS_BOUNDARIES",
+    "INCREMENTAL_STRANGLER_FIG_ROUTING",
+    "DUAL_RUN_DIFF_VERIFICATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_legacy-modernizer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Legacy Modernizer\n\n## Core Workflow\n\n1. **Assess system** — Analyze codebase, dependencies, risks, and business constraints. Produce a dependency map and risk register before proceeding.\n   - *Validation checkpoint:* Confirm all external integrations and data contracts are documented before moving to step 2.\n\n2. **Plan migration** — Design an incremental roadmap with explicit rollback strategies per phase. Reference `references/system-assessment.md` for code analysis templates.\n   - *Validation checkpoint:* Confirm each phase has a defined rollback trigger and owner.\n\n3. **Build safety net** — Create characterization tests and monitoring before touching production code. Target 80%+ coverage of existing behavior.\n   - *Validation checkpoint:* Run the characterization test suite and confirm it passes green on the unmodified legacy system before proceeding.\n\n4. **Migrate incrementally** — Apply strangler fig pattern with feature flags. Route traffic via a facade; shift load gradually.\n   - *Validation checkpoint:* Verify error rates and latency metrics remain within baseline thresholds after each traffic increment (e.g., 5% → 25% → 50% → 100%).\n\n5. **Validate & iterate** — Run full test suite, review monitoring dashboards, and confirm business behavior is preserved before retiring legacy code.\n   - *Validation checkpoint:* New code must be proven stable at 100% traffic for at least one release cycle before legacy path is removed.\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Strangler Fig | `references/strangler-fig-pattern.md` | Incremental replacement, facade layer, routing |\n| Refactoring | `references/refactoring-patterns.md` | Extract service, branch by abstraction, adapters |\n| Migration | `references/migration-strategies.md` | Database, UI, API, framework migrations |\n| Testing | `references/legacy-testing.md` | Characterization tests, golden master, approval |\n| Assessment | `references/system-assessment.md` | Code analysis, dependency mapping, risk evaluation |\n\n## Code Examples\n\n### Strangler Fig Facade (Python)\n```python\n# facade.py — routes requests to legacy or new service based on a feature flag\nimport os\nfrom legacy_service import LegacyOrderService\nfrom new_service import NewOrderService\n\nclass OrderServiceFacade:\n    def __init__(self):\n        self._legacy = LegacyOrderService()\n        self._new = NewOrderService()\n\n    def get_order(self, order_id: str):\n        if os.getenv(\"USE_NEW_ORDER_SERVICE\", \"false\").lower() == \"true\":\n            return self._new.fetch(order_id)\n        return self._legacy.get(order_id)\n```\n\n### Feature Flag Wrapper\n```python\n# feature_flags.py — thin wrapper around an environment or config-based flag store\nimport os\n\ndef flag_enabled(flag_name: str, default: bool = False) -> bool:\n    \"\"\"Check whether a migration feature flag is active.\"\"\"\n    return os.getenv(flag_name, str(default)).lower() == \"true\"\n\n# Usage\nif flag_enabled(\"USE_NEW_PAYMENT_GATEWAY\"):\n    result = new_gateway.charge(order)\nelse:\n    result = legacy_gateway.charge(order)\n```\n\n### Characterization Test Template (pytest)\n```python\n# test_characterization_orders.py\n# Captures existing legacy behavior as a golden-master safety net.\nimport pytest\nfrom legacy_service import LegacyOrderService\n\nservice = LegacyOrderService()\n\n@pytest.mark.parametrize(\"order_id,expected_status\", [\n    (\"ORD-001\", \"SHIPPED\"),\n    (\"ORD-002\", \"PENDING\"),\n    (\"ORD-003\", \"CANCELLED\"),\n])\ndef test_order_status_golden_master(order_id, expected_status):\n    \"\"\"Fail loudly if legacy behavior changes unexpectedly.\"\"\"\n    result = service.get(order_id)\n    assert result[\"status\"] == expected_status, (\n        f\"Characterization broken for {order_id}: \"\n        f\"expected {expected_status}, got {result['status']}\"\n    )\n```\n\n## Constraints\n\n### MUST DO\n- Maintain zero production disruption during all migrations\n- Create comprehensive test coverage before refactoring (target 80%+)\n- Use feature flags for all incremental rollouts\n- Implement monitoring and rollback procedures\n- Document all migration decisions and rationale\n- Preserve existing business logic and behavior\n- Communicate progress and risks transparently\n\n### MUST NOT DO\n- Big bang rewrites or replacements\n- Skip testing legacy behavior before changes\n- Deploy without rollback capability\n- Break existing integrations or APIs\n- Ignore technical debt in new code\n- Rush migrations without proper validation\n- Remove legacy code before new code is proven\n\n## Output Templates\n\nWhen implementing modernization, provide:\n1. Assessment summary (risks, dependencies, approach)\n2. Migration plan (phases, rollback strategy, metrics)\n3. Implementation code (facades, adapters, new services)\n4. Test coverage (characterization, integration, e2e)\n5. Monitoring setup (metrics, alerts, dashboards)\n\n## Knowledge Reference\n\nStrangler fig pattern, branch by abstraction, characterization testing, incremental migration, feature flags, canary deployments, API versioning, database refactoring, microservices extraction, technical debt reduction, zero-downtime deployment\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/specialized/legacy-modernizer/)",
+  "contentSha256": "602051506d810cd3f631ef62f2885104fcc3e36555d06bfd20240604c2b3cb9e"
+}

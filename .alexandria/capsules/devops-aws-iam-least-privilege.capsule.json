@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:aws-iam-least-privilege",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Cloud IAM hardening: eliminating wildcard permissions (Action: *), role assumption session durations, and IAM Access Analyzer reviews.",
+  "triggerKeywords": [
+    "devops",
+    "aws",
+    "iam",
+    "least-privilege",
+    "security",
+    "cloud"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "FORBID_WILDCARD_RESOURCE_AND_ACTION_POLICIES",
+    "REQUIRE_MFA_FOR_PRIVILEGED_OPERATIONS",
+    "SEPARATE_READ_ONLY_FROM_WRITE_ROLES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_aws-iam-least-privilege",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# AWS IAM Policy Sentry & Least-Privilege Role Auditing\n\nCloud IAM hardening: eliminating wildcard permissions (Action: *), role assumption session durations, and IAM Access Analyzer reviews.\n\n## Invariants\n- FORBID_WILDCARD_RESOURCE_AND_ACTION_POLICIES\n- REQUIRE_MFA_FOR_PRIVILEGED_OPERATIONS\n- SEPARATE_READ_ONLY_FROM_WRITE_ROLES\n",
+  "contentSha256": "78e87083011e0e11e8f0eb1603c53645ceb4cbbacbb886ff5c73f8a50d736d29"
+}

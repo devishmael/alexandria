@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:content-negotiation",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "API versioning and format negotiation: URL path versioning vs Accept header versioning, deprecation headers (Sunset RFC 8594), and gzip/brotli.",
+  "triggerKeywords": [
+    "api",
+    "content-negotiation",
+    "versioning",
+    "sunset-header",
+    "brotli"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SET_SUNSET_HEADER_ON_DEPRECATED_APIS",
+    "STABLE_VERSIONING_ACROSS_MINOR_UPDATES",
+    "SUPPORT_GZIP_AND_BROTLI_ENCODING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_content-negotiation",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# HTTP Content Negotiation & Versioning Strategies\n\nAPI versioning and format negotiation: URL path versioning vs Accept header versioning, deprecation headers (Sunset RFC 8594), and gzip/brotli.\n\n## Invariants\n- SET_SUNSET_HEADER_ON_DEPRECATED_APIS\n- STABLE_VERSIONING_ACROSS_MINOR_UPDATES\n- SUPPORT_GZIP_AND_BROTLI_ENCODING\n",
+  "contentSha256": "64a4d03e79f54ed14b153e2b1522753a7575b4a1d355aba822715f4fb713e807"
+}

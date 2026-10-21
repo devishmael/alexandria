@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:fts5-sqlite-search",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "High-speed local full-text search with SQLite FTS5: porter tokenizer, prefix queries, highlight functions, and custom BM25 weight ranking.",
+  "triggerKeywords": [
+    "database",
+    "sqlite",
+    "fts5",
+    "bm25",
+    "full-text-search",
+    "lexical"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SYNC_FTS5_TABLES_VIA_SQLITE_TRIGGERS",
+    "USE_PORTER_UNICODE61_TOKENIZERS",
+    "SANITIZE_FTS5_SPECIAL_QUERY_CHARACTERS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_fts5-sqlite-search",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# SQLite FTS5 Full-Text Search & BM25 Scoring\n\nHigh-speed local full-text search with SQLite FTS5: porter tokenizer, prefix queries, highlight functions, and custom BM25 weight ranking.\n\n## Invariants\n- SYNC_FTS5_TABLES_VIA_SQLITE_TRIGGERS\n- USE_PORTER_UNICODE61_TOKENIZERS\n- SANITIZE_FTS5_SPECIAL_QUERY_CHARACTERS\n",
+  "contentSha256": "aff3b13538154a05ffda679451cdf2d060f3a54e57a29b0d5b2850c22b578af5"
+}

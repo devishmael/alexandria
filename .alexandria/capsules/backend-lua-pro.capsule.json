@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:lua-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Lua 5.4 and LuaJIT systems programming: metatable object orientation, functional lexical closures, coroutine cooperative multitasking, and high-performance embedding within C/C++.",
+  "triggerKeywords": [
+    "lua",
+    "luajit",
+    "metatables",
+    "coroutines",
+    "embedded-systems",
+    "c-ffi",
+    "scripting"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "COROUTINE_ERROR_PROPAGATION",
+    "METATABLE_PROTOTYPE_ENCAPSULATION",
+    "NO_ACCIDENTAL_GLOBAL_VARIABLES",
+    "ZERO_OVERHEAD_C_FFI_BINDINGS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_lua-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Lua 5.4 & LuaJIT High-Performance Systems Architecture\n\nMaster lightweight scripting, coroutine multitasking, and C/C++ host embedding in Lua and LuaJIT.\n\n## Key Principles & Invariants\n- Forbid accidental globals: all variables must be explicitly declared `local`.\n- Use metatables and `__index` for prototype-based inheritance and operator overloading.\n- Encapsulate cooperative multitasking with `coroutine.create` and robust `pcall`/`xpcall` error wrapping.\n- Leverage LuaJIT `ffi` for direct, zero-overhead C data structures and native function calls.",
+  "contentSha256": "3fb3318038dd77d76d7f24c6776c9e3e690af87867bc0d2685c50ac8115845fb"
+}

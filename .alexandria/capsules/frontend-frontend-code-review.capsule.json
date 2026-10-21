@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:frontend-code-review",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Code review guidelines for frontend: tree-shaking verification, bundle size budgets, memory leak audit, and re-render profiling.",
+  "triggerKeywords": [
+    "frontend",
+    "code-review",
+    "bundle-size",
+    "optimization",
+    "profiling"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "BUNDLE_SIZE_BUDGET_ENFORCEMENT",
+    "NO_UNMEMOIZED_OBJECT_PROPS_IN_LOOPS",
+    "VERIFY_TREE_SHAKING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_frontend-code-review",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Frontend Code Review\n\n## Intent\nUse this skill whenever the user asks to review frontend code (especially `.tsx`, `.ts`, or `.js` files). Support two review modes:\n\n1. **Pending-change review** – inspect staged/working-tree files slated for commit and flag checklist violations before submission.\n2. **File-targeted review** – review the specific file(s) the user names and report the relevant checklist findings.\n\nStick to the checklist below for every applicable file and mode.\n\n## Checklist\nSee [references/code-quality.md](references/code-quality.md), [references/performance.md](references/performance.md), [references/business-logic.md](references/business-logic.md) for the living checklist split by category—treat it as the canonical set of rules to follow.\n\nFlag each rule violation with urgency metadata so future reviewers can prioritize fixes.\n\n## Review Process\n1. Open the relevant component/module. Gather lines that relate to class names, React Flow hooks, prop memoization, and styling.\n2. For each rule in the review point, note where the code deviates and capture a representative snippet.\n3. Compose the review section per the template below. Group violations first by **Urgent** flag, then by category order (Code Quality, Performance, Business Logic).\n\n## Required output\nWhen invoked, the response must exactly follow one of the two templates:\n\n### Template A (any findings)\n```\n# Code review\nFound <N> urgent issues need to be fixed:\n\n## 1 <brief description of bug>\nFilePath: <path> line <line>\n<relevant code snippet or pointer>\n\n\n### Suggested fix\n<brief description of suggested fix>\n\n---\n... (repeat for each urgent issue) ...\n\nFound <M> suggestions for improvement:\n\n## 1 <brief description of suggestion>\nFilePath: <path> line <line>\n<relevant code snippet or pointer>\n\n\n### Suggested fix\n<brief description of suggested fix>\n\n---\n\n... (repeat for each suggestion) ...\n```\n\nIf there are no urgent issues, omit that section. If there are no suggestions, omit that section.\n\nIf the issue number is more than 10, summarize as \"10+ urgent issues\" or \"10+ suggestions\" and just output the first 10 issues.\n\nDon't compress the blank lines between sections; keep them as-is for readability.\n\nIf you use Template A (i.e., there are issues to fix) and at least one issue requires code changes, append a brief follow-up question after the structured output asking whether the user wants you to apply the suggested fix(es). For example: \"Would you like me to use the Suggested fix section to address these issues?\"\n\n### Template B (no issues)\n```\n## Code review\nNo issues found.\n```",
+  "contentSha256": "50151b2f154595ae9d2e423c3b143d3651936619f5c28dd20bb634abf5019f83"
+}

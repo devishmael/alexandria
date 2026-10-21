@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "ide:xcode-developer",
+  "domain": "ide",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Apple Xcode environment architecture: Swift Package Manager (SPM) dependency graph, iOS/macOS Simulator management, Instruments performance profiling (Time Profiler, Leaks), and App Store archive signing.",
+  "triggerKeywords": [
+    "xcode",
+    "apple",
+    "ios",
+    "macos",
+    "spm",
+    "instruments",
+    "simulator",
+    "ide"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SWIFT_PACKAGE_MANAGER_EXPLICIT_VERSIONING",
+    "INSTRUMENTS_LEAKS_AND_ALLOCATIONS_CLEAN",
+    "BUILD_SCHEME_SEPARATION_DEV_STAGING_PROD",
+    "SECURE_CODE_SIGNING_ENTITLEMENTS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "ide_xcode-developer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Apple Xcode Architecture & Performance Profiling\n\nMaster Xcode for iOS, iPadOS, and macOS native app development, performance profiling, and release distribution.\n\n## Key Principles & Invariants\n- Manage all external libraries through Swift Package Manager with exact semantic version pins.\n- Run Xcode Instruments (Time Profiler and Leaks) on physical devices to eliminate performance bottlenecks.\n- Decouple Development, Staging, and Production configurations into distinct Build Schemes.\n- Maintain minimal entitlements and secure code signing identities for App Store distribution.",
+  "contentSha256": "f6de3583d5265bba403458d022ec9c7a05c532737bdfe0b596bb2d8ce6dd4a2a"
+}

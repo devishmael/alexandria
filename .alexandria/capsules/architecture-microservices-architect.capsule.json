@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:microservices-architect",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Microservices architecture: service boundary decomposition, distributed transactions, service discovery, distributed tracing, and resilience.",
+  "triggerKeywords": [
+    "architecture",
+    "microservices",
+    "distributed-systems",
+    "tracing",
+    "resilience"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DATABASE_PER_SERVICE_ENCAPSULATION",
+    "PROPAGATE_DISTRIBUTED_TRACE_HEADERS",
+    "CIRCUIT_BREAKERS_ON_CROSS_SERVICE_CALLS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_microservices-architect",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Microservices Architect\n\nSenior distributed systems architect specializing in cloud-native microservices architectures, resilience patterns, and operational excellence.\n\n## Core Workflow\n\n1. **Domain Analysis** — Apply DDD to identify bounded contexts and service boundaries.\n   - *Validation checkpoint:* Each candidate service owns its data exclusively, has a clear public API contract, and can be deployed independently.\n2. **Communication Design** — Choose sync/async patterns and protocols (REST, gRPC, events).\n   - *Validation checkpoint:* Long-running or cross-aggregate operations use async messaging; only query/command pairs with sub-100 ms SLA use synchronous calls.\n3. **Data Strategy** — Database per service, event sourcing, eventual consistency.\n   - *Validation checkpoint:* No shared database schema exists between services; consistency boundaries align with bounded contexts.\n4. **Resilience** — Circuit breakers, retries, timeouts, bulkheads, fallbacks.\n   - *Validation checkpoint:* Every external call has an explicit timeout, retry budget, and graceful degradation path.\n5. **Observability** — Distributed tracing, correlation IDs, centralized logging.\n   - *Validation checkpoint:* A single request can be traced end-to-end using its correlation ID across all services.\n6. **Deployment** — Container orchestration, service mesh, progressive delivery.\n   - *Validation checkpoint:* Health and readiness probes are defined; canary or blue-green rollout strategy is documented.\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Service Boundaries | `references/decomposition.md` | Monolith decomposition, bounded contexts, DDD |\n| Communication | `references/communication.md` | REST vs gRPC, async messaging, event-driven |\n| Resilience Patterns | `references/patterns.md` | Circuit breakers, saga, bulkhead, retry strategies |\n| Data Management | `references/data.md` | Database per service, event sourcing, CQRS |\n| Observability | `references/observability.md` | Distributed tracing, correlation IDs, metrics |\n\n## Implementation Examples\n\n### Correlation ID Middleware (Node.js / Express)\n```js\nconst { v4: uuidv4 } = require('uuid');\n\nfunction correlationMiddleware(req, res, next) {\n  req.correlationId = req.headers['x-correlation-id'] || uuidv4();\n  res.setHeader('x-correlation-id', req.correlationId);\n  // Attach to logger context so every log line includes the ID\n  req.log = logger.child({ correlationId: req.correlationId });\n  next();\n}\n```\nPropagate `x-correlation-id` in every outbound HTTP call and Kafka message header.\n\n### Circuit Breaker (Python / `pybreaker`)\n```python\nimport pybreaker\n\n# Opens after 5 failures; resets after 30 s in half-open state\nbreaker = pybreaker.CircuitBreaker(fail_max=5, reset_timeout=30)\n\n@breaker\ndef call_inventory_service(order_id: str):\n    response = requests.get(f\"{INVENTORY_URL}/stock/{order_id}\", timeout=2)\n    response.raise_for_status()\n    return response.json()\n\ndef get_inventory(order_id: str):\n    try:\n        return call_inventory_service(order_id)\n    except pybreaker.CircuitBreakerError:\n        return {\"status\": \"unavailable\", \"fallback\": True}\n```\n\n### Saga Orchestration Skeleton (TypeScript)\n```ts\n// Each step defines execute() and compensate() so rollback is automatic.\ninterface SagaStep<T> {\n  execute(ctx: T): Promise<T>;\n  compensate(ctx: T): Promise<void>;\n}\n\nasync function runSaga<T>(steps: SagaStep<T>[], initialCtx: T): Promise<T> {\n  const completed: SagaStep<T>[] = [];\n  let ctx = initialCtx;\n  for (const step of steps) {\n    try {\n      ctx = await step.execute(ctx);\n      completed.push(step);\n    } catch (err) {\n      for (const done of completed.reverse()) {\n        await done.compensate(ctx).catch(console.error);\n      }\n      throw err;\n    }\n  }\n  return ctx;\n}\n\n// Usage: order creation saga\nconst orderSaga = [reserveInventoryStep, chargePaymentStep, scheduleShipmentStep];\nawait runSaga(orderSaga, { orderId, customerId, items });\n```\n\n### Health & Readiness Probe (Kubernetes)\n```yaml\nlivenessProbe:\n  httpGet:\n    path: /health/live\n    port: 8080\n  initialDelaySeconds: 10\n  periodSeconds: 15\nreadinessProbe:\n  httpGet:\n    path: /health/ready\n    port: 8080\n  initialDelaySeconds: 5\n  periodSeconds: 10\n```\n`/health/live` — returns 200 if the process is running.  \n`/health/ready` — returns 200 only when the service can serve traffic (DB connected, caches warm).\n\n## Constraints\n\n### MUST DO\n- Apply domain-driven design for service boundaries\n- Use database per service pattern\n- Implement circuit breakers for external calls\n- Add correlation IDs to all requests\n- Use async communication for cross-aggregate operations\n- Design for failure and graceful degradation\n- Implement health checks and readiness probes\n- Use API versioning strategies\n\n### MUST NOT DO\n- Create distributed monoliths\n- Share databases between services\n- Use synchronous calls for long-running operations\n- Skip distributed tracing implementation\n- Ignore network latency and partial failures\n- Create chatty service interfaces\n- Store shared state without proper patterns\n- Deploy without observability\n\n## Output Templates\n\nWhen designing microservices architecture, provide:\n1. Service boundary diagram with bounded contexts\n2. Communication patterns (sync/async, protocols)\n3. Data ownership and consistency model\n4. Resilience patterns for each integration point\n5. Deployment and infrastructure requirements\n\n## Knowledge Reference\n\nDomain-driven design, bounded contexts, event storming, REST/gRPC, message queues (Kafka, RabbitMQ), service mesh (Istio, Linkerd), Kubernetes, circuit breakers, saga patterns, event sourcing, CQRS, distributed tracing (Jaeger, Zipkin), API gateways, eventual consistency, CAP theorem\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/api-architecture/microservices-architect/)",
+  "contentSha256": "3ce12a269838bdc814de98dbe5fc8ce499d800fb0ba5d3bbc5c92c26b95dce6c"
+}

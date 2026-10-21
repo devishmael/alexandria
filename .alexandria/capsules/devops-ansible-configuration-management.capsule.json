@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:ansible-configuration-management",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Automated configuration management with Ansible: idempotent playbooks, Ansible Vault for secret variables, and modular role structures.",
+  "triggerKeywords": [
+    "devops",
+    "ansible",
+    "iac",
+    "automation",
+    "idempotency",
+    "sysadmin"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ALL_PLAYBOOKS_MUST_BE_STRICTLY_IDEMPOTENT",
+    "ENCRYPT_PASSWORDS_WITH_ANSIBLE_VAULT",
+    "AVOID_RAW_COMMAND_WHEN_MODULE_EXISTS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_ansible-configuration-management",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Ansible Idempotent Automation & Role Architecture\n\nAutomated configuration management with Ansible: idempotent playbooks, Ansible Vault for secret variables, and modular role structures.\n\n## Invariants\n- ALL_PLAYBOOKS_MUST_BE_STRICTLY_IDEMPOTENT\n- ENCRYPT_PASSWORDS_WITH_ANSIBLE_VAULT\n- AVOID_RAW_COMMAND_WHEN_MODULE_EXISTS\n",
+  "contentSha256": "6d4b454004f5d9b4cbdaa3a3f693df03d47f073638b8d712e9ff9a6518fe040d"
+}

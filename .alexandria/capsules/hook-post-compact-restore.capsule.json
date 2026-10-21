@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:post-compact-restore",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Post-compact hook: immediately injects hoisted ADRs and active module contracts back into the top of the pruned context window.",
+  "triggerKeywords": [
+    "hook",
+    "post-compact",
+    "context-restoration",
+    "adr-hoisting",
+    "invariants"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REINJECT_TOPOLOGICAL_DEPTH_1_CONTRACTS",
+    "VERIFY_ACTIVE_CONSTRAINTS_ARE_PRESENT",
+    "ZERO_HALLUCINATION_POST_COMPACT",
+    "# Active automatically once this file exists. Must never exit abnormally -> always exit 0."
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_post-compact-restore",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# post-compact-restore.sh — PostCompact auto-restore hook (opt-in, fail-open, always exits 0).\n# Think of it like this: compacting (/compact) tends to sweep away the \"next task\" note along with the\n# clutter. This hook pulls that note back out of the locker (the pointer) exactly once (consume-once)\n# right after compaction and re-injects it into the session.\n#\n# settings.json wires this via SessionStart (matcher: \"compact\").\n# (The PostCompact event's hookSpecificOutput schema does not include a \"PostCompact\" event name, which\n#  fails JSON validation — so this uses SessionStart:compact + plain-text stdout instead, the same channel\n#  used by load-guard-style hooks.)\n# Active automatically once this file exists. Must never exit abnormally -> always exit 0.\n#\n# Output contract: for SessionStart, exit 0 + stdout plain text is the standard way to inject context into\n# Claude. In every other case (no pointer / already consumed / expired / bad input), emit nothing and exit 0.\nset -o pipefail 2>/dev/null || true\n\nINPUT=\"$(cat 2>/dev/null || true)\"\n\n# extract cwd (grep+sed, no jq dependency — same style as pre-compact-snapshot.sh)\nCWD=\"$(printf '%s' \"$INPUT\" | grep -o '\"cwd\"[[:space:]]*:[[:space:]]*\"[^\"]*\"' | sed 's/\"cwd\"[[:space:]]*:[[:space:]]*\"//;s/\"$//' | head -1)\"\n[ -z \"$CWD\" ] && exit 0\n\n# source the library by absolute path (must match the hash the writer used)\nLIB=\"$HOME/.claude/skills/relay/scripts/relay-lib.sh\"\n[ -f \"$LIB\" ] || exit 0\n# shellcheck source=/dev/null\nsource \"$LIB\" 2>/dev/null || exit 0\n\nHASH=\"$(relay_cwd_hash \"$CWD\" 2>/dev/null || true)\"\n[ -z \"$HASH\" ] && exit 0\n\nPOINTER=\"$(relay_pointer_path \"$HASH\" 2>/dev/null || true)\"\n[ -n \"$POINTER\" ] || exit 0\n[ -f \"$POINTER\" ] || exit 0\n\nCONSUMED=\"$(relay_consumed_path \"$HASH\" 2>/dev/null || true)\"\n[ -n \"$CONSUMED\" ] && [ -f \"$CONSUMED\" ] && exit 0\n\n# parse the pointer + check TTL expiry + assemble the restore text (python3 is fine here)\nRESULT=\"$(python3 - \"$POINTER\" <<'PY' 2>/dev/null || true\nimport json, sys, datetime, re\n\ntry:\n    d = json.load(open(sys.argv[1]))\nexcept Exception:\n    print(\"SKIP\"); sys.exit(0)\n\nbaton = d.get(\"baton\") or \"\"\nnext_task = d.get(\"next_task\") or \"\"\ncarryover = d.get(\"carryover\") or \"\"\ncreated = d.get(\"created\") or \"\"\nttl = d.get(\"ttl_hours\")\ntry:\n    ttl = float(ttl)\nexcept Exception:\n    ttl = 12.0\n\ndef parse_dt(s):\n    s = (s or \"\").strip()\n    if not s:\n        return None\n    # normalize +09:00 -> +0900\n    s2 = re.sub(r'([+-]\\d{2}):(\\d{2})$', r'\\1\\2', s)\n    for cand in (s, s2):\n        for fmt in (\"%Y-%m-%dT%H:%M:%S%z\", \"%Y-%m-%dT%H:%M:%S\"):\n            try:\n                return datetime.datetime.strptime(cand, fmt)\n            except Exception:\n                pass\n    return None\n\ndt = parse_dt(created)\nif dt is not None:\n    if dt.tzinfo:\n        now = datetime.datetime.now(dt.tzinfo)\n    else:\n        now = datetime.datetime.now()\n    age_h = (now - dt).total_seconds() / 3600.0\n    if age_h > ttl:\n        print(\"EXPIRED\"); sys.exit(0)\n\ntext = \"[Relay restore] Next task: %s\\n%s\\nFull baton: %s (Read it if needed).\" % (next_task, carryover, baton)\nprint(\"OK\")\nprint(text)\nPY\n)\"\n\nSTATUS=\"$(printf '%s\\n' \"$RESULT\" | head -1)\"\n\nif [ \"$STATUS\" = \"EXPIRED\" ]; then\n  rm -f \"$POINTER\" 2>/dev/null || true\n  exit 0\nfi\n\nif [ \"$STATUS\" != \"OK\" ]; then\n  exit 0\nfi\n\nRESTORE_TEXT=\"$(printf '%s\\n' \"$RESULT\" | sed -n '2,$p')\"\n[ -z \"$RESTORE_TEXT\" ] && exit 0\n\n# inject the restore context (SessionStart: plain-text stdout)\nprintf '%s\\n' \"$RESTORE_TEXT\"\n\n# record the consume-once marker\n: > \"$CONSUMED\" 2>/dev/null || true\n\n# clean up other expired pointers (older than 12h = 720min, excluding consumed markers)\nfind \"$(relay_dir)\" -maxdepth 1 -name '.pointer-*' ! -name '*.consumed' -mmin +720 -delete 2>/dev/null || true\n\nexit 0\n",
+  "contentSha256": "41af0a294a09acf28e7b8eb64752c9fca4032cea353587481535e374a308fdaa"
+}

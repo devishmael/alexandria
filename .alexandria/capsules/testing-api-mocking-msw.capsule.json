@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:api-mocking-msw",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Network-level request interception with Mock Service Worker (MSW): seamless in browser and Node.js without monkey-patching fetch.",
+  "triggerKeywords": [
+    "testing",
+    "msw",
+    "mocking",
+    "network-mock",
+    "integration"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "INTERCEPT_AT_NETWORK_LAYER_VIA_SERVICE_WORKER",
+    "MATCH_EXACT_OPENAPI_SCHEMAS_IN_MOCKS",
+    "RESET_HANDLERS_BETWEEN_TESTS"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_api-mocking-msw",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Mock Service Worker (MSW) Network Level Mocking\n\nNetwork-level request interception with Mock Service Worker (MSW): seamless in browser and Node.js without monkey-patching fetch.\n\n## Invariants\n- INTERCEPT_AT_NETWORK_LAYER_VIA_SERVICE_WORKER\n- MATCH_EXACT_OPENAPI_SCHEMAS_IN_MOCKS\n- RESET_HANDLERS_BETWEEN_TESTS\n",
+  "contentSha256": "1d15b573b0a9486b3623311620d6311d14b05faea01ba8c0c4d49b09cc9191b8"
+}

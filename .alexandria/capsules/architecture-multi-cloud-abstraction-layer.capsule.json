@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:multi-cloud-abstraction-layer",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Abstracting cloud infrastructure dependencies (S3/GCS, SQS/PubSub, KMS) behind generic repository interfaces to prevent vendor lock-in.",
+  "triggerKeywords": [
+    "architecture",
+    "cloud-abstraction",
+    "portability",
+    "vendor-lock-in",
+    "storage"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "GENERIC_INTERFACES_FOR_STORAGE_AND_MESSAGING",
+    "SWAPPABLE_CLOUD_SDK_ADAPTERS",
+    "INTEGRATION_TESTS_AGAINST_LOCALSTACK_EMULATORS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_multi-cloud-abstraction-layer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Cloud Provider Abstraction & Portability Interfaces\n\nAbstracting cloud infrastructure dependencies (S3/GCS, SQS/PubSub, KMS) behind generic repository interfaces to prevent vendor lock-in.\n\n## Invariants\n- GENERIC_INTERFACES_FOR_STORAGE_AND_MESSAGING\n- SWAPPABLE_CLOUD_SDK_ADAPTERS\n- INTEGRATION_TESTS_AGAINST_LOCALSTACK_EMULATORS\n",
+  "contentSha256": "5387a8ad1bac330a622b4980a7deb8ec45358224c03fc07c69c73bdd9e907af5"
+}

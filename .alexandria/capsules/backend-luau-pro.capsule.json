@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:luau-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Luau (Roblox / Typed Lua) development: gradual nominal and structural type system, vector math optimizations, sandboxed runtime security, and strict linter compliance.",
+  "triggerKeywords": [
+    "luau",
+    "roblox",
+    "typed-lua",
+    "game-dev",
+    "typechecking",
+    "luau-script"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_LUAU_TYPE_ANNOTATIONS",
+    "NO_ANY_IN_PUBLIC_MODULE_CONTRACTS",
+    "VECTOR3_ALLOCATION_OPTIMIZATION",
+    "SANDBOXED_ENVIRONMENT_CONTAINMENT"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_luau-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Luau High-Performance Typed Scripting\n\nDevelop robust, statically-typed Luau code for Roblox engines and sandboxed game systems.\n\n## Key Principles & Invariants\n- Enforce `--!strict` mode at the top of every module.\n- Provide explicit return and argument types on all exported functions; forbid `any`.\n- Minimize heap allocations in per-frame step functions by reusing `Vector3` and `CFrame` instances.\n- Ensure all modules run hermetically within the sandboxed Luau environment.",
+  "contentSha256": "a7a4f608a5bf227e7009697d98009794c6843740d1c20bc7627eaf8e4b6bf9df"
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "ide:webstorm-pro",
+  "domain": "ide",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "WebStorm JavaScript & TypeScript IDE engineering: deep semantic refactoring, Node.js and Jest/Vitest test runners, ESLint and Prettier automatic synchronization, and npm package dependency management.",
+  "triggerKeywords": [
+    "webstorm",
+    "jetbrains",
+    "javascript",
+    "typescript",
+    "react",
+    "vue",
+    "eslint",
+    "ide"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ESLINT_AND_PRETTIER_RUN_ON_SAVE_CONFIGURED",
+    "TYPESCRIPT_LANGUAGE_SERVICE_SYNCHRONIZED",
+    "UNIT_TEST_RUNNER_ATTACHED_TO_RUN_CONFIGS",
+    "IMPORT_PATH_STYLE_STANDARDIZED"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "ide_webstorm-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# WebStorm Modern JavaScript & TypeScript Architecture\n\nHarness WebStorm's semantic AST engine for refactoring, test execution, and code style standardization.\n\n## Key Principles & Invariants\n- Configure ESLint and Prettier to automatically execute on save across all supported file types.\n- Synchronize WebStorm's TypeScript compiler options with the project `tsconfig.json`.\n- Commit shared run/debug configurations (`.idea/runConfigurations`) for test suites.\n- Enforce explicit, deterministic import path styles (relative vs alias).",
+  "contentSha256": "b71aa44805692e075264f5924f1abb7aac4fd27f8f1c7833dfd7e77c0d8eba4e"
+}

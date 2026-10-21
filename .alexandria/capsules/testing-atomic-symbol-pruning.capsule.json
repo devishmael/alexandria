@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:atomic-symbol-pruning",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Surgical AST context pruning and atomic refactoring (< 100 modified lines per turn) isolating focusSymbol and direct helpers.",
+  "triggerKeywords": [
+    "testing",
+    "refactor",
+    "ast",
+    "pruning",
+    "atomic-diff",
+    "oxc"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ATOMIC_DIFF_UNDER_100_LINES",
+    "ISOLATE_TARGET_FOCUS_SYMBOL",
+    "PRESERVE_UNRELATED_FUNCTION_BODIES"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_atomic-symbol-pruning",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Surgical AST Context Pruning & Atomic Diffs\n\nSurgical AST context pruning and atomic refactoring (< 100 modified lines per turn) isolating focusSymbol and direct helpers.\n\n## Invariants\n- ATOMIC_DIFF_UNDER_100_LINES\n- ISOLATE_TARGET_FOCUS_SYMBOL\n- PRESERVE_UNRELATED_FUNCTION_BODIES\n",
+  "contentSha256": "421ca0c3b9a4e392512f5d971f71f093fcf22cd33b3c4d6035a1400fe089ab32"
+}

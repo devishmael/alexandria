@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:fastapi-expert",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "High-throughput FastAPI microservices: dependency injection, OpenAPI auto-docs, async database sessions, and streaming.",
+  "triggerKeywords": [
+    "backend",
+    "fastapi",
+    "python",
+    "async",
+    "pydantic",
+    "rest"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ASYNC_ROUTE_HANDLERS_FOR_IO",
+    "DEPENDENCY_INJECTION_FOR_DB_SESSIONS",
+    "PYDANTIC_RESPONSE_MODELS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_fastapi-expert",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# FastAPI Expert\n\nDeep expertise in async Python, Pydantic V2, and production-grade API development with FastAPI.\n\n## When to Use This Skill\n\n- Building REST APIs with FastAPI\n- Implementing Pydantic V2 validation schemas\n- Setting up async database operations\n- Implementing JWT authentication/authorization\n- Creating WebSocket endpoints\n- Optimizing API performance\n\n## Core Workflow\n\n1. **Analyze requirements** — Identify endpoints, data models, auth needs\n2. **Design schemas** — Create Pydantic V2 models for validation\n3. **Implement** — Write async endpoints with proper dependency injection\n4. **Secure** — Add authentication, authorization, rate limiting\n5. **Test** — Write async tests with pytest and httpx; run `pytest` after each endpoint group and verify OpenAPI docs at `/docs`\n\n> **Checkpoint after each step:** confirm schemas validate correctly, endpoints return expected HTTP status codes, and `/docs` reflects the intended API surface before proceeding.\n\n## Minimal Complete Example\n\nSchema + endpoint + dependency injection in one cohesive unit:\n\n```python\n# schemas.py\nfrom pydantic import BaseModel, EmailStr, field_validator, model_config\n\nclass UserCreate(BaseModel):\n    model_config = model_config(str_strip_whitespace=True)\n\n    email: EmailStr\n    password: str\n    name: str | None = None\n\n    @field_validator(\"password\")\n    @classmethod\n    def password_strength(cls, v: str) -> str:\n        if len(v) < 8:\n            raise ValueError(\"Password must be at least 8 characters\")\n        return v\n\nclass UserResponse(BaseModel):\n    model_config = model_config(from_attributes=True)\n\n    id: int\n    email: EmailStr\n    name: str | None = None\n```\n\n```python\n# routers/users.py\nfrom fastapi import APIRouter, Depends, HTTPException, status\nfrom sqlalchemy.ext.asyncio import AsyncSession\nfrom typing import Annotated\n\nfrom app.database import get_db\nfrom app.schemas import UserCreate, UserResponse\nfrom app import crud\n\nrouter = APIRouter(prefix=\"/users\", tags=[\"users\"])\n\nDbDep = Annotated[AsyncSession, Depends(get_db)]\n\n@router.post(\"/\", response_model=UserResponse, status_code=status.HTTP_201_CREATED)\nasync def create_user(payload: UserCreate, db: DbDep) -> UserResponse:\n    existing = await crud.get_user_by_email(db, payload.email)\n    if existing:\n        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=\"Email already registered\")\n    return await crud.create_user(db, payload)\n```\n\n```python\n# crud.py\nfrom sqlalchemy import select\nfrom sqlalchemy.ext.asyncio import AsyncSession\nfrom app.models import User\nfrom app.schemas import UserCreate\nfrom app.security import hash_password\n\nasync def get_user_by_email(db: AsyncSession, email: str) -> User | None:\n    result = await db.execute(select(User).where(User.email == email))\n    return result.scalar_one_or_none()\n\nasync def create_user(db: AsyncSession, payload: UserCreate) -> User:\n    user = User(email=payload.email, hashed_password=hash_password(payload.password), name=payload.name)\n    db.add(user)\n    await db.commit()\n    await db.refresh(user)\n    return user\n```\n\n## JWT Authentication Snippet\n\n```python\n# security.py\nfrom datetime import datetime, timedelta, timezone\nfrom jose import JWTError, jwt\nfrom fastapi import Depends, HTTPException, status\nfrom fastapi.security import OAuth2PasswordBearer\nfrom typing import Annotated\n\nSECRET_KEY = \"<jwt-secret>\"  # use os.environ / settings\nALGORITHM = \"HS256\"\noauth2_scheme = OAuth2PasswordBearer(tokenUrl=\"/auth/token\")\n\ndef create_access_token(subject: str, expires_delta: timedelta = timedelta(minutes=30)) -> str:\n    payload = {\"sub\": subject, \"exp\": datetime.now(timezone.utc) + expires_delta}\n    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)\n\nasync def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> str:\n    try:\n        data = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])\n        subject: str | None = data.get(\"sub\")\n        if subject is None:\n            raise ValueError\n        return subject\n    except (JWTError, ValueError):\n        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=\"Invalid credentials\")\n\nCurrentUser = Annotated[str, Depends(get_current_user)]\n```\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Pydantic V2 | `references/pydantic-v2.md` | Creating schemas, validation, model_config |\n| SQLAlchemy | `references/async-sqlalchemy.md` | Async database, models, CRUD operations |\n| Endpoints | `references/endpoints-routing.md` | APIRouter, dependencies, routing |\n| Authentication | `references/authentication.md` | JWT, OAuth2, get_current_user |\n| Testing | `references/testing-async.md` | pytest-asyncio, httpx, fixtures |\n| Django Migration | `references/migration-from-django.md` | Migrating from Django/DRF to FastAPI |\n\n## Constraints\n\n### MUST DO\n- Use type hints everywhere (FastAPI requires them)\n- Use Pydantic V2 syntax (`field_validator`, `model_validator`, `model_config`)\n- Use `Annotated` pattern for dependency injection\n- Use async/await for all I/O operations\n- Use `X | None` instead of `Optional[X]`\n- Return proper HTTP status codes\n- Document endpoints (auto-generated OpenAPI)\n\n### MUST NOT DO\n- Use synchronous database operations\n- Skip Pydantic validation\n- Store passwords in plain text\n- Expose sensitive data in responses\n- Use Pydantic V1 syntax (`@validator`, `class Config`)\n- Mix sync and async code improperly\n- Hardcode configuration values\n\n## Output Templates\n\nWhen implementing FastAPI features, provide:\n1. Schema file (Pydantic models)\n2. Endpoint file (router with endpoints)\n3. CRUD operations if database involved\n4. Brief explanation of key decisions\n\n## Knowledge Reference\n\nFastAPI, Pydantic V2, async SQLAlchemy, Alembic migrations, JWT/OAuth2, pytest-asyncio, httpx, BackgroundTasks, WebSockets, dependency injection, OpenAPI/Swagger\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/backend/fastapi-expert/)",
+  "contentSha256": "61c2e5906b7040c8b83bb62cf5fbbf966eb2bea50916b2163082cfda58255a53"
+}

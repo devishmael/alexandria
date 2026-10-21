@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:sqlite-wal-storage",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "SQLite WAL mode (synchronous = NORMAL), single-writer MPSC queue architecture, zero SQLITE_BUSY, and FTS5 search indexes.",
+  "triggerKeywords": [
+    "database",
+    "sqlite",
+    "wal",
+    "mpsc",
+    "single-writer",
+    "fts5"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENABLE_WAL_MODE_ON_INIT",
+    "SINGLE_WRITER_THREAD_FOR_MUTATIONS",
+    "SYNCHRONOUS_NORMAL_PRAGMA"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_sqlite-wal-storage",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# SQLite WAL Mode & Single-Writer MPSC Persistence\n\nSQLite WAL mode (synchronous = NORMAL), single-writer MPSC queue architecture, zero SQLITE_BUSY, and FTS5 search indexes.\n\n## Invariants\n- ENABLE_WAL_MODE_ON_INIT\n- SINGLE_WRITER_THREAD_FOR_MUTATIONS\n- SYNCHRONOUS_NORMAL_PRAGMA\n",
+  "contentSha256": "01e68a9ce0795d0376e32ce4559fe0cd5163cb1de481c0ad1bb1f0e8e631f7ea"
+}

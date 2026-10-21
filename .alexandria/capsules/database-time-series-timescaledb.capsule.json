@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:time-series-timescaledb",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Time-series engineering: TimescaleDB hypertables, automated chunk partitioning, continuous aggregates, and data retention policies.",
+  "triggerKeywords": [
+    "database",
+    "timescaledb",
+    "time-series",
+    "hypertables",
+    "metrics",
+    "iot"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "HYPERTABLE_PARTITION_BY_TIMESTAMP",
+    "CONTINUOUS_AGGREGATES_FOR_HISTORICAL_QUERIES",
+    "AUTOMATED_RETENTION_POLICIES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_time-series-timescaledb",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Time-Series Data & Hypertables in TimescaleDB\n\nTime-series engineering: TimescaleDB hypertables, automated chunk partitioning, continuous aggregates, and data retention policies.\n\n## Invariants\n- HYPERTABLE_PARTITION_BY_TIMESTAMP\n- CONTINUOUS_AGGREGATES_FOR_HISTORICAL_QUERIES\n- AUTOMATED_RETENTION_POLICIES\n",
+  "contentSha256": "9d66b7e3facd41af2413c41514fc252b8b0e88e150054c032ff416337e8ab855"
+}

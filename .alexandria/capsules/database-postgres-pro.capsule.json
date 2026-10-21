@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:postgres-pro",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "PostgreSQL production engineering: EXPLAIN (ANALYZE, BUFFERS), JSONB GIN indexing, vacuum tuning, and PgBouncer transaction pooling.",
+  "triggerKeywords": [
+    "database",
+    "postgres",
+    "postgresql",
+    "indexing",
+    "pgbouncer",
+    "jsonb"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "USE_PGBOUNCER_TRANSACTION_POOLING",
+    "GIN_INDEXES_FOR_JSONB_QUERY_PATHS",
+    "MONITOR_VACUUM_AND_BLOAT"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_postgres-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# PostgreSQL Pro\n\nSenior PostgreSQL expert with deep expertise in database administration, performance optimization, and advanced PostgreSQL features.\n\n## When to Use This Skill\n\n- Analyzing and optimizing slow queries with EXPLAIN\n- Implementing JSONB storage and indexing strategies\n- Setting up streaming or logical replication\n- Configuring and using PostgreSQL extensions\n- Tuning VACUUM, ANALYZE, and autovacuum\n- Monitoring database health with pg_stat views\n- Designing indexes for optimal performance\n\n## Core Workflow\n\n1. **Analyze performance** — Run `EXPLAIN (ANALYZE, BUFFERS)` to identify bottlenecks\n2. **Design indexes** — Choose B-tree, GIN, GiST, or BRIN based on workload; verify with `EXPLAIN` before deploying\n3. **Optimize queries** — Rewrite inefficient queries, run `ANALYZE` to refresh statistics\n4. **Setup replication** — Streaming or logical based on requirements; monitor lag continuously\n5. **Monitor and maintain** — Track VACUUM, bloat, and autovacuum via `pg_stat` views; verify improvements after each change\n\n### End-to-End Example: Slow Query → Fix → Verification\n\n```sql\n-- Step 1: Identify slow queries\nSELECT query, mean_exec_time, calls\nFROM pg_stat_statements\nORDER BY mean_exec_time DESC\nLIMIT 10;\n\n-- Step 2: Analyze a specific slow query\nEXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)\nSELECT * FROM orders WHERE customer_id = 42 AND status = 'pending';\n-- Look for: Seq Scan (bad on large tables), high Buffers hit, nested loops on large sets\n\n-- Step 3: Create a targeted index\nCREATE INDEX CONCURRENTLY idx_orders_customer_status\n  ON orders (customer_id, status)\n  WHERE status = 'pending';  -- partial index reduces size\n\n-- Step 4: Verify the index is used\nEXPLAIN (ANALYZE, BUFFERS)\nSELECT * FROM orders WHERE customer_id = 42 AND status = 'pending';\n-- Confirm: Index Scan on idx_orders_customer_status, lower actual time\n\n-- Step 5: Update statistics if needed after bulk changes\nANALYZE orders;\n```\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Performance | `references/performance.md` | EXPLAIN ANALYZE, indexes, statistics, query tuning |\n| JSONB | `references/jsonb.md` | JSONB operators, indexing, GIN indexes, containment |\n| Extensions | `references/extensions.md` | PostGIS, pg_trgm, pgvector, uuid-ossp, pg_stat_statements |\n| Replication | `references/replication.md` | Streaming replication, logical replication, failover |\n| Maintenance | `references/maintenance.md` | VACUUM, ANALYZE, pg_stat views, monitoring, bloat |\n\n## Common Patterns\n\n### JSONB — GIN Index and Query\n\n```sql\n-- Create GIN index for containment queries\nCREATE INDEX idx_events_payload ON events USING GIN (payload);\n\n-- Efficient JSONB containment query (uses GIN index)\nSELECT * FROM events WHERE payload @> '{\"type\": \"login\", \"success\": true}';\n\n-- Extract nested value\nSELECT payload->>'user_id', payload->'meta'->>'ip'\nFROM events\nWHERE payload @> '{\"type\": \"login\"}';\n```\n\n### VACUUM and Bloat Monitoring\n\n```sql\n-- Check tables with high dead tuple counts\nSELECT relname, n_dead_tup, n_live_tup,\n       round(n_dead_tup::numeric / NULLIF(n_live_tup + n_dead_tup, 0) * 100, 2) AS dead_pct,\n       last_autovacuum\nFROM pg_stat_user_tables\nORDER BY n_dead_tup DESC\nLIMIT 20;\n\n-- Manually vacuum a high-churn table and verify\nVACUUM (ANALYZE, VERBOSE) orders;\n```\n\n### Replication Lag Monitoring\n\n```sql\n-- On primary: check standby lag\nSELECT client_addr, state, sent_lsn, write_lsn, flush_lsn, replay_lsn,\n       (sent_lsn - replay_lsn) AS replication_lag_bytes\nFROM pg_stat_replication;\n```\n\n## Constraints\n\n### MUST DO\n- Use `EXPLAIN (ANALYZE, BUFFERS)` for query optimization\n- Verify indexes are actually used with `EXPLAIN` before and after creation\n- Use `CREATE INDEX CONCURRENTLY` to avoid table locks in production\n- Run `ANALYZE` after bulk data changes to refresh statistics\n- Monitor autovacuum; tune `autovacuum_vacuum_scale_factor` for high-churn tables\n- Use connection pooling (pgBouncer, pgPool)\n- Monitor replication lag via `pg_stat_replication`\n- Use prepared statements to prevent SQL injection\n- Use `uuid` type for UUIDs, not `text`\n\n### MUST NOT DO\n- Disable autovacuum globally\n- Create indexes without first analyzing query patterns\n- Use `SELECT *` in production queries\n- Ignore replication lag alerts\n- Skip VACUUM on high-churn tables\n- Store large BLOBs in the database (use object storage)\n- Deploy index changes without verifying the planner uses them\n\n## Output Templates\n\nWhen implementing PostgreSQL solutions, provide:\n1. Query with `EXPLAIN (ANALYZE, BUFFERS)` output and interpretation\n2. Index definitions with rationale and pre/post verification\n3. Configuration changes with before/after values\n4. Monitoring queries for ongoing health checks\n5. Brief explanation of performance impact\n\n## Knowledge Reference\n\nPostgreSQL 12-16, EXPLAIN ANALYZE, B-tree/GIN/GiST/BRIN indexes, JSONB operators, streaming replication, logical replication, VACUUM/ANALYZE, pg_stat views, PostGIS, pgvector, pg_trgm, WAL archiving, PITR\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/infrastructure/postgres-pro/)",
+  "contentSha256": "dd7c5cff9d6ad25b36148fbf073d2c1e17d7f72ec3c8a25db5644e309026e299"
+}

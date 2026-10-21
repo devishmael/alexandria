@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:pre-commit-ast-scanner",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Pre-commit hook: scans staged TypeScript diffs with native Oxc parser, rejecting any, double cast unknown, and unawaited Prisma calls.",
+  "triggerKeywords": [
+    "hook",
+    "pre-commit",
+    "oxc",
+    "ast",
+    "invariants",
+    "linter"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REJECT_MUTATION_ON_OXC_AST_VIOLATION",
+    "RUN_IN_SUB_2MS_WITHOUT_NODE_RUNTIME",
+    "BLOCK_PUBLIC_EXPORT_MUTATIONS_ON_ALPHA"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_pre-commit-ast-scanner",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Setup Pre-Commit Hooks\n\n## What This Sets Up\n\n- **Husky** pre-commit hook\n- **lint-staged** running Prettier on all staged files\n- **Prettier** config (if missing)\n- **typecheck** and **test** scripts in the pre-commit hook\n\n## Steps\n\n### 1. Detect package manager\n\nCheck for `package-lock.json` (npm), `pnpm-lock.yaml` (pnpm), `yarn.lock` (yarn), `bun.lockb` (bun). Use whichever is present. Default to npm if unclear.\n\n### 2. Install dependencies\n\nInstall as devDependencies:\n\n```\nhusky lint-staged prettier\n```\n\n### 3. Initialize Husky\n\n```bash\nnpx husky init\n```\n\nThis creates `.husky/` dir and adds `prepare: \"husky\"` to package.json.\n\n### 4. Create `.husky/pre-commit`\n\nWrite this file (no shebang needed for Husky v9+):\n\n```\nnpx lint-staged\nnpm run typecheck\nnpm run test\n```\n\n**Adapt**: Replace `npm` with detected package manager. If repo has no `typecheck` or `test` script in package.json, omit those lines and tell the user.\n\n### 5. Create `.lintstagedrc`\n\n```json\n{\n  \"*\": \"prettier --ignore-unknown --write\"\n}\n```\n\n### 6. Create `.prettierrc` (if missing)\n\nOnly create if no Prettier config exists. Use these defaults:\n\n```json\n{\n  \"useTabs\": false,\n  \"tabWidth\": 2,\n  \"printWidth\": 80,\n  \"singleQuote\": false,\n  \"trailingComma\": \"es5\",\n  \"semi\": true,\n  \"arrowParens\": \"always\"\n}\n```\n\n### 7. Verify\n\n- [ ] `.husky/pre-commit` exists and is executable\n- [ ] `.lintstagedrc` exists\n- [ ] `prepare` script in package.json is `\"husky\"`\n- [ ] `prettier` config exists\n- [ ] Run `npx lint-staged` to verify it works\n\n### 8. Commit\n\nStage all changed/created files and commit with message: `Add pre-commit hooks (husky + lint-staged + prettier)`\n\nThis will run through the new pre-commit hooks: a good smoke test that everything works.\n\n## Notes\n\n- Husky v9+ doesn't need shebangs in hook files\n- `prettier --ignore-unknown` skips files Prettier can't parse (images, etc.)\n- The pre-commit runs lint-staged first (fast, staged-only), then full typecheck and tests",
+  "contentSha256": "db83ed768251bb7e42801dc977cd1e17e08c7f7e662ac9f1c82cc534ff888c33"
+}

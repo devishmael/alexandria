@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "ide:pycharm-pro",
+  "domain": "ide",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "PyCharm professional Python development: Virtualenv / Conda / Poetry environment synchronization, visual interactive debugger with variable introspection, profiling with cProfile, and Django/FastAPI support.",
+  "triggerKeywords": [
+    "pycharm",
+    "jetbrains",
+    "python",
+    "virtualenv",
+    "poetry",
+    "profiling",
+    "ide"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "VIRTUALENV_OR_POETRY_INTERPRETER_ISOLATION",
+    "TEST_RUNNER_CONFIGURED_FOR_PYTEST",
+    "STATIC_TYPE_CHECKING_VIA_MYPY_PLUGIN",
+    "DATABASE_TOOL_CONNECTION_SECURITY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "ide_pycharm-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# PyCharm Professional Python Development & Profiling\n\nConfigure and optimize PyCharm for high-velocity Python backend engineering and scientific workflows.\n\n## Key Principles & Invariants\n- Bind projects to isolated virtual environments managed by Poetry, Pipenv, or Conda.\n- Standardize the project test runner to `pytest` in IDE settings.\n- Integrate Mypy/Ruff inspections to catch typing and style violations before commit.\n- Secure database tool connections using SSH tunnels and environment-variable credentials.",
+  "contentSha256": "9011d0ca2279d90f12623f8934c489c8f35df251dae1c7eec2f1ae8a51a0f19b"
+}

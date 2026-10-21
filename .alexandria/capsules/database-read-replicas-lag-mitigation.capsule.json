@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:read-replicas-lag-mitigation",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Handling replication delay: pinning user sessions to primary after write for 5 seconds, checking LSN positions, and monitoring byte lag.",
+  "triggerKeywords": [
+    "database",
+    "replication-lag",
+    "consistency",
+    "read-replicas",
+    "postgres"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ROUTE_TO_PRIMARY_IMMEDIATELY_AFTER_WRITE",
+    "MONITOR_REPLICATION_LAG_IN_BYTES",
+    "CIRCUIT_BREAK_ON_EXCESSIVE_LAG"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_read-replicas-lag-mitigation",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Replication Lag Mitigation & Read-After-Write Consistency\n\nHandling replication delay: pinning user sessions to primary after write for 5 seconds, checking LSN positions, and monitoring byte lag.\n\n## Invariants\n- ROUTE_TO_PRIMARY_IMMEDIATELY_AFTER_WRITE\n- MONITOR_REPLICATION_LAG_IN_BYTES\n- CIRCUIT_BREAK_ON_EXCESSIVE_LAG\n",
+  "contentSha256": "9a3db371e5de114403779a62545905b68ab9d6b1e350766ef5adb23f90e77d5a"
+}

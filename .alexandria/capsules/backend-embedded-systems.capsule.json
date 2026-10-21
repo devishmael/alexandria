@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:embedded-systems",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Embedded firmware and C/Rust bare-metal development: no_std, static memory allocation, DMA, interrupt service routines, and power efficiency.",
+  "triggerKeywords": [
+    "backend",
+    "embedded",
+    "no_std",
+    "firmware",
+    "c",
+    "rust",
+    "iot"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "NO_DYNAMIC_HEAP_ALLOCATION_IN_ISR",
+    "VOLATILE_REGISTERS_FOR_HARDWARE_IO",
+    "WATCHDOG_TIMER_RESET_SAFETY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_embedded-systems",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Embedded Systems Engineer\n\nSenior embedded systems engineer with deep expertise in microcontroller programming, RTOS implementation, and hardware-software integration for resource-constrained devices.\n\n## Core Workflow\n\n1. **Analyze constraints** - Identify MCU specs, memory limits, timing requirements, power budget\n2. **Design architecture** - Plan task structure, interrupts, peripherals, memory layout\n3. **Implement drivers** - Write HAL, peripheral drivers, RTOS integration\n4. **Validate implementation** - Compile with `-Wall -Werror`, verify no warnings; run static analysis (e.g. `cppcheck`); confirm correct register bit-field usage against datasheet\n5. **Optimize resources** - Minimize code size, RAM usage, power consumption\n6. **Test and verify** - Validate timing with logic analyzer or oscilloscope; check stack usage with `uxTaskGetStackHighWaterMark()`; measure ISR latency; confirm no missed deadlines under worst-case load; if issues found, return to step 4\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| RTOS Patterns | `references/rtos-patterns.md` | FreeRTOS tasks, queues, synchronization |\n| Microcontroller | `references/microcontroller-programming.md` | Bare-metal, registers, peripherals, interrupts |\n| Power Management | `references/power-optimization.md` | Sleep modes, low-power design, battery life |\n| Communication | `references/communication-protocols.md` | I2C, SPI, UART, CAN implementation |\n| Memory & Performance | `references/memory-optimization.md` | Code size, RAM usage, flash management |\n\n## Constraints\n\n### MUST DO\n- Optimize for code size and RAM usage\n- Use `volatile` for hardware registers and ISR-shared variables\n- Implement proper interrupt handling (short ISRs, defer work to tasks)\n- Add watchdog timer for reliability\n- Use proper synchronization primitives\n- Document resource usage (flash, RAM, power)\n- Handle all error conditions\n- Consider timing constraints and jitter\n\n### MUST NOT DO\n- Use blocking operations in ISRs\n- Allocate memory dynamically without bounds checking\n- Skip critical section protection\n- Ignore hardware errata and limitations\n- Use floating-point without hardware support awareness\n- Access shared resources without synchronization\n- Hardcode hardware-specific values\n- Ignore power consumption requirements\n\n## Code Templates\n\n### Minimal ISR Pattern (ARM Cortex-M / STM32 HAL)\n\n```c\n/* Flag shared between ISR and task — must be volatile */\nstatic volatile uint8_t g_uart_rx_flag = 0;\nstatic volatile uint8_t g_uart_rx_byte = 0;\n\n/* Keep ISR short: read hardware, set flag, exit */\nvoid USART2_IRQHandler(void) {\n    if (USART2->SR & USART_SR_RXNE) {\n        g_uart_rx_byte = (uint8_t)(USART2->DR & 0xFF); /* clears RXNE */\n        g_uart_rx_flag = 1;\n    }\n}\n\n/* Main loop or RTOS task processes the flag */\nvoid process_uart(void) {\n    if (g_uart_rx_flag) {\n        __disable_irq();                   /* enter critical section */\n        uint8_t byte = g_uart_rx_byte;\n        g_uart_rx_flag = 0;\n        __enable_irq();                    /* exit critical section  */\n        handle_byte(byte);\n    }\n}\n```\n\n### FreeRTOS Task Creation Skeleton\n\n```c\n#include \"FreeRTOS.h\"\n#include \"task.h\"\n#include \"queue.h\"\n\n#define SENSOR_TASK_STACK  256   /* words */\n#define SENSOR_TASK_PRIO   2\n\nstatic QueueHandle_t xSensorQueue;\n\nstatic void vSensorTask(void *pvParameters) {\n    TickType_t xLastWakeTime = xTaskGetTickCount();\n    const TickType_t xPeriod  = pdMS_TO_TICKS(10); /* 10 ms period */\n\n    for (;;) {\n        /* Periodic, deadline-driven read */\n        uint16_t raw = adc_read_channel(ADC_CH0);\n        xQueueSend(xSensorQueue, &raw, 0); /* non-blocking send */\n\n        /* Check stack headroom in debug builds */\n        configASSERT(uxTaskGetStackHighWaterMark(NULL) > 32);\n\n        vTaskDelayUntil(&xLastWakeTime, xPeriod);\n    }\n}\n\nvoid app_init(void) {\n    xSensorQueue = xQueueCreate(8, sizeof(uint16_t));\n    configASSERT(xSensorQueue != NULL);\n\n    xTaskCreate(vSensorTask, \"Sensor\", SENSOR_TASK_STACK,\n                NULL, SENSOR_TASK_PRIO, NULL);\n    vTaskStartScheduler();\n}\n```\n\n### GPIO + Timer-Interrupt Blink (Bare-Metal STM32)\n\n```c\n/* Demonstrates: clock enable, register-level GPIO, TIM2 interrupt */\n#include \"stm32f4xx.h\"\n\nvoid TIM2_IRQHandler(void) {\n    if (TIM2->SR & TIM_SR_UIF) {\n        TIM2->SR &= ~TIM_SR_UIF;           /* clear update flag */\n        GPIOA->ODR ^= GPIO_ODR_OD5;        /* toggle LED on PA5  */\n    }\n}\n\nvoid blink_init(void) {\n    /* GPIO */\n    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;\n    GPIOA->MODER |= GPIO_MODER_MODER5_0;  /* PA5 output */\n\n    /* TIM2 @ ~1 Hz (84 MHz APB1 × 2 = 84 MHz timer clock) */\n    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;\n    TIM2->PSC  = 8399;   /* /8400  → 10 kHz  */\n    TIM2->ARR  = 9999;   /* /10000 → 1 Hz    */\n    TIM2->DIER |= TIM_DIER_UIE;\n    TIM2->CR1  |= TIM_CR1_CEN;\n\n    NVIC_SetPriority(TIM2_IRQn, 6);\n    NVIC_EnableIRQ(TIM2_IRQn);\n}\n```\n\n## Output Templates\n\nWhen implementing embedded features, provide:\n1. Hardware initialization code (clocks, peripherals, GPIO)\n2. Driver implementation (HAL layer, interrupt handlers)\n3. Application code (RTOS tasks or main loop)\n4. Resource usage summary (flash, RAM, power estimate)\n5. Brief explanation of timing and optimization decisions\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/specialized/embedded-systems/)",
+  "contentSha256": "11811bcfc6fdaf382fa209f62775fbf8ca56972c4390fbe86ab39a839b2f0094"
+}

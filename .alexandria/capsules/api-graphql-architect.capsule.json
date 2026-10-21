@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:graphql-architect",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Enterprise GraphQL: schema design best practices, input object mutations, Relay connection specs, and Apollo Federation.",
+  "triggerKeywords": [
+    "api",
+    "graphql",
+    "apollo",
+    "federation",
+    "schema",
+    "resolvers"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "MUTATIONS_RETURN_PAYLOAD_OBJECTS",
+    "AVOID_N_PLUS_ONE_IN_RESOLVERS",
+    "RELAY_STYLE_CURSOR_CONNECTIONS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_graphql-architect",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# GraphQL Architect\n\nSenior GraphQL architect specializing in schema design and distributed graph architectures with deep expertise in Apollo Federation 2.5+, GraphQL subscriptions, and performance optimization.\n\n## Core Workflow\n\n1. **Domain Modeling** - Map business domains to GraphQL type system\n2. **Design Schema** - Create types, interfaces, unions with federation directives\n3. **Validate Schema** - Run schema composition check; confirm all `@key` entities resolve correctly\n   - _If composition fails:_ review entity `@key` directives, check for missing or mismatched type definitions across subgraphs, resolve any `@external` field inconsistencies, then re-run composition\n4. **Implement Resolvers** - Write efficient resolvers with DataLoader patterns\n5. **Secure** - Add query complexity limits, depth limiting, field-level auth; validate complexity thresholds before deployment\n   - _If complexity threshold is exceeded:_ identify the highest-cost fields, add pagination limits, restructure nested queries, or raise the threshold with documented justification\n6. **Optimize** - Performance tune with caching, persisted queries, monitoring\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Schema Design | `references/schema-design.md` | Types, interfaces, unions, enums, input types |\n| Resolvers | `references/resolvers.md` | Resolver patterns, context, DataLoader, N+1 |\n| Federation | `references/federation.md` | Apollo Federation, subgraphs, entities, directives |\n| Subscriptions | `references/subscriptions.md` | Real-time updates, WebSocket, pub/sub patterns |\n| Security | `references/security.md` | Query depth, complexity analysis, authentication |\n| REST Migration | `references/migration-from-rest.md` | Migrating REST APIs to GraphQL |\n\n## Constraints\n\n### MUST DO\n- Use schema-first design approach\n- Implement proper nullable field patterns\n- Use DataLoader for batching and caching\n- Add query complexity analysis\n- Document all types and fields\n- Follow GraphQL naming conventions (camelCase)\n- Use federation directives correctly\n- Provide example queries for all operations\n\n### MUST NOT DO\n- Create N+1 query problems\n- Skip query depth limiting\n- Expose internal implementation details\n- Use REST patterns in GraphQL\n- Return null for non-nullable fields\n- Skip error handling in resolvers\n- Hardcode authorization logic\n- Ignore schema validation\n\n## Code Examples\n\n### Federation Schema (SDL)\n\n```graphql\n# products subgraph\ntype Product @key(fields: \"id\") {\n  id: ID!\n  name: String!\n  price: Float!\n  inStock: Boolean!\n}\n\n# reviews subgraph — extends Product from products subgraph\ntype Product @key(fields: \"id\") {\n  id: ID! @external\n  reviews: [Review!]!\n}\n\ntype Review {\n  id: ID!\n  rating: Int!\n  body: String\n  author: User! @shareable\n}\n\ntype User @shareable {\n  id: ID!\n  username: String!\n}\n```\n\n### Resolver with DataLoader (N+1 Prevention)\n\n```js\n// context setup — one DataLoader instance per request\nconst context = ({ req }) => ({\n  loaders: {\n    user: new DataLoader(async (userIds) => {\n      const users = await db.users.findMany({ where: { id: { in: userIds } } });\n      // return results in same order as input keys\n      return userIds.map((id) => users.find((u) => u.id === id) ?? null);\n    }),\n  },\n});\n\n// resolver — batches all user lookups in a single query\nconst resolvers = {\n  Review: {\n    author: (review, _args, { loaders }) => loaders.user.load(review.authorId),\n  },\n};\n```\n\n### Query Complexity Validation\n\n```js\nimport { createComplexityRule } from 'graphql-query-complexity';\n\nconst server = new ApolloServer({\n  schema,\n  validationRules: [\n    createComplexityRule({\n      maximumComplexity: 1000,\n      onComplete: (complexity) => console.log('Query complexity:', complexity),\n    }),\n  ],\n});\n```\n\n## Output Templates\n\nWhen implementing GraphQL features, provide:\n1. Schema definition (SDL with types and directives)\n2. Resolver implementation (with DataLoader patterns)\n3. Query/mutation/subscription examples\n4. Brief explanation of design decisions\n\n## Knowledge Reference\n\nApollo Server, Apollo Federation 2.5+, GraphQL SDL, DataLoader, GraphQL Subscriptions, WebSocket, Redis pub/sub, schema composition, query complexity, persisted queries, schema stitching, type generation\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/api-architecture/graphql-architect/)",
+  "contentSha256": "305f5b1b9d313dbce37bc280648942b94ae68cfef5f512bc9b8a93e68e822bf3"
+}

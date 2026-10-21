@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:actor-model-supervision",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Supervision hierarchy in actor systems: One-For-One and One-For-All restart strategies, state snapshotting, and fault isolation.",
+  "triggerKeywords": [
+    "architecture",
+    "actor-model",
+    "supervision",
+    "fault-tolerance",
+    "erlang"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "RESTART_FAILED_CHILD_ACTORS_ACCORDING_TO_STRATEGY",
+    "MAX_RESTART_INTENSITY_BEFORE_PARENT_ESCALATION",
+    "PERSIST_ACTOR_STATE_CHECKPOINTS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_actor-model-supervision",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Actor Model Supervision Hierarchy & Crash Recovery\n\nSupervision hierarchy in actor systems: One-For-One and One-For-All restart strategies, state snapshotting, and fault isolation.\n\n## Invariants\n- RESTART_FAILED_CHILD_ACTORS_ACCORDING_TO_STRATEGY\n- MAX_RESTART_INTENSITY_BEFORE_PARENT_ESCALATION\n- PERSIST_ACTOR_STATE_CHECKPOINTS\n",
+  "contentSha256": "2e8a3b71ceab5f37a03bb90c866b66f251a94caba9c49f5c4a42f34ceff38399"
+}

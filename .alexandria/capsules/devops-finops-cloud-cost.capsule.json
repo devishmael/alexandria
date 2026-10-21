@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:finops-cloud-cost",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "FinOps cloud financial management: mandatory resource cost tagging, Kubernetes request/limit rightsizing, and automated idle teardown.",
+  "triggerKeywords": [
+    "devops",
+    "finops",
+    "cloud-cost",
+    "tagging",
+    "optimization",
+    "aws"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "MANDATORY_COST_CENTER_ENVIRONMENT_TAGS",
+    "RIGHTSIZE_OVERPROVISIONED_COMPUTE_INSTANCES",
+    "AUTOMATED_CLEANUP_OF_ORPHANED_VOLUMES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_finops-cloud-cost",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# FinOps Cloud Cost Allocation & Resource Rightsizing\n\nFinOps cloud financial management: mandatory resource cost tagging, Kubernetes request/limit rightsizing, and automated idle teardown.\n\n## Invariants\n- MANDATORY_COST_CENTER_ENVIRONMENT_TAGS\n- RIGHTSIZE_OVERPROVISIONED_COMPUTE_INSTANCES\n- AUTOMATED_CLEANUP_OF_ORPHANED_VOLUMES\n",
+  "contentSha256": "6dd1a3c32707853650fc556451924fe8f81284e0aa93d8aaf48ff0862bb17d85"
+}

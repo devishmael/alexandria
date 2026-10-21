@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:graphql-persisted-queries",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Hardening production GraphQL: Automatic Persisted Queries (APQ), SHA-256 query whitelisting, disabling introspection in production, and depth limits.",
+  "triggerKeywords": [
+    "api",
+    "graphql",
+    "apq",
+    "security",
+    "persisted-queries",
+    "performance"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DISABLE_INTROSPECTION_IN_PRODUCTION",
+    "ENFORCE_AUTOMATIC_PERSISTED_QUERIES",
+    "MAX_QUERY_DEPTH_RESTRICTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_graphql-persisted-queries",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# GraphQL Automatic Persisted Queries (APQ) & Security\n\nHardening production GraphQL: Automatic Persisted Queries (APQ), SHA-256 query whitelisting, disabling introspection in production, and depth limits.\n\n## Invariants\n- DISABLE_INTROSPECTION_IN_PRODUCTION\n- ENFORCE_AUTOMATIC_PERSISTED_QUERIES\n- MAX_QUERY_DEPTH_RESTRICTION\n",
+  "contentSha256": "50754d6cec5182502bfb7e4f7f63d53b8a86aff035270b59ba5db4b9408c1ae1"
+}

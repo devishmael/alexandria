@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:twelve-factor-standards",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Twelve-Factor app methodology: codebase, dependencies, config in environment, backing services as resources, stateless processes, concurrency.",
+  "triggerKeywords": [
+    "architecture",
+    "12-factor",
+    "cloud-native",
+    "stateless",
+    "config"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STORE_CONFIGURATION_IN_ENVIRONMENT_VARIABLES",
+    "STATELESS_SHARE_NOTHING_PROCESSES",
+    "DISPOSABILITY_WITH_FAST_STARTUP_GRACEFUL_SHUTDOWN"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_twelve-factor-standards",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# The Twelve-Factor App Cloud-Native Principles\n\nTwelve-Factor app methodology: codebase, dependencies, config in environment, backing services as resources, stateless processes, concurrency.\n\n## Invariants\n- STORE_CONFIGURATION_IN_ENVIRONMENT_VARIABLES\n- STATELESS_SHARE_NOTHING_PROCESSES\n- DISPOSABILITY_WITH_FAST_STARTUP_GRACEFUL_SHUTDOWN\n",
+  "contentSha256": "7affd3dcd1860ab9a5937265bd13b3b871d2ed99f7c418668e7c8510b7973e65"
+}

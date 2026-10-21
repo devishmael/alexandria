@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:monorepo-turborepo-ui",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "High-speed frontend monorepos using Turborepo and pnpm workspaces, remote caching, and internal UI package builds.",
+  "triggerKeywords": [
+    "frontend",
+    "monorepo",
+    "turborepo",
+    "pnpm",
+    "workspaces",
+    "build-system"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_INTERNAL_PACKAGE_EXPORTS",
+    "CACHED_TURBOREPO_TASK_PIPELINE",
+    "SHARED_LINT_AND_TSCONFIG",
+    "2. **Per-package CLAUDE.md defines the rules** — what's allowed, what's forbidden, testing commands",
+    "5. **Changesets over manual versioning** — never hand-edit package.json versions in a monorepo"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_monorepo-turborepo-ui",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Monorepo Navigator\n\n**Tier:** POWERFUL  \n**Category:** Engineering  \n**Domain:** Monorepo Architecture / Build Systems  \n\n---\n\n## Overview\n\nNavigate, manage, and optimize monorepos. Covers Turborepo, Nx, pnpm workspaces, and Lerna. Enables cross-package impact analysis, selective builds/tests on affected packages only, remote caching, dependency graph visualization, and structured migrations from multi-repo to monorepo. Includes Claude Code configuration for workspace-aware development.\n\n---\n\n## Core Capabilities\n\n- **Cross-package impact analysis** — determine which apps break when a shared package changes\n- **Selective commands** — run tests/builds only for affected packages (not everything)\n- **Dependency graph** — visualize package relationships as Mermaid diagrams\n- **Build optimization** — remote caching, incremental builds, parallel execution\n- **Migration** — step-by-step multi-repo → monorepo with zero history loss\n- **Publishing** — changesets for versioning, pre-release channels, npm publish workflows\n- **Claude Code config** — workspace-aware CLAUDE.md with per-package instructions\n\n---\n\n## When to Use\n\nUse when:\n- Multiple packages/apps share code (UI components, utils, types, API clients)\n- Build times are slow because everything rebuilds when anything changes\n- Migrating from multiple repos to a single repo\n- Need to publish packages to npm with coordinated versioning\n- Teams work across multiple packages and need unified tooling\n\nSkip when:\n- Single-app project with no shared packages\n- Team/project boundaries are completely isolated (polyrepo is fine)\n- Shared code is minimal and copy-paste overhead is acceptable\n\n---\n\n## Tool Selection\n\n| Tool | Best For | Key Feature |\n|---|---|---|\n| **Turborepo** | JS/TS monorepos, simple pipeline config | Best-in-class remote caching, minimal config |\n| **Nx** | Large enterprises, plugin ecosystem | Project graph, code generation, affected commands |\n| **pnpm workspaces** | Workspace protocol, disk efficiency | `workspace:*` for local package refs |\n| **Lerna** | npm publishing, versioning | Batch publishing, conventional commits |\n| **Changesets** | Modern versioning (preferred over Lerna) | Changelog generation, pre-release channels |\n\nMost modern setups: **pnpm workspaces + Turborepo + Changesets**\n\n---\n\n## Turborepo\n→ See references/monorepo-tooling-reference.md for details\n\n## Workspace Analyzer\n\n```bash\npython3 scripts/monorepo_analyzer.py /path/to/monorepo\npython3 scripts/monorepo_analyzer.py /path/to/monorepo --json\n```\n\nAlso see `references/monorepo-patterns.md` for common architecture and CI patterns.\n\n## Common Pitfalls\n\n| Pitfall | Fix |\n|---|---|\n| Running `turbo run build` without `--filter` on every PR | Always use `--filter=...[origin/main]` in CI |\n| `workspace:*` refs cause publish failures | Use `pnpm changeset publish` — it replaces `workspace:*` with real versions automatically |\n| All packages rebuild when unrelated file changes | Tune `inputs` in turbo.json to exclude docs, config files from cache keys |\n| Shared tsconfig causes one package to break all type-checks | Use `extends` properly — each package extends root but overrides `rootDir` / `outDir` |\n| git history lost during migration | Use `git filter-repo --to-subdirectory-filter` before merging — never move files manually |\n| Remote cache not working in CI | Check TURBO_TOKEN and TURBO_TEAM env vars; verify with `turbo run build --summarize` |\n| CLAUDE.md too generic — Claude modifies wrong package | Add explicit \"When working on X, only touch files in apps/X\" rules per package CLAUDE.md |\n\n---\n\n## Best Practices\n\n1. **Root CLAUDE.md defines the map** — document every package, its purpose, and dependency rules\n2. **Per-package CLAUDE.md defines the rules** — what's allowed, what's forbidden, testing commands\n3. **Always scope commands with --filter** — running everything on every change defeats the purpose\n4. **Remote cache is not optional** — without it, monorepo CI is slower than multi-repo CI\n5. **Changesets over manual versioning** — never hand-edit package.json versions in a monorepo\n6. **Shared configs in root, extended in packages** — tsconfig.base.json, .eslintrc.base.js, jest.base.config.js\n7. **Impact analysis before merging shared package changes** — run affected check, communicate blast radius\n8. **Keep packages/types as pure TypeScript** — no runtime code, no dependencies, fast to build and type-check",
+  "contentSha256": "1be9b69d2f7f171c8f9c3a8667b1e48cb0775b77492d03d54488f7dd24b11df3"
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:json-schema-validation",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Validating payload structures using standard JSON Schema Draft 2020-12, schema compilation, and compile-time TypeScript type generation.",
+  "triggerKeywords": [
+    "api",
+    "json-schema",
+    "validation",
+    "ajv",
+    "types",
+    "contracts"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "COMPILE_SCHEMAS_ONCE_AT_STARTUP",
+    "STRICT_ADDITIONAL_PROPERTIES_FALSE",
+    "GENERATE_TYPESCRIPT_INTERFACES_FROM_SCHEMA"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_json-schema-validation",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# JSON Schema Draft 2020-12 Validation & Type Guard Generation\n\nValidating payload structures using standard JSON Schema Draft 2020-12, schema compilation, and compile-time TypeScript type generation.\n\n## Invariants\n- COMPILE_SCHEMAS_ONCE_AT_STARTUP\n- STRICT_ADDITIONAL_PROPERTIES_FALSE\n- GENERATE_TYPESCRIPT_INTERFACES_FROM_SCHEMA\n",
+  "contentSha256": "e94962081925435771d02d96267be2e8136a1ca65b331f77b2f34545422d1a66"
+}

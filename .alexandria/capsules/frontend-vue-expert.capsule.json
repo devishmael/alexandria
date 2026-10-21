@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:vue-expert",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Vue 3 Composition API, <script setup>, reactivity model, Pinia stores, and Vue Router guard patterns.",
+  "triggerKeywords": [
+    "frontend",
+    "vue",
+    "vue3",
+    "pinia",
+    "composition-api",
+    "vite"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_COMPOSITION_API_USAGE",
+    "NO_MUTATING_PROPS",
+    "TYPE_SAFE_PINIA_STORES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_vue-expert",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Vue Expert (JavaScript)\n\nSenior Vue specialist building Vue 3 applications with JavaScript and JSDoc typing instead of TypeScript.\n\n## Core Workflow\n\n1. **Design architecture** — Plan component structure and composables with JSDoc type annotations\n2. **Implement** — Build with `<script setup>` (no `lang=\"ts\"`), `.mjs` modules where needed\n3. **Annotate** — Add comprehensive JSDoc comments (`@typedef`, `@param`, `@returns`, `@type`) for full type coverage; then run ESLint with the JSDoc plugin (`eslint-plugin-jsdoc`) to verify coverage — fix any missing or malformed annotations before proceeding\n4. **Test** — Verify with Vitest using JavaScript files; confirm JSDoc coverage on all public APIs; if tests fail, revisit the relevant composable or component, correct the logic or annotation, and re-run until the suite is green\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| JSDoc Typing | `references/jsdoc-typing.md` | JSDoc types, @typedef, @param, type hints |\n| Composables | `references/composables-patterns.md` | custom composables, ref, reactive, lifecycle hooks |\n| Components | `references/component-architecture.md` | props, emits, slots, provide/inject |\n| State | `references/state-management.md` | Pinia, stores, reactive state |\n| Testing | `references/testing-patterns.md` | Vitest, component testing, mocking |\n\n**For shared Vue concepts, defer to vue-expert:**\n- `../vue-expert/references/composition-api.md` - Core reactivity patterns\n- `../vue-expert/references/components.md` - Props, emits, slots\n- `../vue-expert/references/state-management.md` - Pinia stores\n\n## Code Patterns\n\n### Component with JSDoc-typed props and emits\n\n```vue\n<script setup>\n/**\n * @typedef {Object} UserCardProps\n * @property {string} name - Display name of the user\n * @property {number} age - User's age\n * @property {boolean} [isAdmin=false] - Whether the user has admin rights\n */\n\n/** @type {UserCardProps} */\nconst props = defineProps({\n  name:    { type: String,  required: true },\n  age:     { type: Number,  required: true },\n  isAdmin: { type: Boolean, default: false },\n})\n\n/**\n * @typedef {Object} UserCardEmits\n * @property {(id: string) => void} select - Emitted when the card is selected\n */\nconst emit = defineEmits(['select'])\n\n/** @param {string} id */\nfunction handleSelect(id) {\n  emit('select', id)\n}\n</script>\n\n<template>\n  <div @click=\"handleSelect(props.name)\">\n    {{ props.name }} ({{ props.age }})\n  </div>\n</template>\n```\n\n### Composable with @typedef, @param, and @returns\n\n```js\n// composables/useCounter.mjs\nimport { ref, computed } from 'vue'\n\n/**\n * @typedef {Object} CounterState\n * @property {import('vue').Ref<number>} count - Reactive count value\n * @property {import('vue').ComputedRef<boolean>} isPositive - True when count > 0\n * @property {() => void} increment - Increases count by step\n * @property {() => void} reset - Resets count to initial value\n */\n\n/**\n * Composable for a simple counter with configurable step.\n * @param {number} [initial=0] - Starting value\n * @param {number} [step=1]    - Amount to increment per call\n * @returns {CounterState}\n */\nexport function useCounter(initial = 0, step = 1) {\n  /** @type {import('vue').Ref<number>} */\n  const count = ref(initial)\n\n  const isPositive = computed(() => count.value > 0)\n\n  function increment() {\n    count.value += step\n  }\n\n  function reset() {\n    count.value = initial\n  }\n\n  return { count, isPositive, increment, reset }\n}\n```\n\n### @typedef for a complex object used across files\n\n```js\n// types/user.mjs\n\n/**\n * @typedef {Object} User\n * @property {string}   id       - UUID\n * @property {string}   name     - Full display name\n * @property {string}   email    - Contact email\n * @property {'admin'|'viewer'} role - Access level\n */\n\n// Import in other files with:\n// /** @type {import('./types/user.mjs').User} */\n```\n\n## Constraints\n\n### MUST DO\n- Use Composition API with `<script setup>`\n- Use JSDoc comments for type documentation\n- Use `.mjs` extension for ES modules when needed\n- Annotate every public function with `@param` and `@returns`\n- Use `@typedef` for complex object shapes shared across files\n- Use `@type` annotations for reactive variables\n- Follow vue-expert patterns adapted for JavaScript\n\n### MUST NOT DO\n- Use TypeScript syntax (no `<script setup lang=\"ts\">`)\n- Use `.ts` file extensions\n- Skip JSDoc types for public APIs\n- Use CommonJS `require()` in Vue files\n- Ignore type safety entirely\n- Mix TypeScript files with JavaScript in the same component\n\n## Output Templates\n\nWhen implementing Vue features in JavaScript:\n1. Component file with `<script setup>` (no lang attribute) and JSDoc-typed props/emits\n2. `@typedef` definitions for complex prop or state shapes\n3. Composable with `@param` and `@returns` annotations\n4. Brief note on type coverage\n\n## Knowledge Reference\n\nVue 3 Composition API, JSDoc, ESM modules, Pinia, Vue Router 4, Vite, VueUse, Vitest, Vue Test Utils, JavaScript ES2022+\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/frontend/vue-expert-js/)",
+  "contentSha256": "144489b9b80c9df3a4ad8508b6300f2369aa0087285afbf5773e7a33a31ed3df"
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:visual-regression-backstop",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Visual regression testing: capturing component screenshots across viewports, comparing pixel diffs with pixelmatch, and asserting strict thresholds.",
+  "triggerKeywords": [
+    "testing",
+    "visual-regression",
+    "screenshots",
+    "pixelmatch",
+    "ui-testing"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_MISMATCH_THRESHOLD_UNDER_0_1_PERCENT",
+    "STANDARDIZED_DOCKER_CONTAINER_FOR_CONSISTENT_FONTS",
+    "MASK_DYNAMIC_CONTENT_AREAS"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_visual-regression-backstop",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Pixel-Level Visual Regression & Diff Thresholds\n\nVisual regression testing: capturing component screenshots across viewports, comparing pixel diffs with pixelmatch, and asserting strict thresholds.\n\n## Invariants\n- STRICT_MISMATCH_THRESHOLD_UNDER_0_1_PERCENT\n- STANDARDIZED_DOCKER_CONTAINER_FOR_CONSISTENT_FONTS\n- MASK_DYNAMIC_CONTENT_AREAS\n",
+  "contentSha256": "ef6e2d68bf241bd5bb411d27880a160fe249d6089e806e3c6c47c7591e217a6e"
+}

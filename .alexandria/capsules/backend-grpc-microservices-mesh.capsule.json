@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:grpc-microservices-mesh",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Production gRPC microservices: protobuf schema backward compatibility rules, bidirectional streaming, interceptors, and client-side load balancing.",
+  "triggerKeywords": [
+    "backend",
+    "grpc",
+    "protobuf",
+    "microservices",
+    "rpc",
+    "interceptor"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "FIELD_NUMBERS_NEVER_CHANGED_IN_PROTOBUF",
+    "CIRCUIT_BREAKER_INTERCEPTORS_ON_RPC",
+    "DEADLINE_PROPAGATION_ACROSS_SERVICES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_grpc-microservices-mesh",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# gRPC Microservice Mesh & Protobuf Code Generation\n\nProduction gRPC microservices: protobuf schema backward compatibility rules, bidirectional streaming, interceptors, and client-side load balancing.\n\n## Invariants\n- FIELD_NUMBERS_NEVER_CHANGED_IN_PROTOBUF\n- CIRCUIT_BREAKER_INTERCEPTORS_ON_RPC\n- DEADLINE_PROPAGATION_ACROSS_SERVICES\n",
+  "contentSha256": "cb0efa9fbb4e5f0620d9870e0f6eb6c01a780371eefb2079f8c9ebd59c739c16"
+}

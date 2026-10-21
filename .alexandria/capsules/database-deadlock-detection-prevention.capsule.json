@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:deadlock-detection-prevention",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Preventing database deadlocks: acquiring locks in globally deterministic alphabetical order, short transaction scopes, and retry loops.",
+  "triggerKeywords": [
+    "database",
+    "deadlock",
+    "concurrency",
+    "locking",
+    "acid",
+    "transactions"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ACQUIRE_LOCKS_IN_IDENTICAL_SORTED_ORDER",
+    "KEEP_TRANSACTION_TIMES_MINIMAL",
+    "AUTOMATED_RETRY_ON_DEADLOCK_ERROR_CODE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_deadlock-detection-prevention",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Database Deadlock Detection & Consistent Lock Ordering\n\nPreventing database deadlocks: acquiring locks in globally deterministic alphabetical order, short transaction scopes, and retry loops.\n\n## Invariants\n- ACQUIRE_LOCKS_IN_IDENTICAL_SORTED_ORDER\n- KEEP_TRANSACTION_TIMES_MINIMAL\n- AUTOMATED_RETRY_ON_DEADLOCK_ERROR_CODE\n",
+  "contentSha256": "5b9a2ec677a09918f201592ce4b58fed1bf9a7aac8f0f807f3232fba048d4192"
+}

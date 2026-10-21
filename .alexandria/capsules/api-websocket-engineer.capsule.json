@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:websocket-engineer",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Full-duplex WebSocket communication: binary frames, heartbeat keep-alive, automatic exponential backoff reconnection, and security.",
+  "triggerKeywords": [
+    "api",
+    "websocket",
+    "realtime",
+    "duplex",
+    "reconnection",
+    "socket"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "HEARTBEAT_PING_PONG_EVERY_30S",
+    "AUTOMATIC_RECONNECTION_WITH_JITTER",
+    "VALIDATE_ORIGIN_HEADER_ON_UPGRADE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_websocket-engineer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# WebSocket Engineer\n\n## Core Workflow\n\n1. **Analyze requirements** — Identify connection scale, message volume, latency needs\n2. **Design architecture** — Plan clustering, pub/sub, state management, failover\n3. **Implement** — Build WebSocket server with authentication, rooms, events\n4. **Validate locally** — Test connection handling, auth, and room behavior before scaling (e.g., `npx wscat -c ws://localhost:3000`); confirm auth rejection on missing/invalid tokens, room join/leave events, and message delivery\n5. **Scale** — Verify Redis connection and pub/sub round-trip before enabling the adapter; configure sticky sessions and confirm with test connections across multiple instances; set up load balancing\n6. **Monitor** — Track connections, latency, throughput, error rates; add alerts for connection-count spikes and error-rate thresholds\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Protocol | `references/protocol.md` | WebSocket handshake, frames, ping/pong, close codes |\n| Scaling | `references/scaling.md` | Horizontal scaling, Redis pub/sub, sticky sessions |\n| Patterns | `references/patterns.md` | Rooms, namespaces, broadcasting, acknowledgments |\n| Security | `references/security.md` | Authentication, authorization, rate limiting, CORS |\n| Alternatives | `references/alternatives.md` | SSE, long polling, when to choose WebSockets |\n\n## Code Examples\n\n### Server Setup (Socket.IO with Auth and Room Management)\n\n```js\nimport { createServer } from \"http\";\nimport { Server } from \"socket.io\";\nimport { createAdapter } from \"@socket.io/redis-adapter\";\nimport { createClient } from \"redis\";\nimport jwt from \"jsonwebtoken\";\n\nconst httpServer = createServer();\nconst io = new Server(httpServer, {\n  cors: { origin: process.env.ALLOWED_ORIGIN, credentials: true },\n  pingTimeout: 20000,\n  pingInterval: 25000,\n});\n\n// Authentication middleware — runs before connection is established\nio.use((socket, next) => {\n  const token = socket.handshake.auth.token;\n  if (!token) return next(new Error(\"Authentication required\"));\n  try {\n    socket.data.user = jwt.verify(token, process.env.JWT_SECRET);\n    next();\n  } catch {\n    next(new Error(\"Invalid token\"));\n  }\n});\n\n// Redis adapter for horizontal scaling\nconst pubClient = createClient({ url: process.env.REDIS_URL });\nconst subClient = pubClient.duplicate();\nawait Promise.all([pubClient.connect(), subClient.connect()]);\nio.adapter(createAdapter(pubClient, subClient));\n\nio.on(\"connection\", (socket) => {\n  const { userId } = socket.data.user;\n  console.log(`connected: ${userId} (${socket.id})`);\n\n  // Presence: mark user online\n  pubClient.hSet(\"presence\", userId, socket.id);\n\n  socket.on(\"join-room\", (roomId) => {\n    socket.join(roomId);\n    socket.to(roomId).emit(\"user-joined\", { userId });\n  });\n\n  socket.on(\"message\", ({ roomId, text }) => {\n    io.to(roomId).emit(\"message\", { userId, text, ts: Date.now() });\n  });\n\n  socket.on(\"disconnect\", () => {\n    pubClient.hDel(\"presence\", userId);\n    console.log(`disconnected: ${userId}`);\n  });\n});\n\nhttpServer.listen(3000);\n```\n\n### Client-Side Reconnection with Exponential Backoff\n\n```js\nimport { io } from \"socket.io-client\";\n\nconst socket = io(\"wss://api.example.com\", {\n  auth: { token: getAuthToken() },\n  reconnection: true,\n  reconnectionAttempts: 10,\n  reconnectionDelay: 1000,       // initial delay (ms)\n  reconnectionDelayMax: 30000,   // cap at 30 s\n  randomizationFactor: 0.5,      // jitter to avoid thundering herd\n});\n\n// Queue messages while disconnected\nlet messageQueue = [];\n\nsocket.on(\"connect\", () => {\n  console.log(\"connected:\", socket.id);\n  // Flush queued messages\n  messageQueue.forEach((msg) => socket.emit(\"message\", msg));\n  messageQueue = [];\n});\n\nsocket.on(\"disconnect\", (reason) => {\n  console.warn(\"disconnected:\", reason);\n  if (reason === \"io server disconnect\") socket.connect(); // manual reconnect\n});\n\nsocket.on(\"connect_error\", (err) => {\n  console.error(\"connection error:\", err.message);\n});\n\nfunction sendMessage(roomId, text) {\n  const msg = { roomId, text };\n  if (socket.connected) {\n    socket.emit(\"message\", msg);\n  } else {\n    messageQueue.push(msg); // buffer until reconnected\n  }\n}\n```\n\n## Constraints\n\n### MUST DO\n- Use sticky sessions for load balancing (WebSocket connections are stateful — requests must route to the same server instance)\n- Implement heartbeat/ping-pong to detect dead connections (TCP keepalive alone is insufficient)\n- Use rooms/namespaces for message scoping rather than filtering in application logic\n- Queue messages during disconnection windows to avoid silent data loss\n- Plan connection limits per instance before scaling horizontally\n\n### MUST NOT DO\n- Store large state in memory without a clustering strategy (use Redis or an external store)\n- Mix WebSocket and HTTP on the same port without explicit upgrade handling\n- Forget to handle connection cleanup (presence records, room membership, in-flight timers)\n- Skip load testing before production — connection-count spikes behave differently from HTTP traffic spikes\n\n## Output Templates\n\nWhen implementing WebSocket features, provide:\n1. Server setup (Socket.IO/ws configuration)\n2. Event handlers (connection, message, disconnect)\n3. Client library (connection, events, reconnection)\n4. Brief explanation of scaling strategy\n\n## Knowledge Reference\n\nSocket.IO, ws, uWebSockets.js, Redis adapter, sticky sessions, nginx WebSocket proxy, JWT over WebSocket, rooms/namespaces, acknowledgments, binary data, compression, heartbeat, backpressure, horizontal pod autoscaling\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/api-architecture/websocket-engineer/)",
+  "contentSha256": "f1c5b0bacdd3d6421e19778225f1cd0151913ee9e993e41bfc9e5604794637d8"
+}

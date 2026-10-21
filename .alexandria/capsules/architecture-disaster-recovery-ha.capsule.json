@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:disaster-recovery-ha",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Disaster recovery strategies (backup/restore, pilot light, warm standby, active-active), automated DNS failover, RTO and RPO metrics.",
+  "triggerKeywords": [
+    "architecture",
+    "disaster-recovery",
+    "rto",
+    "rpo",
+    "high-availability",
+    "failover"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DEFINED_RTO_AND_RPO_TARGETS",
+    "AUTOMATED_FAILOVER_HEALTH_CHECKS",
+    "REGULAR_CHAOS_FAILOVER_SIMULATIONS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_disaster-recovery-ha",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Multi-Region Disaster Recovery, RTO & RPO\n\nDisaster recovery strategies (backup/restore, pilot light, warm standby, active-active), automated DNS failover, RTO and RPO metrics.\n\n## Invariants\n- DEFINED_RTO_AND_RPO_TARGETS\n- AUTOMATED_FAILOVER_HEALTH_CHECKS\n- REGULAR_CHAOS_FAILOVER_SIMULATIONS\n",
+  "contentSha256": "6004f628a40a77e15661a8793a37bef066e3589beadfa7463d3d0a53166fc0d5"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:mongodb-expert",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "MongoDB 7+ document database architecture: Aggregation Pipelines, compound and multikey indices, multi-document ACID transactions, schema design patterns, and sharding partition keys.",
+  "triggerKeywords": [
+    "mongodb",
+    "nosql",
+    "aggregation",
+    "indexing",
+    "documents",
+    "transactions",
+    "database"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "COMPOUND_INDEX_MATCHING_ESR_RULE",
+    "MULTI_DOCUMENT_ACID_TRANSACTIONS_WHEN_ATOMIC",
+    "SCHEMA_VALIDATION_VIA_JSON_SCHEMA",
+    "PREVENT_UNBOUNDED_ARRAY_GROWTH"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_mongodb-expert",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# MongoDB 7+ Document Architecture & Aggregation Pipelines\n\nArchitect high-scale document databases in MongoDB adhering to schema design patterns and ESR indexing.\n\n## Key Principles & Invariants\n- Index composite queries according to the **Equality, Sort, Range (ESR)** rule.\n- Enforce schema integrity and data validation rules using native MongoDB `$jsonSchema`.\n- Prevent unbounded document growth by utilizing bucket and subset document patterns.\n- Enclose multi-collection atomic mutations within multi-document ACID sessions.",
+  "contentSha256": "621bc417673d752528ae9b7fa806e32aaac89c10ee6e3de156e52e7ef6f76346"
+}

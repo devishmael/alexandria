@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:emdash-slop-guard",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Lexical cleaner hook: removes non-standard Unicode punctuation (em-dashes, smart quotes) from source code before passing to compilers.",
+  "triggerKeywords": [
+    "hook",
+    "formatting",
+    "slop-guard",
+    "cleaner",
+    "compiler"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "REPLACE_SMART_QUOTES_WITH_ASCII",
+    "REPLACE_EM_DASHES_IN_SOURCE_FILES",
+    "PRESERVE_EXPLICIT_LITERAL_STRINGS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_emdash-slop-guard",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# emdash-slop-guard.sh - PostToolUse hook (Write|Edit)\n# Flags em-dash (—/–) interjection AI-tells in Korean-dominant .md output.\n# Detection logic lives in scripts/emdash_slop_check.py (single source of\n# truth — do not duplicate the regex/heuristic here, edit that file instead).\n# Rule: rules/korean-writing-quality.md §4/§6\n# Non-blocking: always exits 0, emits additionalContext only.\n# Kill switch: CLAUDE_FORGE_EMDASH_GUARD_DISABLED=1\n\n[ \"${CLAUDE_FORGE_EMDASH_GUARD_DISABLED:-0}\" = \"1\" ] && exit 0\n\nINPUT=$(cat)\nCHECKER=\"$HOME/.claude/scripts/emdash_slop_check.py\"\n[ -f \"$CHECKER\" ] || exit 0\n\necho \"$INPUT\" | CHECKER=\"$CHECKER\" python3 -c \"\nimport sys, json, os, subprocess\n\ntry:\n    d = json.load(sys.stdin)\nexcept Exception:\n    sys.exit(0)\n\ntool = d.get('tool_name', '')\nchecker = os.environ['CHECKER']\n\nif tool not in ('Write', 'Edit'):\n    sys.exit(0)\n\nfp = d.get('tool_input', {}).get('file_path', '')\nif not fp.endswith('.md') or not os.path.isfile(fp):\n    sys.exit(0)\n\ntry:\n    r = subprocess.run([sys.executable, checker, fp],\n                       capture_output=True, text=True, timeout=8)\n    out = r.stdout.strip()\nexcept Exception:\n    sys.exit(0)\n\nif out:\n    payload = {'hookSpecificOutput': {'hookEventName': 'PostToolUse',\n               'additionalContext': out + chr(10) + '[Emdash Slop] Fix the interjections above before treating this doc as final (advisory, not a hard block — rules/korean-writing-quality.md §4).'}}\n    print(json.dumps(payload, ensure_ascii=False))\n\" 2>/dev/null\n\nexit 0\n",
+  "contentSha256": "1997f7e2d7d02afd4a00e9520307854c572e792472977cac1c4a502f59a4cede"
+}

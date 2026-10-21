@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:code-that-fits-in-your-head",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Code maintainability heuristics: 7±2 rule of working memory, flattening cyclomatic complexity, early returns, and parse-don't-validate.",
+  "triggerKeywords": [
+    "backend",
+    "clean-code",
+    "simplicity",
+    "maintainability",
+    "refactoring"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "MAX_CYCLOMATIC_COMPLEXITY_UNDER_10",
+    "EARLY_RETURNS_FOR_GUARD_CLAUSES",
+    "PARSE_DONT_VALIDATE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_code-that-fits-in-your-head",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Code That Fits in Your Head\n\nEngineering heuristics for sustainable software, based on Mark Seemann's 2021 book and clearly labelled agent-era amendments.\n\nCode examples are C#-first; every rule and the tooling tables are language-neutral.\n\n## Philosophy (Why This Skill Exists)\n\nSoftware development is principally a **design activity**, not construction. An agent may produce most of the text, but people still review, operate, extend, and own the resulting system. These heuristics make software sustainable: understandable, resistant to architectural erosion, and cheap to change after thousands of decisions.\n\nCore mental model from Chapter 1:\n\n| Metaphor | What it gets right | What it misses |\n|----------|-------------------|-----------------|\n| **Building a house** | Plans, structure | Software endures; there's no construction phase (compiling is free); dependencies can start anywhere |\n| **Growing a garden** | Pruning, refactoring, tending | Code does not improve by itself; generated code still needs stewardship |\n| **Art / craft** | Skill, mastery, situational knowledge | Doesn't scale; leaves newcomers without guidance |\n| **Engineering** (the target) | Heuristics, review, sign-off, checklists | We're not there yet — physical-construction calculations don't apply |\n\n> \"The act of describing a program in unambiguous detail and the act of programming are one and the same.\" — Kevlin Henney\n\n**Practical implications for a code agent:**\n\n1. **Successful software endures.** Prefer changes that preserve clear boundaries and keep future change affordable.\n2. **Complexity is the enemy, not task size.** Agents can complete changes spanning tens of thousands of lines when architecture, plan, and acceptance criteria are sound. Reject needless coupling, duplication, hidden effects, and unverifiable bulk—not large scope by itself.\n3. **Heuristics, not laws.** Understand the purpose of a rule before applying or relaxing it. Project policy overrides generic formatting and workflow conventions.\n4. **Verification is part of design.** Types, tests, schemas, architecture checks, observability, and explicit acceptance criteria constrain both human- and agent-written code.\n5. **Code is a liability.** Generated volume is not progress. Prefer the smallest coherent design that solves the problem without accumulating debt.\n\nSee `references/foundations/` for more on sustainability, readability, and brain-limited design.\n\n## How to Use This Skill\n\n1. Identify the user's task (writing, reviewing, debugging, security review, setting up, etc.)\n2. Read `guidelines.md` — it maps tasks and symptoms to specific reference files\n3. Load only the reference files relevant to the current task (progressive disclosure)\n4. Apply the rules; when in doubt, consult `references/practices-glossary/` for cross-references\n5. When a rule proves repeatedly useful in a repository, operationalize it (`workflows/operationalize-finding.md`) so it persists as a gate and in project agent instructions.\n\n## Chapter Index\n\n| Topic | Use when... |\n|-------|-------------|\n| `references/foundations/` | Sustainability, readability, complexity control, and code as liability |\n| `references/codebase-setup/` | Starting or inheriting a code base — git, build automation, warnings-as-errors |\n| `references/outside-in-tdd/` | Writing new features test-first; walking skeleton, AAA, triangulation, devil's advocate, editing tests |\n| `references/encapsulation/` | Designing types with invariants; DTO vs Domain Model, always-valid, Postel's law, parse-don't-validate |\n| `references/decomposition/` | Controlling method and system complexity; cyclomatic complexity, cohesion, coupling, feature envy, fractal architecture |\n| `references/api-design/` | Designing a public API; affordance, poka-yoke, CQS, hierarchy of communication, naming over comments |\n| `references/separation-of-concerns/` | Adding cross-cutting concerns; Decorator pattern, logging, what to log, performance vs legibility |\n| `references/teamwork-git/` | Writing commits, reviewing changes, continuous integration, collective ownership |\n| `references/evolution/` | Changing running systems; feature flags, Strangler pattern, versioning, regular dependency updates, Conway's law |\n| `references/troubleshooting/` | Debugging a defect; scientific method, rubber ducking, reproduce-as-test, bisection, non-deterministic defects |\n| `references/security/` | Threat modelling; STRIDE (spoofing, tampering, repudiation, info disclosure, DoS, elevation) |\n| `references/code-navigation/` | Onboarding to a code base; big picture, file organisation, cycles, property-based testing, behavioural code analysis |\n| `references/tooling/` | Executable measurement commands: complexity, cycles, duplication, dead code, hotspots, mutation testing |\n| `references/practices-glossary/` | Looking up a named book practice and its current status |\n\n### ⚠️ Editorial amendments (NOT from the book)\n\nThe folder below is NOT content from Seemann's book. It contains our own additions covering agent-specific concerns the 2021 book does not address. Do not attribute these files to Seemann. See `references/agent-native/knowledge.md`.\n\n| Topic | Use when... |\n|-------|-------------|\n| `references/agent-native/` | Agent-specific verification integrity, hallucination and dependency grounding, executable guardrails, and accountable review |\n\n## Workflows\n\nComposite step-by-step processes live in `workflows/`:\n\n| Task | Workflow |\n|------|----------|\n| Review a pull request / piece of code | `workflows/review-code.md` |\n| Add a new feature from scratch | `workflows/add-feature-outside-in.md` |\n| Investigate and fix a defect | `workflows/debug-defect.md` |\n| Threat-model a new endpoint | `workflows/threat-model.md` |\n| Turn a recurring finding into an executable gate and persist it in project memory | `workflows/operationalize-finding.md` |\n\nSee `guidelines.md` for the full routing layer (task → file, symptom → file).",
+  "contentSha256": "ced348b5ab46b70b39d64a375633b49a32a5a9145d9aa0ba27d6575e5cab3721"
+}

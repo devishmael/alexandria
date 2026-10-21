@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:webhook-reliability",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Reliable webhook publishing and consumption: HMAC-SHA256 signature headers, replay attack protection with timestamps, and exponential backoff.",
+  "triggerKeywords": [
+    "api",
+    "webhooks",
+    "hmac",
+    "idempotency",
+    "signatures",
+    "reliability"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "VERIFY_HMAC_SHA256_SIGNATURES",
+    "REJECT_TIMESTAMPS_OLDER_THAN_5_MINUTES",
+    "RECORD_PROCESSED_WEBHOOK_IDS_FOR_IDEMPOTENCY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_webhook-reliability",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Webhook Delivery Retries, HMAC Signatures & Idempotency\n\nReliable webhook publishing and consumption: HMAC-SHA256 signature headers, replay attack protection with timestamps, and exponential backoff.\n\n## Invariants\n- VERIFY_HMAC_SHA256_SIGNATURES\n- REJECT_TIMESTAMPS_OLDER_THAN_5_MINUTES\n- RECORD_PROCESSED_WEBHOOK_IDS_FOR_IDEMPOTENCY\n",
+  "contentSha256": "2ef823f22a06f489a196e837a46536ed478700eebd3304d12c7443a01d9c24b7"
+}

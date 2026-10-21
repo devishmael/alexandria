@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:svelte-expert",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Svelte 5 runes ($state, $derived, $effect), compiler reactivity, SvelteKit form actions, and SSR hydration.",
+  "triggerKeywords": [
+    "frontend",
+    "svelte",
+    "sveltekit",
+    "runes",
+    "reactive",
+    "ssr"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "USE_SVELTE5_RUNES_REACTIVITY",
+    "ZERO_VIRTUAL_DOM_OVERHEAD",
+    "SSR_HYDRATION_SAFE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_svelte-expert",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Svelte & SvelteKit Reactive Architecture\n\nSvelte 5 runes ($state, $derived, $effect), compiler reactivity, SvelteKit form actions, and SSR hydration.\n\n## Invariants\n- USE_SVELTE5_RUNES_REACTIVITY\n- ZERO_VIRTUAL_DOM_OVERHEAD\n- SSR_HYDRATION_SAFE\n",
+  "contentSha256": "671032a373ad11a7bf027a3654df7863fcfe5c05018bb1d7a18a857626fd1567"
+}

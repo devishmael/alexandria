@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:ci-test-splitting-parallelism",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Optimizing CI test runtimes: timing tests, splitting by duration across parallel matrix workers, and flaky test auto-quarantine.",
+  "triggerKeywords": [
+    "testing",
+    "ci",
+    "parallel-testing",
+    "test-splitting",
+    "flaky-tests"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "BALANCED_TEST_EXECUTION_TIME_ACROSS_WORKERS",
+    "AUTO_QUARANTINE_FLAKY_TESTS_TO_SEPARATE_PIPELINE",
+    "RETRY_FLAKY_FAILURES_UP_TO_ONCE"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_ci-test-splitting-parallelism",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Test Suite Timing Optimization & CI Parallelization\n\nOptimizing CI test runtimes: timing tests, splitting by duration across parallel matrix workers, and flaky test auto-quarantine.\n\n## Invariants\n- BALANCED_TEST_EXECUTION_TIME_ACROSS_WORKERS\n- AUTO_QUARANTINE_FLAKY_TESTS_TO_SEPARATE_PIPELINE\n- RETRY_FLAKY_FAILURES_UP_TO_ONCE\n",
+  "contentSha256": "9e52fb595606259da22dcf65ecc22337691689e55736585743c3478fa5a6818b"
+}

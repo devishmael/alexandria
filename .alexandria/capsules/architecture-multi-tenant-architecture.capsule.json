@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:multi-tenant-architecture",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Multi-tenant architecture: schema-per-tenant, database-per-tenant, and shared schema with PostgreSQL Row-Level Security (RLS).",
+  "triggerKeywords": [
+    "architecture",
+    "multi-tenant",
+    "rls",
+    "tenant-isolation",
+    "saas"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENFORCE_ROW_LEVEL_SECURITY_ON_SHARED_TABLES",
+    "SET_TENANT_ID_SESSION_VARIABLE_ON_REQUEST",
+    "TENANT_DATA_NEVER_LEAKS_INTO_SHARED_CACHE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_multi-tenant-architecture",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Multi-Tenant Isolation (Row-Level vs Database-Level)\n\nMulti-tenant architecture: schema-per-tenant, database-per-tenant, and shared schema with PostgreSQL Row-Level Security (RLS).\n\n## Invariants\n- ENFORCE_ROW_LEVEL_SECURITY_ON_SHARED_TABLES\n- SET_TENANT_ID_SESSION_VARIABLE_ON_REQUEST\n- TENANT_DATA_NEVER_LEAKS_INTO_SHARED_CACHE\n",
+  "contentSha256": "6eb21427844644f68942c991da28e4925f1d19db923e5dcb5835dc116b2b6bc8"
+}

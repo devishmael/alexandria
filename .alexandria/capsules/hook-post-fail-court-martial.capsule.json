@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:post-fail-court-martial",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Post-failure interceptor: counts consecutive quality gate failures on a module; at attempt 3, trips circuit breaker and emits Court-Martial docket.",
+  "triggerKeywords": [
+    "hook",
+    "post-fail",
+    "court-martial",
+    "circuit-breaker",
+    "resilience"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "TRIP_TO_TRIPPED_ABORT_ON_ATTEMPT_3",
+    "EMIT_STRUCTURED_COURT_MARTIAL_DOCKET",
+    "FREEZE_AUTOMATED_RETRY_LOOPS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_post-fail-court-martial",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Post-Failure Circuit Breaker & Court-Martial Docket\n\nPost-failure interceptor: counts consecutive quality gate failures on a module; at attempt 3, trips circuit breaker and emits Court-Martial docket.\n\n## Invariants\n- TRIP_TO_TRIPPED_ABORT_ON_ATTEMPT_3\n- EMIT_STRUCTURED_COURT_MARTIAL_DOCKET\n- FREEZE_AUTOMATED_RETRY_LOOPS\n",
+  "contentSha256": "d919662e9193268771b0eec5419a375be0f5acf37ad560c3f481376314917843"
+}

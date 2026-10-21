@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:storybook-visual-testing",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Component-driven development (CDD) in isolation, interaction tests with @storybook/test, and Chromatic visual testing.",
+  "triggerKeywords": [
+    "frontend",
+    "storybook",
+    "cdd",
+    "visual-regression",
+    "interaction-testing"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ISOLATED_COMPONENT_STORIES",
+    "ACCESSIBILITY_ADDON_ZERO_VIOLATIONS",
+    "MOCK_EXTERNAL_PROVIDERS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_storybook-visual-testing",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Storybook Component Driven Development & Visual Tests\n\nComponent-driven development (CDD) in isolation, interaction tests with @storybook/test, and Chromatic visual testing.\n\n## Invariants\n- ISOLATED_COMPONENT_STORIES\n- ACCESSIBILITY_ADDON_ZERO_VIOLATIONS\n- MOCK_EXTERNAL_PROVIDERS\n",
+  "contentSha256": "c89ce2713bf1aed8987471a35ea5db23bc34dec0126f4dc387388d5364ee280a"
+}

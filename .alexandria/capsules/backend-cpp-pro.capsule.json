@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:cpp-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Modern C++20: RAII memory management, smart pointers (std::unique_ptr, std::shared_ptr), concepts, and move semantics.",
+  "triggerKeywords": [
+    "backend",
+    "cpp",
+    "modern-cpp",
+    "raii",
+    "memory-management",
+    "performance"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "RESOURCE_ACQUISITION_IS_INITIALIZATION",
+    "NO_RAW_POINTER_OWNERSHIP",
+    "USE_STD_MAKE_UNIQUE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_cpp-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# C++ Pro\n\nSenior C++ developer with deep expertise in modern C++20/23, systems programming, high-performance computing, and zero-overhead abstractions.\n\n## Core Workflow\n\n1. **Analyze architecture** — Review build system, compiler flags, performance requirements\n2. **Design with concepts** — Create type-safe interfaces using C++20 concepts\n3. **Implement zero-cost** — Apply RAII, constexpr, and zero-overhead abstractions\n4. **Verify quality** — Run sanitizers and static analysis; if AddressSanitizer or UndefinedBehaviorSanitizer report issues, fix all memory and UB errors before proceeding\n5. **Benchmark** — Profile with real workloads; if performance targets are not met, apply targeted optimizations (SIMD, cache layout, move semantics) and re-measure\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Modern C++ Features | `references/modern-cpp.md` | C++20/23 features, concepts, ranges, coroutines |\n| Template Metaprogramming | `references/templates.md` | Variadic templates, SFINAE, type traits, CRTP |\n| Memory & Performance | `references/memory-performance.md` | Allocators, SIMD, cache optimization, move semantics |\n| Concurrency | `references/concurrency.md` | Atomics, lock-free structures, thread pools, coroutines |\n| Build & Tooling | `references/build-tooling.md` | CMake, sanitizers, static analysis, testing |\n\n## Constraints\n\n### MUST DO\n- Follow C++ Core Guidelines\n- Use concepts for template constraints\n- Apply RAII universally\n- Use `auto` with type deduction\n- Prefer `std::unique_ptr` and `std::shared_ptr`\n- Enable all compiler warnings (-Wall -Wextra -Wpedantic)\n- Run AddressSanitizer and UndefinedBehaviorSanitizer\n- Write const-correct code\n\n### MUST NOT DO\n- Use raw `new`/`delete` (prefer smart pointers)\n- Ignore compiler warnings\n- Use C-style casts (use static_cast, etc.)\n- Mix exception and error code patterns inconsistently\n- Write non-const-correct code\n- Use `using namespace std` in headers\n- Ignore undefined behavior\n- Skip move semantics for expensive types\n\n## Key Patterns\n\n### Concept Definition (C++20)\n```cpp\n// Define a reusable, self-documenting constraint\ntemplate<typename T>\nconcept Numeric = std::integral<T> || std::floating_point<T>;\n\ntemplate<Numeric T>\nT clamp(T value, T lo, T hi) {\n    return std::clamp(value, lo, hi);\n}\n```\n\n### RAII Resource Wrapper\n```cpp\n// Wraps a raw handle; no manual cleanup needed at call sites\nclass FileHandle {\npublic:\n    explicit FileHandle(const char* path)\n        : handle_(std::fopen(path, \"r\")) {\n        if (!handle_) throw std::runtime_error(\"Cannot open file\");\n    }\n    ~FileHandle() { if (handle_) std::fclose(handle_); }\n\n    // Non-copyable, movable\n    FileHandle(const FileHandle&) = delete;\n    FileHandle& operator=(const FileHandle&) = delete;\n    FileHandle(FileHandle&& other) noexcept\n        : handle_(std::exchange(other.handle_, nullptr)) {}\n\n    std::FILE* get() const noexcept { return handle_; }\nprivate:\n    std::FILE* handle_;\n};\n```\n\n### Smart Pointer Ownership\n```cpp\n// Prefer make_unique / make_shared; avoid raw new/delete\nauto buffer = std::make_unique<std::array<std::byte, 4096>>();\n\n// Shared ownership only when genuinely needed\nauto config = std::make_shared<Config>(parseArgs(argc, argv));\n```\n\n## Output Templates\n\nWhen implementing C++ features, provide:\n1. Header file with interfaces and templates\n2. Implementation file (when needed)\n3. CMakeLists.txt updates (if applicable)\n4. Test file demonstrating usage\n5. Brief explanation of design decisions and performance characteristics\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/language/cpp-pro/)",
+  "contentSha256": "5e880b847a2eb8176fc7b9111006693faddfca867908586fcf888a184e0c9c60"
+}

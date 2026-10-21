@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:graphql-schema-breaking-change-check",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Automated CI detection of breaking GraphQL schema changes: detecting removed fields, type changes, or added non-null arguments.",
+  "triggerKeywords": [
+    "testing",
+    "graphql",
+    "schema-diff",
+    "breaking-changes",
+    "inspector"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "FAIL_CI_ON_BACKWARD_INCOMPATIBLE_SCHEMA_CHANGES",
+    "DEPRECATE_BEFORE_REMOVING_FIELDS",
+    "DIFF_AGAINST_PRODUCTION_SCHEMA"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_graphql-schema-breaking-change-check",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# GraphQL Inspector Automated Breaking Change Detection\n\nAutomated CI detection of breaking GraphQL schema changes: detecting removed fields, type changes, or added non-null arguments.\n\n## Invariants\n- FAIL_CI_ON_BACKWARD_INCOMPATIBLE_SCHEMA_CHANGES\n- DEPRECATE_BEFORE_REMOVING_FIELDS\n- DIFF_AGAINST_PRODUCTION_SCHEMA\n",
+  "contentSha256": "1c670c3dd6b267df3ffcc59ae35cbb9d4f2e0ef034821171dbdb09deeb0d7a51"
+}

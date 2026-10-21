@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:nodejs-runtime-tuning",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Node.js runtime performance: avoiding event loop lag, libuv thread pool tuning, Worker Threads for CPU intensive tasks, and memory heap profiling.",
+  "triggerKeywords": [
+    "backend",
+    "nodejs",
+    "event-loop",
+    "libuv",
+    "worker-threads",
+    "profiling"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "NEVER_BLOCK_EVENT_LOOP_MAIN_THREAD",
+    "WORKER_THREADS_FOR_INTENSIVE_CPU",
+    "OFFLOAD_CRYPTO_TO_LIBUV"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_nodejs-runtime-tuning",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Node.js Event Loop Tuning & Worker Threads\n\nNode.js runtime performance: avoiding event loop lag, libuv thread pool tuning, Worker Threads for CPU intensive tasks, and memory heap profiling.\n\n## Invariants\n- NEVER_BLOCK_EVENT_LOOP_MAIN_THREAD\n- WORKER_THREADS_FOR_INTENSIVE_CPU\n- OFFLOAD_CRYPTO_TO_LIBUV\n",
+  "contentSha256": "501b887ebc3cfd6073d7ab4021a66f8566092c4acabb8d7de89a19e9f8b71144"
+}

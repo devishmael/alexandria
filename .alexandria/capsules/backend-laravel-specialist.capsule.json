@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:laravel-specialist",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Laravel 11+ enterprise development: Eloquent ORM relations and query scopes, Artisan console automation, asynchronous background Queues and Jobs, Livewire components, and Service Providers.",
+  "triggerKeywords": [
+    "laravel",
+    "php",
+    "eloquent",
+    "artisan",
+    "queues",
+    "livewire",
+    "blade"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EAGER_LOADING_TO_PREVENT_N_PLUS_ONE",
+    "FORM_REQUEST_VALIDATION_MANDATORY",
+    "IDEMPOTENT_BACKGROUND_QUEUE_JOBS",
+    "STRICT_SERVICE_CONTAINER_BINDINGS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_laravel-specialist",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Laravel 11+ Enterprise Architecture & Domain Patterns\n\nBuild scalable, maintainable PHP web applications using modern Laravel 11 idioms.\n\n## Key Principles & Invariants\n- Prevent N+1 query degradation by enforcing eager loading (`with()`) and `Model::preventLazyLoading()`.\n- Encapsulate HTTP validation inside dedicated `FormRequest` classes.\n- Design background Queue Jobs to be fully idempotent with explicit retry and backoff parameters.\n- Register interface-to-implementation bindings cleanly inside dedicated `ServiceProvider`s.",
+  "contentSha256": "e52551023ea1103f8cc88805a0f96e2850052fa5346ad872e342a4662b0f784c"
+}

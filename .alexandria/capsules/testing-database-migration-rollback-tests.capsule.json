@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:database-migration-rollback-tests",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Testing database migrations: executing UP followed immediately by DOWN followed by UP against realistic data to prove rollback viability.",
+  "triggerKeywords": [
+    "testing",
+    "migrations",
+    "rollback",
+    "database",
+    "schema-test"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "TEST_BOTH_UP_AND_DOWN_MIGRATION_PATHS",
+    "VERIFY_NO_DATA_LOSS_ON_ROUND_TRIP",
+    "ASSERT_SCHEMA_MATCHES_EXPECTED_SNAPSHOT"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_database-migration-rollback-tests",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Automated Migration Up & Down Rollback Verification\n\nTesting database migrations: executing UP followed immediately by DOWN followed by UP against realistic data to prove rollback viability.\n\n## Invariants\n- TEST_BOTH_UP_AND_DOWN_MIGRATION_PATHS\n- VERIFY_NO_DATA_LOSS_ON_ROUND_TRIP\n- ASSERT_SCHEMA_MATCHES_EXPECTED_SNAPSHOT\n",
+  "contentSha256": "cccd04a906d001581eac4d00104e71cd955f137d160a8cbd02a551517371d182"
+}

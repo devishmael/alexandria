@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:firestore-pro",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Firebase Cloud Firestore NoSQL architecture: collection and subcollection modeling, Security Rules for client-side access control, denormalization, transactional batch writes, and offline persistence.",
+  "triggerKeywords": [
+    "firestore",
+    "firebase",
+    "nosql",
+    "security-rules",
+    "realtime",
+    "cloud",
+    "database"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_FIRESTORE_SECURITY_RULES_ON_ALL_PATHS",
+    "BATCHED_WRITES_FOR_MULTI_DOC_INTEGRITY",
+    "DENORMALIZE_FOR_READ_HEAVY_ACCESS",
+    "AVOID_HOTSPOTTING_MONOTONIC_DOCUMENT_IDS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_firestore-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Firebase Cloud Firestore NoSQL Architecture\n\nArchitect scalable, secure, and real-time document hierarchies in Cloud Firestore.\n\n## Key Principles & Invariants\n- Secure every collection path with comprehensive Firestore Security Rules validating authentication and schema.\n- Denormalize data deliberately to minimize shallow read operations on client apps.\n- Execute multi-document mutations using atomic `runTransaction` or `WriteBatch`.\n- Avoid monotonically increasing document IDs (e.g. timestamps) to prevent partition hotspotting.",
+  "contentSha256": "5e1a5a5fbec56e28d1f67a8e78d24450b53014308f16c00230c68e22d1d5ffe3"
+}

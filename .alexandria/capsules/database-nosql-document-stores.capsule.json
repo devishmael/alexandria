@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:nosql-document-stores",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "NoSQL data modeling (MongoDB, DynamoDB): single-table design, composite partition/sort keys, access pattern first modeling, and TTL.",
+  "triggerKeywords": [
+    "database",
+    "nosql",
+    "mongodb",
+    "dynamodb",
+    "single-table-design"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DESIGN_FOR_SPECIFIC_ACCESS_PATTERNS",
+    "HIGH_CARDINALITY_PARTITION_KEYS",
+    "AVOID_LARGE_UNBOUNDED_ARRAYS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_nosql-document-stores",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# NoSQL Document Schemas & Partition Key Design\n\nNoSQL data modeling (MongoDB, DynamoDB): single-table design, composite partition/sort keys, access pattern first modeling, and TTL.\n\n## Invariants\n- DESIGN_FOR_SPECIFIC_ACCESS_PATTERNS\n- HIGH_CARDINALITY_PARTITION_KEYS\n- AVOID_LARGE_UNBOUNDED_ARRAYS\n",
+  "contentSha256": "898a019d5aef2dd848cda08d288d7c52eabdce5cd7db8db0128a686990a13b5c"
+}

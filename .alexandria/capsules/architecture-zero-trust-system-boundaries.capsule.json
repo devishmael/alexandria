@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:zero-trust-system-boundaries",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Zero-trust network architecture: mutual TLS between all internal services, cryptographically verified service identities (SPIFFE/SPIRE), and explicit authorization.",
+  "triggerKeywords": [
+    "architecture",
+    "zero-trust",
+    "spiffe",
+    "mtls",
+    "security",
+    "identity"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "VERIFY_CALLER_IDENTITY_ON_EVERY_RPC",
+    "ENCRYPT_ALL_INTER_SERVICE_TRAFFIC_WITH_MTLS",
+    "NEVER_TRUST_INTERNAL_NETWORK_LOCATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_zero-trust-system-boundaries",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Zero-Trust Internal Network & Service Identity\n\nZero-trust network architecture: mutual TLS between all internal services, cryptographically verified service identities (SPIFFE/SPIRE), and explicit authorization.\n\n## Invariants\n- VERIFY_CALLER_IDENTITY_ON_EVERY_RPC\n- ENCRYPT_ALL_INTER_SERVICE_TRAFFIC_WITH_MTLS\n- NEVER_TRUST_INTERNAL_NETWORK_LOCATION\n",
+  "contentSha256": "b8cb0377c841ecff64257893a841a7c9bbf0598e2b9bf8a4087d7065359abf8b"
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:golang-pro",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Idiomatic Go: goroutines, channels, sync.WaitGroup, context propagation, table-driven tests, and sub-millisecond HTTP microservices.",
+  "triggerKeywords": [
+    "backend",
+    "golang",
+    "go",
+    "goroutines",
+    "channels",
+    "microservices"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PASS_CONTEXT_FIRST_PARAMETER",
+    "ALWAYS_CHECK_RETURNED_ERRORS",
+    "AVOID_GOROUTINE_LEAKS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_golang-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Golang Pro\n\nSenior Go developer with deep expertise in Go 1.21+, concurrent programming, and cloud-native microservices. Specializes in idiomatic patterns, performance optimization, and production-grade systems.\n\n## Core Workflow\n\n1. **Analyze architecture** — Review module structure, interfaces, and concurrency patterns\n2. **Design interfaces** — Create small, focused interfaces with composition\n3. **Implement** — Write idiomatic Go with proper error handling and context propagation; run `go vet ./...` before proceeding\n4. **Lint & validate** — Run `golangci-lint run` and fix all reported issues before proceeding\n5. **Optimize** — Profile with pprof, write benchmarks, eliminate allocations\n6. **Test** — Table-driven tests with `-race` flag, fuzzing, 80%+ coverage; confirm race detector passes before committing\n\n## Reference Guide\n\nLoad detailed guidance based on context:\n\n| Topic | Reference | Load When |\n|-------|-----------|-----------|\n| Concurrency | `references/concurrency.md` | Goroutines, channels, select, sync primitives |\n| Interfaces | `references/interfaces.md` | Interface design, io.Reader/Writer, composition |\n| Generics | `references/generics.md` | Type parameters, constraints, generic patterns |\n| Testing | `references/testing.md` | Table-driven tests, benchmarks, fuzzing |\n| Project Structure | `references/project-structure.md` | Module layout, internal packages, go.mod |\n\n## Core Pattern Example\n\nGoroutine with proper context cancellation and error propagation:\n\n```go\n// worker runs until ctx is cancelled or an error occurs.\n// Errors are returned via the errCh channel; the caller must drain it.\nfunc worker(ctx context.Context, jobs <-chan Job, errCh chan<- error) {\n    for {\n        select {\n        case <-ctx.Done():\n            errCh <- fmt.Errorf(\"worker cancelled: %w\", ctx.Err())\n            return\n        case job, ok := <-jobs:\n            if !ok {\n                return // jobs channel closed; clean exit\n            }\n            if err := process(ctx, job); err != nil {\n                errCh <- fmt.Errorf(\"process job %v: %w\", job.ID, err)\n                return\n            }\n        }\n    }\n}\n\nfunc runPipeline(ctx context.Context, jobs []Job) error {\n    ctx, cancel := context.WithTimeout(ctx, 30*time.Second)\n    defer cancel()\n\n    jobCh := make(chan Job, len(jobs))\n    errCh := make(chan error, 1)\n\n    go worker(ctx, jobCh, errCh)\n\n    for _, j := range jobs {\n        jobCh <- j\n    }\n    close(jobCh)\n\n    select {\n    case err := <-errCh:\n        return err\n    case <-ctx.Done():\n        return fmt.Errorf(\"pipeline timed out: %w\", ctx.Err())\n    }\n}\n```\n\nKey properties demonstrated: bounded goroutine lifetime via `ctx`, error propagation with `%w`, no goroutine leak on cancellation.\n\n## Constraints\n\n### MUST DO\n- Use gofmt and golangci-lint on all code\n- Add context.Context to all blocking operations\n- Handle all errors explicitly (no naked returns)\n- Write table-driven tests with subtests\n- Document all exported functions, types, and packages\n- Use `X | Y` union constraints for generics (Go 1.18+)\n- Propagate errors with fmt.Errorf(\"%w\", err)\n- Run race detector on tests (-race flag)\n\n### MUST NOT DO\n- Ignore errors (avoid _ assignment without justification)\n- Use panic for normal error handling\n- Create goroutines without clear lifecycle management\n- Skip context cancellation handling\n- Use reflection without performance justification\n- Mix sync and async patterns carelessly\n- Hardcode configuration (use functional options or env vars)\n\n## Output Templates\n\nWhen implementing Go features, provide:\n1. Interface definitions (contracts first)\n2. Implementation files with proper package structure\n3. Test file with table-driven tests\n4. Brief explanation of concurrency patterns used\n\n## Knowledge Reference\n\nGo 1.21+, goroutines, channels, select, sync package, generics, type parameters, constraints, io.Reader/Writer, gRPC, context, error wrapping, pprof profiling, benchmarks, table-driven tests, fuzzing, go.mod, internal packages, functional options\n\nMaintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant at [Synergetic Solutions](https://synergetic.solutions)\n\n[Documentation](https://jeffallan.github.io/claude-skills/skills/language/golang-pro/)",
+  "contentSha256": "2f3c4a76b8e1c9c640966148802cc27b0023b053e295b7bf5b2909e804a43d2d"
+}

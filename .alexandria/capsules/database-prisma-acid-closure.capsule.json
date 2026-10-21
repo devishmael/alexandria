@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:prisma-acid-closure",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Total lexical closure in prisma.$transaction under 25ms, forbidding .then(), tx aliasing, external network calls, and dangling promises.",
+  "triggerKeywords": [
+    "database",
+    "prisma",
+    "acid",
+    "closure",
+    "sub25ms",
+    "transaction"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PRISMA_TX_STRICT_LEXICAL_CLOSURE",
+    "PRISMA_TX_NO_ALIAS_OR_DESTRUCTURE",
+    "PRISMA_TX_NO_PROMISE_CHAINING",
+    "SUB_25MS_EXECUTION_BUDGET"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_prisma-acid-closure",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "{\n  \"name\": \"prisma_db_push\",\n  \"description\": \"prisma db push\",\n  \"input\": {\n    \"tool_name\": \"Bash\",\n    \"tool_input\": {\n      \"command\": \"prisma db push\"\n    },\n    \"cwd\": \"/home/example-user/myproject\"\n  },\n  \"expect\": {\n    \"decision\": \"ask\",\n    \"rule\": \"supabase\",\n    \"reason_code\": \"supabase.prisma_migration\"\n  }\n}\n",
+  "contentSha256": "080d27540ff7f259f8fa992b33c75e760bf78b7c656546cd024423ded0040e1d"
+}

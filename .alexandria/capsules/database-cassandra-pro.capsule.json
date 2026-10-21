@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:cassandra-pro",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Apache Cassandra distributed architecture: Cassandra Query Language (CQL), query-first data modeling, Partition Key and Clustering Column optimization, tunable consistency, and tombstone mitigation.",
+  "triggerKeywords": [
+    "cassandra",
+    "nosql",
+    "cql",
+    "distributed-systems",
+    "partition-key",
+    "clustering-column",
+    "bigdata"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "QUERY_FIRST_DATA_MODELING",
+    "PARTITION_KEY_SIZE_UNDER_100MB",
+    "TUNABLE_CONSISTENCY_LEVEL_QUORUM",
+    "NO_ALLOW_FILTERING_IN_PRODUCTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_cassandra-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Apache Cassandra Distributed Architecture & CQL\n\nDesign resilient, write-heavy distributed data models in Apache Cassandra and ScyllaDB.\n\n## Key Principles & Invariants\n- Design schemas strictly around query access patterns: **one table per query**.\n- Choose partition keys that guarantee even data distribution and keep partition sizes below 100 MB.\n- Forbid `ALLOW FILTERING` in production query paths.\n- Balance consistency and availability via tunable consistency levels (e.g. `LOCAL_QUORUM`).",
+  "contentSha256": "c6bac289f9ee70d56d4d3fddb567b84049d6d2fad71332316c3d91a29591f4c8"
+}

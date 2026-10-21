@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:vercel-deployment",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Vercel edge deployment engineering: Edge Runtime optimization, Serverless Functions, Preview Deployments, Edge Config, Incremental Static Regeneration (ISR), and Web Vitals analytics.",
+  "triggerKeywords": [
+    "vercel",
+    "nextjs",
+    "edge-functions",
+    "serverless",
+    "deployment",
+    "isr",
+    "web-vitals"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EDGE_RUNTIME_SUB_50MS_EXECUTION_BUDGET",
+    "ENV_VARS_SCOPED_BY_ENVIRONMENT",
+    "ISR_CACHE_TAGGING_AND_REVALIDATION",
+    "OUTPUT_STANDALONE_OPTIMIZATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_vercel-deployment",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Vercel Edge Runtime & Serverless Deployment\n\nDeploy and operate hyper-fast modern web applications on Vercel's global edge network.\n\n## Key Principles & Invariants\n- Optimize Edge Functions to execute well within the 50ms CPU runtime budget.\n- Scope environment variables strictly across Development, Preview, and Production targets.\n- Implement On-Demand Incremental Static Regeneration (ISR) using `revalidateTag` and `revalidatePath`.\n- Monitor Real User Metrics (RUM) and maintain high Core Web Vitals scores.",
+  "contentSha256": "c66f30df63395621f3eb531169be22a9a370275b41221ee3dfa7257763706c08"
+}

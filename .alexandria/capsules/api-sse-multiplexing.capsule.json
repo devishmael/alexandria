@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:sse-multiplexing",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Multiplexing multiple channel streams over a single SSE connection, buffer flushing, heartbeat frames, and browser reconnection state.",
+  "triggerKeywords": [
+    "api",
+    "sse",
+    "streaming",
+    "multiplexing",
+    "heartbeat",
+    "events"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PING_COMMENT_FRAME_EVERY_15_SECONDS",
+    "CHANNEL_EVENT_TYPE_NAMESPACING",
+    "REPLAY_BUFFER_FOR_DROPPED_CONNECTIONS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_sse-multiplexing",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Server-Sent Events (SSE) Multiplexing & Reconnect State\n\nMultiplexing multiple channel streams over a single SSE connection, buffer flushing, heartbeat frames, and browser reconnection state.\n\n## Invariants\n- PING_COMMENT_FRAME_EVERY_15_SECONDS\n- CHANNEL_EVENT_TYPE_NAMESPACING\n- REPLAY_BUFFER_FOR_DROPPED_CONNECTIONS\n",
+  "contentSha256": "bd852c8d28e3cb28052382d288721bae8f763bf6ec8b16cce141b6718222bfc5"
+}

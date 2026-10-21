@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:concurrency-actor-model",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Actor-based concurrency systems: message passing, mailbox backpressure, lock-free state isolation, and zero race conditions.",
+  "triggerKeywords": [
+    "backend",
+    "concurrency",
+    "actor-model",
+    "message-passing",
+    "lock-free"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SHARE_MEMORY_BY_COMMUNICATING",
+    "MAILBOX_BOUNDED_CAPACITY_BACKPRESSURE",
+    "ISOLATED_MUTABLE_STATE",
+    "# BAD: Split blocks (second block never runs)"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_concurrency-actor-model",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Async REPL Protocol\n\nWhen working with Agentica's async REPL harness for testing.\n\n## Rules\n\n### 1. Use `await` for Future-returning tools\n\n```python\ncontent = await view_file(path)  # NOT view_file(path)\nanswer = await ask_memory(\"...\")\n```\n\n### 2. Single code block per response\n\nCompute AND return in ONE block. Multiple blocks means only first executes.\n\n```python\n# GOOD: Single block\ncontent = await view_file(path)\nreturn any(c.isdigit() for c in content)\n\n# BAD: Split blocks (second block never runs)\ncontent = await view_file(path)",
+  "contentSha256": "c648dde91f0ec1ee782bba57b721c74435ea33940e426a0cb6aa6c65f03443ef"
+}

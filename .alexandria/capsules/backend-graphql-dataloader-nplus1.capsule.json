@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:graphql-dataloader-nplus1",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Solving N+1 query problems in GraphQL APIs using DataLoader batching, memoization caches, and Apollo Federation v2 subgraphs.",
+  "triggerKeywords": [
+    "backend",
+    "graphql",
+    "dataloader",
+    "nplusone",
+    "federation",
+    "performance"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ALWAYS_USE_DATALOADER_FOR_RELATIONS",
+    "MAX_QUERY_DEPTH_LIMITING",
+    "QUERY_COMPLEXITY_BUDGET_ANALYSIS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_graphql-dataloader-nplus1",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# GraphQL DataLoader Batching & Schema Federation\n\nSolving N+1 query problems in GraphQL APIs using DataLoader batching, memoization caches, and Apollo Federation v2 subgraphs.\n\n## Invariants\n- ALWAYS_USE_DATALOADER_FOR_RELATIONS\n- MAX_QUERY_DEPTH_LIMITING\n- QUERY_COMPLEXITY_BUDGET_ANALYSIS\n",
+  "contentSha256": "0f59425fa4db52001619c6c51d0f192c99614bf6dad6aabb0ab16f9a475055f5"
+}

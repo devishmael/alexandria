@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:clickhouse-olap-analytics",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Columnar storage for billion-row aggregations: MergeTree table engines, primary key sorting, sparse indexing, and materialized views.",
+  "triggerKeywords": [
+    "database",
+    "clickhouse",
+    "olap",
+    "analytics",
+    "columnar",
+    "big-data"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "INSERT_DATA_IN_LARGE_BATCHES_ONLY",
+    "MERGETREE_SORTING_KEY_ORDERING",
+    "MATERIALIZED_VIEWS_FOR_REALTIME_ROLLUPS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_clickhouse-olap-analytics",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# ClickHouse Columnar Storage & Real-Time OLAP Analytics\n\nColumnar storage for billion-row aggregations: MergeTree table engines, primary key sorting, sparse indexing, and materialized views.\n\n## Invariants\n- INSERT_DATA_IN_LARGE_BATCHES_ONLY\n- MERGETREE_SORTING_KEY_ORDERING\n- MATERIALIZED_VIEWS_FOR_REALTIME_ROLLUPS\n",
+  "contentSha256": "ab02830d78e89c453598050db14d365fe764725ea7020faf68b77ae1edd45636"
+}

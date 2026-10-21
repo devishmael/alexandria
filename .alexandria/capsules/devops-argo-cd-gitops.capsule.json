@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:argo-cd-gitops",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Declarative GitOps deployment with Argo CD: single source of truth in Git, automated sync, drift detection, and sync windows.",
+  "triggerKeywords": [
+    "devops",
+    "gitops",
+    "argocd",
+    "kubernetes",
+    "declarative",
+    "sync"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "GIT_REPOSITORY_IS_EXCLUSIVE_SOURCE_OF_TRUTH",
+    "AUTO_HEAL_OUT_OF_SYNC_CLUSTER_DRIFT",
+    "IMMUTABLE_APPLICATION_CONFIGS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_argo-cd-gitops",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Argo CD Declarative GitOps & Automated Sync Drift\n\nDeclarative GitOps deployment with Argo CD: single source of truth in Git, automated sync, drift detection, and sync windows.\n\n## Invariants\n- GIT_REPOSITORY_IS_EXCLUSIVE_SOURCE_OF_TRUTH\n- AUTO_HEAL_OUT_OF_SYNC_CLUSTER_DRIFT\n- IMMUTABLE_APPLICATION_CONFIGS\n",
+  "contentSha256": "1a9bd20f4ec86bc48818022e3e212ffaa0edd22b29201e0b9bda896939d37b55"
+}

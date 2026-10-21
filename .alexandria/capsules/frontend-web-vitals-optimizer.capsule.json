@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:web-vitals-optimizer",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Core Web Vitals optimization (LCP < 2.5s, INP < 200ms, CLS < 0.1), critical CSS inlining, and lazy loading.",
+  "triggerKeywords": [
+    "frontend",
+    "performance",
+    "web-vitals",
+    "lcp",
+    "inp",
+    "cls",
+    "lighthouse"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENFORCE_LCP_UNDER_2_5S",
+    "ENFORCE_CLS_UNDER_0_1",
+    "AVOID_LARGE_RENDER_BLOCKING_RESOURCES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_web-vitals-optimizer",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Core Web Vitals & Frontend Performance\n\nCore Web Vitals optimization (LCP < 2.5s, INP < 200ms, CLS < 0.1), critical CSS inlining, and lazy loading.\n\n## Invariants\n- ENFORCE_LCP_UNDER_2_5S\n- ENFORCE_CLS_UNDER_0_1\n- AVOID_LARGE_RENDER_BLOCKING_RESOURCES\n",
+  "contentSha256": "a4f3eeec155d465f3d84487667cad23eaa8db7dd3ae39e6b01a4d2119414ace2"
+}

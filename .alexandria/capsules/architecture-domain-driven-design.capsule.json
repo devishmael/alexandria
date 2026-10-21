@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:domain-driven-design",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Strategic Domain-Driven Design: context mapping (shared kernel, customer-supplier, conformist), anti-corruption layers, and core domain isolation.",
+  "triggerKeywords": [
+    "architecture",
+    "ddd",
+    "bounded-context",
+    "strategic-design",
+    "context-map"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EXPLICIT_BOUNDED_CONTEXT_BOUNDARIES",
+    "ANTI_CORRUPTION_LAYER_ACROSS_UNTRUSTED_DOMAINS",
+    "UBIQUITOUS_LANGUAGE_CONSISTENCY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_domain-driven-design",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Strategic DDD & Bounded Context Map\n\nStrategic Domain-Driven Design: context mapping (shared kernel, customer-supplier, conformist), anti-corruption layers, and core domain isolation.\n\n## Invariants\n- EXPLICIT_BOUNDED_CONTEXT_BOUNDARIES\n- ANTI_CORRUPTION_LAYER_ACROSS_UNTRUSTED_DOMAINS\n- UBIQUITOUS_LANGUAGE_CONSISTENCY\n",
+  "contentSha256": "b020b203fd18318640ed8ec852287850cf6fa8985db6961a86fa385da25711a1"
+}

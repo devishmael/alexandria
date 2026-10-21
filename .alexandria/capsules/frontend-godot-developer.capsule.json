@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:godot-developer",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Godot 4+ 2D/3D development: GDScript 2.0 static typing, C# integration, decoupled node composition, signal-driven communication, physics tick optimization, and GLSL shaders.",
+  "triggerKeywords": [
+    "godot",
+    "gdscript",
+    "gamedev",
+    "nodes",
+    "signals",
+    "shaders",
+    "physics"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STATIC_TYPED_GDSCRIPT_MANDATORY",
+    "SIGNAL_DECOUPLED_NODE_COMMUNICATION",
+    "PROCESS_VERSUS_PHYSICS_TICK_SEPARATION",
+    "RESOURCE_REUSE_FOR_SCENES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_godot-developer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Godot 4+ Systems Architecture & GDScript\n\nBuild modular, high-performance 2D and 3D games using Godot 4 and strictly-typed GDScript.\n\n## Key Principles & Invariants\n- Enforce static type annotations (`var speed: float = 10.0`) on all GDScript variables and functions.\n- Decouple node hierarchies: call down using method calls, signal up using typed custom `signal`s.\n- Isolate physics calculations inside `_physics_process(delta)` and rendering updates inside `_process(delta)`.\n- Reuse shared `Resource` objects across scene instances to minimize RAM footprint.",
+  "contentSha256": "f13b699fa60444a9c18cdbc4dade09c812b7a9d6f4a14d8ce849ce11b16a7591"
+}

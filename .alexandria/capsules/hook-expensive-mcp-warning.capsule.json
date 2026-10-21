@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:expensive-mcp-warning",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Cost guard hook: alerts when a tool call exceeds typical latency (e.g. web scraping, heavy embeddings) and demands confirmation.",
+  "triggerKeywords": [
+    "hook",
+    "cost",
+    "expensive-tool",
+    "latency",
+    "guard",
+    "warning"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "WARN_USER_BEFORE_HIGH_LATENCY_TOOL_CALL",
+    "TIMEOUT_TOOL_EXECUTION_OVER_60_SECONDS",
+    "LOG_ESTIMATED_FINANCIAL_COST"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_expensive-mcp-warning",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# Expensive MCP Warning - PreToolUse Hook\n# Warns before calling expensive MCP tools (playwright)\n#\n# Hook trigger: PreToolUse (specific expensive MCP tools)\n# Exit codes: 2 = require user approval for expensive tools, 0 = allow (non-expensive)\n\n# Read tool call JSON from stdin\nINPUT=$(cat)\n\nTOOL_NAME=$(echo \"$INPUT\" | python3 -c \"import sys,json; print(json.load(sys.stdin).get('tool_name',''))\" 2>/dev/null)\n\n# List of expensive MCP tools\n# matcher는 settings.json에서 mcp__playwright__browser_run_code만 지정\n# browser_run_code가 유일한 고비용 도구이므로 확장 불필요\nEXPENSIVE_TOOLS=(\n    \"mcp__playwright__browser_run_code\"\n)\n\nfor expensive in \"${EXPENSIVE_TOOLS[@]}\"; do\n    if [[ \"$TOOL_NAME\" == \"$expensive\" ]]; then\n        echo \"WARNING: High-cost MCP call: $TOOL_NAME\" >&2\n        echo \"This tool uses a browser instance and incurs high costs.\" >&2\n        echo \"Consider lightweight alternatives: scrape_webpage, browser_snapshot, etc.\" >&2\n        # Block - require user approval\n        exit 2\n    fi\ndone\n\nexit 0\n",
+  "contentSha256": "3b1367447e64e23f60b78f00fef62267dc293b24390a3b72601e2f7ed41fca5f"
+}

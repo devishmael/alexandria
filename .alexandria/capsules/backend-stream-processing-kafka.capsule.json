@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:stream-processing-kafka",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Distributed event streaming with Kafka/Redpanda: partition key strategy, consumer group rebalancing, exactly-once semantics, and compaction.",
+  "triggerKeywords": [
+    "backend",
+    "kafka",
+    "streaming",
+    "redpanda",
+    "event-driven",
+    "distributed"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EXACTLY_ONCE_PRODUCER_IDEMPOTENCE",
+    "CONSUMER_OFFSET_COMMIT_POST_PROCESSING",
+    "PARTITION_KEY_DETERMINISM"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_stream-processing-kafka",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Kafka Patterns (Spring Kafka)\n\nConcrete implementations of the conventions in `rules/infra.md`: topic naming, manual commits, idempotent consumers, and dead letter topics.\n\n## When to Activate\n\n- Adding a `@KafkaListener` consumer or a `KafkaTemplate` producer\n- Designing a new topic or partition key\n- Handling consumer failures without losing or duplicating messages\n- Setting up a dead letter topic for a consumer group\n\n## Producer\n\n```java\n@Service\npublic class OrderEventProducer {\n    private final KafkaTemplate<String, OrderCancelledEvent> kafkaTemplate;\n\n    public OrderEventProducer(KafkaTemplate<String, OrderCancelledEvent> kafkaTemplate) {\n        this.kafkaTemplate = kafkaTemplate;\n    }\n\n    public void publishCancelled(Order order) {\n        // Partition key = orderId keeps every event for one order in the same\n        // partition, so a consumer sees them in order.\n        String topic = \"orders.order.cancelled\";\n        OrderCancelledEvent event = OrderCancelledEvent.from(order);\n\n        kafkaTemplate.send(topic, order.getId().toString(), event)\n            .whenComplete((result, ex) -> {\n                if (ex != null) {\n                    log.error(\"Failed to publish {} for order {}\", topic, order.getId(), ex);\n                }\n            });\n    }\n}\n```\n\n## Consumer with Manual Commit + Idempotency\n\n```java\n@Component\npublic class OrderCancelledConsumer {\n    private final ProcessedEventRepository processedEvents;\n    private final InventoryService inventoryService;\n\n    public OrderCancelledConsumer(ProcessedEventRepository processedEvents, InventoryService inventoryService) {\n        this.processedEvents = processedEvents;\n        this.inventoryService = inventoryService;\n    }\n\n    @KafkaListener(topics = \"orders.order.cancelled\", groupId = \"inventory-service\")\n    public void handle(ConsumerRecord<String, OrderCancelledEvent> record, Acknowledgment ack) {\n        String eventId = record.key() + \":\" + record.offset();\n\n        // Idempotency guard: at-least-once delivery means this handler can run\n        // more than once for the same record. Check-then-insert on a unique\n        // constraint, not a plain SELECT, to survive concurrent redelivery.\n        if (processedEvents.existsById(eventId)) {\n            ack.acknowledge();\n            return;\n        }\n\n        try {\n            inventoryService.rollback(record.value().orderId());\n            processedEvents.save(new ProcessedEvent(eventId, Instant.now()));\n            ack.acknowledge();\n        } catch (Exception ex) {\n            log.error(\"Failed to process cancellation for order {}\", record.value().orderId(), ex);\n            // Do not acknowledge — the record will be redelivered. A retry\n            // policy + dead letter topic (below) bounds how many times.\n        }\n    }\n}\n```\n\n```yaml\n# application.yml — manual commit, no auto-commit\nspring:\n  kafka:\n    consumer:\n      enable-auto-commit: false\n      auto-offset-reset: earliest\n    listener:\n      ack-mode: manual\n```\n\n## Dead Letter Topic\n\n```java\n@Bean\npublic DefaultErrorHandler errorHandler(KafkaTemplate<Object, Object> kafkaTemplate) {\n    var recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate,\n        (record, ex) -> new TopicPartition(record.topic() + \".dlt\", record.partition()));\n\n    // 3 retries with backoff, then publish to <topic>.dlt instead of blocking\n    // the partition forever on a poison message.\n    return new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3));\n}\n```\n\n## Topic Naming and Partition Keys\n\n| Concern | Convention | Example |\n|---|---|---|\n| Topic name | `<domain>.<entity>.<event>` | `orders.order.cancelled` |\n| Partition key | Field that must preserve order | `orderId`, `userId` |\n| Consumer group | One per logical consumer | `inventory-service`, `notification-service` |\n| Dead letter topic | `<topic>.dlt` | `orders.order.cancelled.dlt` |\n\n## Anti-Patterns\n\n- **Auto-commit with business logic in the listener** — a crash between poll and processing silently drops the message. Use manual `Acknowledgment`.\n- **No idempotency check** — Kafka is at-least-once; the same record WILL be redelivered after a rebalance or retry. Every consumer must tolerate duplicates.\n- **JSON without a schema** — fine for prototyping, but breaks silently on producer/consumer version drift in production. Prefer Avro/Protobuf with Schema Registry per `rules/infra.md`.\n- **One giant topic for every event type** — makes consumer group scaling and retention policy impossible to tune per event. Split by domain/entity.\n\n## Related\n\n- Rule: `infra.md` — Kafka/Flink conventions this skill implements\n- Rule: `java-springboot.md` — `@KafkaListener`/`KafkaTemplate` usage",
+  "contentSha256": "5881632bb5da6f04ef37b7d36d8787b6f2fa9bfc1a252bdc7f335d878d3eaa52"
+}

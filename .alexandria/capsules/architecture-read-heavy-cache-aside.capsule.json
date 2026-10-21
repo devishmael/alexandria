@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:read-heavy-cache-aside",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Two-tier caching: in-process L1 cache (Moka/Caffeine, sub-microsecond) backed by distributed L2 cache (Redis), with bus invalidation.",
+  "triggerKeywords": [
+    "architecture",
+    "caching",
+    "l1-l2",
+    "moka",
+    "redis",
+    "performance"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "INVALIDATE_L1_VIA_PUBSUB_ON_L2_WRITE",
+    "SHORT_L1_TTL_TO_BOUND_INCONSISTENCY",
+    "LOCAL_CACHE_MAX_MEMORY_BOUNDS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_read-heavy-cache-aside",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Cache-Aside & Two-Level L1/L2 Memory Architecture\n\nTwo-tier caching: in-process L1 cache (Moka/Caffeine, sub-microsecond) backed by distributed L2 cache (Redis), with bus invalidation.\n\n## Invariants\n- INVALIDATE_L1_VIA_PUBSUB_ON_L2_WRITE\n- SHORT_L1_TTL_TO_BOUND_INCONSISTENCY\n- LOCAL_CACHE_MAX_MEMORY_BOUNDS\n",
+  "contentSha256": "5bb5ef27f472caffb79c2abc446e3677c6d98486b39595075778b6823b545b1d"
+}

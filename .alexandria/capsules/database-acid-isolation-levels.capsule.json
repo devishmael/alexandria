@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:acid-isolation-levels",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Understanding Read Committed, Repeatable Read, and Serializable: preventing dirty reads, non-repeatable reads, phantom reads, and write skew.",
+  "triggerKeywords": [
+    "database",
+    "acid",
+    "isolation-levels",
+    "mvcc",
+    "locking",
+    "serializable"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "SELECT_FOR_UPDATE_TO_PREVENT_LOST_UPDATES",
+    "UNDERSTAND_MVCC_ROW_VERSIONING",
+    "EXPLICIT_SERIALIZABLE_ISOLATION_ON_FINANCIAL_TX"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_acid-isolation-levels",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# SQL Isolation Levels, MVCC & Anomaly Prevention\n\nUnderstanding Read Committed, Repeatable Read, and Serializable: preventing dirty reads, non-repeatable reads, phantom reads, and write skew.\n\n## Invariants\n- SELECT_FOR_UPDATE_TO_PREVENT_LOST_UPDATES\n- UNDERSTAND_MVCC_ROW_VERSIONING\n- EXPLICIT_SERIALIZABLE_ISOLATION_ON_FINANCIAL_TX\n",
+  "contentSha256": "934bb1f7b11cb5472bf2250ce65e5e67e05e3a025c13b131298b3c9b7f2aa36a"
+}

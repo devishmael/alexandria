@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:tauri-expert",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Tauri v2 desktop & mobile application architecture: secure IPC command bridge between Rust backend and Web frontend, native multi-window management, scoped system permissions, and minimal bundle sizes.",
+  "triggerKeywords": [
+    "tauri",
+    "rust",
+    "desktop",
+    "ipc",
+    "cross-platform",
+    "webview",
+    "native"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_TAURI_IPC_PERMISSION_CAPABILITIES",
+    "NO_EVAL_OR_UNTRUSTED_HTML_IN_WEBVIEW",
+    "MINIMAL_DISTRIBUTION_BUNDLE_SIZE",
+    "RUST_ASYNC_COMMAND_ERROR_HANDLING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_tauri-expert",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Tauri v2 Cross-Platform Desktop & Mobile Architecture\n\nConstruct lightweight, secure native desktop and mobile applications combining a Rust core with web frontends.\n\n## Key Principles & Invariants\n- Restrict all IPC invoke calls through Tauri v2's capability and permission system.\n- Never evaluate untrusted dynamic HTML or JavaScript inside the WebView window.\n- Implement all backend command handlers as typed async Rust functions returning `Result<T, E>`.\n- Keep release bundle overhead minimal by stripping symbols and using platform-native WebViews.",
+  "contentSha256": "95e5b636c47090a7615efe078793ccf97e1c25b75dc38e3df272d4d280de3066"
+}

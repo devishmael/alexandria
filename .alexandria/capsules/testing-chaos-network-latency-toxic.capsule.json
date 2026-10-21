@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "testing:chaos-network-latency-toxic",
+  "domain": "testing",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Simulating unreliable networks with Shopify Toxiproxy: injecting latency, jitter, bandwidth limits, and connection timeouts into microservices.",
+  "triggerKeywords": [
+    "testing",
+    "toxiproxy",
+    "chaos",
+    "latency",
+    "network-fault",
+    "resilience"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "VERIFY_CLIENT_TIMEOUTS_FIRE_CORRECTLY",
+    "TEST_DOWNSTREAM_RECONNECTION_AFTER_RESTORE",
+    "ASSERT_CIRCUIT_BREAKER_TRIPS_ON_LATENCY"
+  ],
+  "hooks": [
+    {
+      "event": "post_gate_3",
+      "action": "testing_chaos-network-latency-toxic",
+      "targetFilter": "tests/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Toxiproxy Network Latency & Packet Loss Injection\n\nSimulating unreliable networks with Shopify Toxiproxy: injecting latency, jitter, bandwidth limits, and connection timeouts into microservices.\n\n## Invariants\n- VERIFY_CLIENT_TIMEOUTS_FIRE_CORRECTLY\n- TEST_DOWNSTREAM_RECONNECTION_AFTER_RESTORE\n- ASSERT_CIRCUIT_BREAKER_TRIPS_ON_LATENCY\n",
+  "contentSha256": "5aa7514ccd918b660d4db5b1d874d4fe5a39e050cfd8ab25e0020ef98e0d7a36"
+}

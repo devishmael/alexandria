@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:canvas-webgl-graphics",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "HTML5 Canvas, Three.js, WebGL shader pipelines, requestAnimationFrame loops, and GPU memory management.",
+  "triggerKeywords": [
+    "frontend",
+    "webgl",
+    "threejs",
+    "canvas",
+    "graphics",
+    "shaders",
+    "gpu"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "DISPOSE_GPU_TEXTURES_AND_GEOMETRIES",
+    "REUSE_VECTOR_ALLOCATIONS",
+    "AVOID_LAYOUT_THRASHING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_canvas-webgl-graphics",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# HTML5 Canvas & WebGL Graphics Optimization\n\nHTML5 Canvas, Three.js, WebGL shader pipelines, requestAnimationFrame loops, and GPU memory management.\n\n## Invariants\n- DISPOSE_GPU_TEXTURES_AND_GEOMETRIES\n- REUSE_VECTOR_ALLOCATIONS\n- AVOID_LAYOUT_THRASHING\n",
+  "contentSha256": "0dcdd0583369dc674bdc1dcdf605d9b1afa511cbc6b1c074824f9d62cd4406b4"
+}

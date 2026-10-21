@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:grpc-protobuf-engineer",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "High-throughput binary RPC using gRPC and Protocol Buffers: proto3 syntax, stream multiplexing, and deadline propagation.",
+  "triggerKeywords": [
+    "api",
+    "grpc",
+    "protobuf",
+    "binary-protocol",
+    "microservices",
+    "rpc"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "FORWARD_BACKWARD_PROTOBUF_COMPATIBILITY",
+    "PROPAGATE_DEADLINES_IN_ALL_RPC",
+    "USE_COMPRESSION_FOR_LARGE_PAYLOADS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_grpc-protobuf-engineer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# gRPC High-Performance Microservice Contracts\n\nHigh-throughput binary RPC using gRPC and Protocol Buffers: proto3 syntax, stream multiplexing, and deadline propagation.\n\n## Invariants\n- FORWARD_BACKWARD_PROTOBUF_COMPATIBILITY\n- PROPAGATE_DEADLINES_IN_ALL_RPC\n- USE_COMPRESSION_FOR_LARGE_PAYLOADS\n",
+  "contentSha256": "3e23864cf635b2f434f35489ad80834898ef0077ab823521804c09496c233c5b"
+}

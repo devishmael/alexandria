@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:rate-limiting-distributed",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Distributed rate limiting algorithms: sliding window logs with Redis sorted sets, token bucket with Lua scripts, and client fingerprinting.",
+  "triggerKeywords": [
+    "backend",
+    "rate-limiting",
+    "redis",
+    "lua",
+    "ddos",
+    "security"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ATOMIC_LUA_SCRIPT_EXECUTION_IN_REDIS",
+    "SLIDING_WINDOW_LOG_ACCURACY",
+    "EMIT_STANDARD_RATE_LIMIT_HEADERS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_rate-limiting-distributed",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Distributed Sliding Window Rate Limiter Engine\n\nDistributed rate limiting algorithms: sliding window logs with Redis sorted sets, token bucket with Lua scripts, and client fingerprinting.\n\n## Invariants\n- ATOMIC_LUA_SCRIPT_EXECUTION_IN_REDIS\n- SLIDING_WINDOW_LOG_ACCURACY\n- EMIT_STANDARD_RATE_LIMIT_HEADERS\n",
+  "contentSha256": "516973e55c4f7f4fb212c33e6b910e20df9ab33716f2595b40e3e9d52703c8e6"
+}

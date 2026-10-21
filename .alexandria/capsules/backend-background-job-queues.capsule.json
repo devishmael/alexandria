@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:background-job-queues",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Distributed background job processing with BullMQ and Celery: exponential backoff retries, dead letter queues (DLQ), and idempotency keys.",
+  "triggerKeywords": [
+    "backend",
+    "queues",
+    "bullmq",
+    "celery",
+    "idempotency",
+    "background-jobs"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "IDEMPOTENT_JOB_PROCESSING",
+    "DEAD_LETTER_QUEUE_FOR_EXHAUSTED_RETRIES",
+    "EXPONENTIAL_BACKOFF_RETRIES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_background-job-queues",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Distributed Job Queues, Backoff & Idempotency\n\nDistributed background job processing with BullMQ and Celery: exponential backoff retries, dead letter queues (DLQ), and idempotency keys.\n\n## Invariants\n- IDEMPOTENT_JOB_PROCESSING\n- DEAD_LETTER_QUEUE_FOR_EXHAUSTED_RETRIES\n- EXPONENTIAL_BACKOFF_RETRIES\n",
+  "contentSha256": "897d46ab01538aa9ef0ebcbf59adbb9ab737d0cfba30b9ae7dc651421d1eccf6"
+}

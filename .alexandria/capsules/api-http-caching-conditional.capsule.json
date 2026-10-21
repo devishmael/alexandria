@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:http-caching-conditional",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Web caching headers: Cache-Control (public, private, immutable), ETag generation, If-None-Match, and 304 Not Modified responses.",
+  "triggerKeywords": [
+    "api",
+    "http",
+    "caching",
+    "etag",
+    "304",
+    "cache-control",
+    "optimization"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "GENERATE_STRONG_ETAGS_FOR_RESOURCES",
+    "RETURN_304_ON_MATCHING_IF_NONE_MATCH",
+    "SET_EXPLICIT_CACHE_CONTROL_DIRECTIVES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_http-caching-conditional",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# HTTP Caching, ETag & Conditional Request Optimization\n\nWeb caching headers: Cache-Control (public, private, immutable), ETag generation, If-None-Match, and 304 Not Modified responses.\n\n## Invariants\n- GENERATE_STRONG_ETAGS_FOR_RESOURCES\n- RETURN_304_ON_MATCHING_IF_NONE_MATCH\n- SET_EXPLICIT_CACHE_CONTROL_DIRECTIVES\n",
+  "contentSha256": "edf70fc341fa42cc41414541321a816dc2707785f14d36546677a37486047e69"
+}

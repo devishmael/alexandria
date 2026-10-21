@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:fluentbit-log-aggregation",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "High-performance structured logging: Fluent Bit daemonset, JSON log parsing, multiline exception handling, and OpenSearch/Loki shipping.",
+  "triggerKeywords": [
+    "devops",
+    "logging",
+    "fluentbit",
+    "opensearch",
+    "loki",
+    "observability"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PARSE_STRUCTURED_JSON_LOGS_AT_SOURCE",
+    "MULTILINE_PARSER_FOR_STACK_TRACES",
+    "BACKPRESSURE_BUFFERING_FOR_LOG_SHIPPERS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_fluentbit-log-aggregation",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "{\n  \"name\": \"curl_delete_opensearch\",\n  \"description\": \"curl -X DELETE on opensearch\",\n  \"input\": {\n    \"tool_name\": \"Bash\",\n    \"tool_input\": {\n      \"command\": \"curl -X DELETE https://os.local:9200/my-index\"\n    },\n    \"cwd\": \"/home/example-user/myproject\"\n  },\n  \"expect\": {\n    \"decision\": \"ask\",\n    \"rule\": \"infra\",\n    \"reason_code\": \"infra.opensearch_mutation\"\n  }\n}\n",
+  "contentSha256": "e97dbdeda006f38da2787771cf199d89912925fed3639065dc027a1187bd2864"
+}

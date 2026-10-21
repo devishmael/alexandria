@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:bitbucket-pipelines",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Bitbucket Pipelines workflow engineering: bitbucket-pipelines.yml, custom deployment steps, branch permissions, pull request merge checks, service containers, and secure repository variables.",
+  "triggerKeywords": [
+    "bitbucket",
+    "bitbucket-pipelines",
+    "ci-cd",
+    "devops",
+    "atlassian",
+    "pipelines"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENCRYPTED_PIPELINE_ENVIRONMENT_VARIABLES",
+    "CONTAINER_CACHING_FOR_FASTER_BUILDS",
+    "MANDATORY_PR_CHECKS_BEFORE_MERGE",
+    "ISOLATED_SERVICE_CONTAINERS_FOR_TESTS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_bitbucket-pipelines",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Bitbucket Pipelines CI/CD Workflow Engineering\n\nImplement deterministic, secure continuous delivery workflows using Bitbucket Pipelines.\n\n## Key Principles & Invariants\n- Secure all secrets, API keys, and deployment credentials as Secured Variables in Bitbucket repository settings.\n- Enforce pull request merge checks: all pipelines must pass and approvals must be logged before merging.\n- Spin up ephemeral database and cache service containers for hermetic integration test suites.\n- Use step-level deployment environments to track deployment state across environments.",
+  "contentSha256": "9b791a9a00ef6b61c0dddba002c7d80bb14a83996a7926984e000b3f0add8c61"
+}

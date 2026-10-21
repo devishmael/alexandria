@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:oracle-pro",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Oracle Database enterprise administration and PL/SQL: Packages, Triggers, Tablespace management, Range/List/Hash partitioning, Execution Plan tuning with DBMS_XPLAN, and Autonomous Transactions.",
+  "triggerKeywords": [
+    "oracle",
+    "plsql",
+    "packages",
+    "tablespaces",
+    "partitioning",
+    "dbms-xplan",
+    "database"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "BIND_VARIABLES_MANDATORY_FOR_SQL_CACHING",
+    "PACKAGE_SPEC_AND_BODY_MODULARITY",
+    "PARTITION_PRUNING_ON_LARGE_TABLES",
+    "AUTONOMOUS_TRANSACTION_ISOLATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_oracle-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Oracle Database & PL/SQL Enterprise Architecture\n\nDesign and optimize high-throughput Oracle Database instances and structured PL/SQL packages.\n\n## Key Principles & Invariants\n- Always use bind variables in dynamic queries to ensure shared pool cursor caching and eradicate hard parsing.\n- Decompose code into modular PL/SQL Package specifications (`.pks`) and bodies (`.pkb`).\n- Implement table partitioning (Range/Hash) and verify partition pruning via `DBMS_XPLAN.DISPLAY_CURSOR`.\n- Restrict `PRAGMA AUTONOMOUS_TRANSACTION` solely to logging and auditing routines.",
+  "contentSha256": "aa5315646e1c25abc6b7715147673d9f669ff07793acd294d12505a0dc5943cb"
+}

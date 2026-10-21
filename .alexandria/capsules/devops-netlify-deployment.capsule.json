@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:netlify-deployment",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Netlify modern web deployment: Netlify Functions, Edge Functions, automated branch previews, form handling, custom redirect rules (_redirects), and split testing configurations.",
+  "triggerKeywords": [
+    "netlify",
+    "jamstack",
+    "edge-functions",
+    "serverless",
+    "deploy-previews",
+    "redirects"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_SECURITY_HEADERS_IN_NETLIFY_TOML",
+    "REDIRECT_RULES_ORDERED_AND_TESTED",
+    "SERVERLESS_FUNCTION_TIMEOUT_MONITORING",
+    "BRANCH_SUBDOMAIN_ISOLATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_netlify-deployment",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Netlify Jamstack & Edge Functions Architecture\n\nDeploy, automate, and route Jamstack applications and edge functions on Netlify.\n\n## Key Principles & Invariants\n- Define all build configurations, headers, and redirects declaratively in `netlify.toml`.\n- Enforce strict Content Security Policy (CSP) and security headers across all edge responses.\n- Isolate preview deployments per Git branch with independent environment variables.\n- Monitor serverless function execution times and handle external timeouts gracefully.",
+  "contentSha256": "322fd1a5d20c9233c6ff817d36ff53c09b7dc090066dd84aad92dc4763f0e0de"
+}

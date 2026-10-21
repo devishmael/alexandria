@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:falco-runtime-security",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Runtime threat detection in Kubernetes using Falco eBPF: detecting unexpected shells in pods, sensitive file access (/etc/shadow), and privilege escalation.",
+  "triggerKeywords": [
+    "devops",
+    "falco",
+    "ebpf",
+    "security",
+    "runtime",
+    "kubernetes"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ALERT_IMMEDIATELY_ON_SHELL_SPAWNED_IN_CONTAINER",
+    "FORBID_MODIFICATIONS_TO_SYSTEM_BINARIES",
+    "INTEGRATE_FALCO_EVENTS_WITH_SIEM"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_falco-runtime-security",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Falco eBPF Kernel Runtime Security & Threat Detection\n\nRuntime threat detection in Kubernetes using Falco eBPF: detecting unexpected shells in pods, sensitive file access (/etc/shadow), and privilege escalation.\n\n## Invariants\n- ALERT_IMMEDIATELY_ON_SHELL_SPAWNED_IN_CONTAINER\n- FORBID_MODIFICATIONS_TO_SYSTEM_BINARIES\n- INTEGRATE_FALCO_EVENTS_WITH_SIEM\n",
+  "contentSha256": "9a5a21b44701c6ae033fa042a4ff146e5dd7502acae38903ca2780f75e26e08e"
+}

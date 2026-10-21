@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:modular-monolith",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Modular monolith architecture: clean internal module packages, restricted cross-module exports, in-process event buses, and fast CI builds.",
+  "triggerKeywords": [
+    "architecture",
+    "modular-monolith",
+    "monolith",
+    "boundaries",
+    "modularity"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "STRICT_MODULE_PUBLIC_API_ENCAPSULATION",
+    "NO_CROSS_MODULE_DATABASE_TABLE_JOINS",
+    "ASYNC_IN_PROCESS_EVENTS_FOR_DECOUPLING"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_modular-monolith",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Modular Monolith with Enforced Boundary Contracts\n\nModular monolith architecture: clean internal module packages, restricted cross-module exports, in-process event buses, and fast CI builds.\n\n## Invariants\n- STRICT_MODULE_PUBLIC_API_ENCAPSULATION\n- NO_CROSS_MODULE_DATABASE_TABLE_JOINS\n- ASYNC_IN_PROCESS_EVENTS_FOR_DECOUPLING\n",
+  "contentSha256": "fc5f8ba6418dbcc724220bff2b2cde3e8683664fb303bee4367f5411a0a52b2e"
+}

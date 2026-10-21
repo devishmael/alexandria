@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:work-tracker-prompt",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Turn interceptor: tracks milestones in working.md, updating completed checkboxes [x] and preserving current intent across session boundaries.",
+  "triggerKeywords": [
+    "hook",
+    "work-tracker",
+    "continuity",
+    "handoff",
+    "milestones"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PRESERVE_ACTIVE_TASK_IN_WORKING_MD",
+    "RECORD_UNFINISHED_ITEMS_FOR_HANDOFF",
+    "UPDATE_MONOTONIC_STEP_COUNTER"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_work-tracker-prompt",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# work-tracker-prompt.sh - UserPromptSubmit Hook\n# 세션 시작/프롬프트 이벤트를 buffer.jsonl에 기록\n# [C2 fix] eval 제거 → Python에서 전체 로직 처리 (인젝션 방지)\n# exit 0 필수 (세션 방해 금지)\n\nINPUT=$(cat)\nBUFFER=\"$HOME/.claude/work-log/buffer.jsonl\"\nSESSIONS_DIR=\"$HOME/.claude/work-log/.sessions\"\n\necho \"$INPUT\" | python3 -c \"\nimport sys, json, os, socket\nfrom datetime import datetime, timezone, timedelta\n\ntry:\n    d = json.load(sys.stdin)\nexcept:\n    sys.exit(0)\n\nsid = d.get('session_id', '')\nif not sid:\n    sys.exit(0)\n\ncwd = d.get('cwd', '')\nprompt = d.get('prompt', '')[:500].replace('\\n', ' ')\nhostname = socket.gethostname().split('.')[0]\nkst = timezone(timedelta(hours=9))\nts = datetime.now(kst).isoformat()\n\nsessions_dir = os.path.expanduser('~/.claude/work-log/.sessions')\nos.makedirs(sessions_dir, exist_ok=True)\nmarker = os.path.join(sessions_dir, sid)\nbuffer = os.path.expanduser('~/.claude/work-log/buffer.jsonl')\n\nif not os.path.exists(marker):\n    project_name = os.path.basename(cwd) if cwd else ''\n    open(marker, 'w').close()\n    rec = {\n        'event': 'session_start',\n        'session_id': sid,\n        'hostname': hostname,\n        'cwd': cwd,\n        'project_name': project_name,\n        'prompt': prompt,\n        'ts': ts\n    }\nelse:\n    rec = {\n        'event': 'prompt',\n        'session_id': sid,\n        'hostname': hostname,\n        'prompt': prompt,\n        'ts': ts\n    }\n\nimport fcntl\nwith open(buffer, 'a') as f:\n    fcntl.flock(f, fcntl.LOCK_EX)\n    f.write(json.dumps(rec, ensure_ascii=False) + '\\n')\n    f.flush()\n    fcntl.flock(f, fcntl.LOCK_UN)\n\" 2>/dev/null\n\nexit 0\n",
+  "contentSha256": "bad18a719e58ffe3122e760e48c2a15cc9cec68b9b37989b6c9891ee9a57dcae"
+}

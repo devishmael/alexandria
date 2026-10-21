@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:backup-point-in-time-recovery",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Point-In-Time Recovery (PITR): base backups, continuous WAL archiving to S3, pg_dump strategies, and automated recovery drills.",
+  "triggerKeywords": [
+    "database",
+    "backup",
+    "pitr",
+    "wal",
+    "disaster-recovery",
+    "recovery"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "TEST_RESTORATION_REGULARLY_NOT_JUST_BACKUP",
+    "CONTINUOUS_STREAMING_WAL_ARCHIVING",
+    "OFFSITE_ENCRYPTED_BACKUP_STORAGE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_backup-point-in-time-recovery",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Database Backups, WAL Archiving & Point-in-Time Recovery\n\nPoint-In-Time Recovery (PITR): base backups, continuous WAL archiving to S3, pg_dump strategies, and automated recovery drills.\n\n## Invariants\n- TEST_RESTORATION_REGULARLY_NOT_JUST_BACKUP\n- CONTINUOUS_STREAMING_WAL_ARCHIVING\n- OFFSITE_ENCRYPTED_BACKUP_STORAGE\n",
+  "contentSha256": "a4fb679ceac61447487e97568822c0c8bd354ac6f1e13ae5fc90367271f9f8d4"
+}

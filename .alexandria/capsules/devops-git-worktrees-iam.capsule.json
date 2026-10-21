@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:git-worktrees-iam",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Agentic Git IAM: isolated parallel Git worktrees per subagent, branch naming conventions, GPG/SSH commit signing, and cryptographic trailers.",
+  "triggerKeywords": [
+    "devops",
+    "git",
+    "worktrees",
+    "iam",
+    "git-signatures",
+    "concurrency"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "EPHEMERAL_BRANCH_PER_TASK_WORKTREE",
+    "CRYPTOGRAPHIC_SHA256_SEAL_IN_COMMIT_TRAILER",
+    "STRICT_AUTHOR_AND_COMMITTER_SEPARATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_git-worktrees-iam",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Git Commit Rules\n\nWhen the user asks to commit, push, or save changes to git:\n\n## MUST Use /commit Skill\n\n**DO NOT** run `git commit` directly. Instead:\n\n```\nSkill(\"commit\")\n```\n\nThe `/commit` skill:\n1. Removes Claude attribution from commits\n2. Generates reasoning.md capturing what was tried\n3. Clears build attempts for next feature\n\n## Why This Matters\n\n- Regular `git commit` adds \"Generated with Claude Code\" and Co-Author lines\n- The `/commit` skill removes these so commits appear user-authored\n- Reasoning capture preserves build history for future sessions\n\n## Trigger Words\n\nWhen you see these in user prompts, use the commit skill:\n- \"commit\", \"push\", \"save changes\"\n- \"push to github\", \"push changes\"\n- \"commit and push\"\n\n## After Commit\n\nThe skill will prompt you to run:\n```bash\nbash \"$CLAUDE_PROJECT_DIR/.claude/scripts/generate-reasoning.sh\" <hash> \"<message>\"\n```\n\nThen push if requested:\n```bash\ngit push origin <branch>\n```",
+  "contentSha256": "98ede7ceb43aded7f69eccdb6b31e378d85f0daed45996e64d3b1264ba514ad4"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:unity-developer",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Unity C# game systems engineering: ScriptableObject architecture, Entity Component System (ECS), Memory Profiler analysis, GC allocation minimization, and shader optimization.",
+  "triggerKeywords": [
+    "unity",
+    "csharp",
+    "gamedev",
+    "scriptableobject",
+    "ecs",
+    "profiler",
+    "shaders"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ZERO_GC_ALLOCATIONS_IN_UPDATE_LOOP",
+    "SCRIPTABLE_OBJECT_MODULAR_DATA_STATE",
+    "OBJECT_POOLING_FOR_DYNAMIC_ENTITIES",
+    "PROFILER_VERIFIED_FRAME_BUDGET"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_unity-developer",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Unity C# Game Systems Architecture & Performance\n\nEngineer responsive, scalable game architectures in Unity with zero garbage collection spikes.\n\n## Key Principles & Invariants\n- Forbid heap allocations (`new`, LINQ, string concatenation) inside `Update()` and `FixedUpdate()`.\n- Use `ScriptableObject`s for modular, data-driven architecture and decoupled event channels.\n- Implement object pooling for all dynamic entities (projectiles, particles, enemies).\n- Profile regularly using the Unity Memory Profiler to guarantee target frame-time budgets (60/120 FPS).",
+  "contentSha256": "5858e5a2b67e3c2c8e6d0fc5112f41c873f23a5d931769b44b059aa8ea919ef3"
+}

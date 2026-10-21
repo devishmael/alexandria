@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:azure-architect",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Microsoft Azure cloud systems architecture: Azure App Services, Azure Kubernetes Service (AKS), Azure SQL Database, Microsoft Entra ID (Azure AD), Managed Identities, and Azure Key Vault.",
+  "triggerKeywords": [
+    "azure",
+    "microsoft-azure",
+    "aks",
+    "app-service",
+    "entra-id",
+    "managed-identities",
+    "keyvault"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "MANAGED_IDENTITIES_FOR_ZERO_SECRET_ACCESS",
+    "NETWORK_SECURITY_GROUPS_AND_PRIVATE_ENDPOINTS",
+    "ROLE_BASED_ACCESS_CONTROL_RBAC",
+    "AUTOMATED_BACKUPS_AND_GEO_REDUNDANCY"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_azure-architect",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Microsoft Azure Enterprise Systems Architecture\n\nBuild resilient, secure, and compliant cloud architectures in Microsoft Azure.\n\n## Key Principles & Invariants\n- Utilize **Azure Managed Identities** for zero-credential authentication between Azure services.\n- Protect all databases and internal APIs behind Private Endpoints and Network Security Groups (NSGs).\n- Store encryption keys, certificates, and secrets exclusively inside Azure Key Vault with RBAC authorization.\n- Enable automated geo-redundant backups on all critical Azure SQL and storage assets.",
+  "contentSha256": "02883521cea4bcc5d3f2b4b3a883bc147e92eea7a50e96ac3450dfbdd77c57fd"
+}

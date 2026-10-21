@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "backend:authentication-jwt-oauth2",
+  "domain": "backend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Production authentication: OAuth2 Authorization Code Flow with PKCE, rotating short-lived JWTs, secure HTTP-only cookies, and refresh token revocation.",
+  "triggerKeywords": [
+    "backend",
+    "auth",
+    "oauth2",
+    "jwt",
+    "pkce",
+    "security",
+    "session"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "HTTP_ONLY_SECURE_SAMESITE_COOKIES",
+    "SHORT_LIVED_ACCESS_TOKENS_UNDER_15MIN",
+    "REFRESH_TOKEN_FAMILY_ROTATION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "backend_authentication-jwt-oauth2",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Allowed Co-authored-by identities, one \"Name <email>\" per line.\n# Enforced by .githooks/commit-msg. Only the address inside <> is compared.\n#\n# Add a line here only for a real collaborator. A wrong address silently\n# credits whoever has it verified on GitHub, and refs/pull/* makes that\n# permanent.\n#\n# scm.co_author.email from .agents/oma-config.yaml is allowed automatically\n# and does not need an entry here.\n\nEunkwang Shin <gracefullight.dev@gmail.com>\n",
+  "contentSha256": "333d7b7f5e19df82a2d3e01911c124e7dac0527411ec1d5c14a3cbb0d77e746c"
+}

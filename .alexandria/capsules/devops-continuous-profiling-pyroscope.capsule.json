@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "devops:continuous-profiling-pyroscope",
+  "domain": "devops",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Always-on continuous profiling in production with Grafana Pyroscope: CPU sampling, memory allocation flamegraphs, and zero overhead.",
+  "triggerKeywords": [
+    "devops",
+    "pyroscope",
+    "profiling",
+    "flamegraphs",
+    "performance",
+    "cpu"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PROFILING_OVERHEAD_MUST_NOT_EXCEED_2_PERCENT",
+    "TAG_FLAMEGRAPHS_WITH_RELEASE_VERSIONS",
+    "COMPARE_BEFORE_AND_AFTER_CPU_ALLOCATIONS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "devops_continuous-profiling-pyroscope",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Continuous CPU & Memory Profiling with Pyroscope\n\nAlways-on continuous profiling in production with Grafana Pyroscope: CPU sampling, memory allocation flamegraphs, and zero overhead.\n\n## Invariants\n- PROFILING_OVERHEAD_MUST_NOT_EXCEED_2_PERCENT\n- TAG_FLAMEGRAPHS_WITH_RELEASE_VERSIONS\n- COMPARE_BEFORE_AND_AFTER_CPU_ALLOCATIONS\n",
+  "contentSha256": "0b628dc89f30feb08690fb357b1fe54c9aec36fd91f845ed2118b27015f461a6"
+}

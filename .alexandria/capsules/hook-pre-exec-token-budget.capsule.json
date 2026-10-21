@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "hook:pre-exec-token-budget",
+  "domain": "hook",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Pre-execution hook: checks estimated token cost of prompt and file targets, throttling queries when approaching window exhaustion.",
+  "triggerKeywords": [
+    "hook",
+    "pre-exec",
+    "token-budget",
+    "rate-limiting",
+    "cost-control"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "THROTTLE_TOOL_CALLS_APPROACHING_BUDGET_CEILING",
+    "REJECT_UNCHECKED_RECURSIVE_DIRECTORY_READS",
+    "LOG_ESTIMATED_TOKEN_CONSUMPTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_execution",
+      "action": "hook_pre-exec-token-budget",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "#!/bin/bash\n# Rate Limiter - PreToolUse Hook (경량화 버전)\n# Python → bash 산술 전환, atomic write\n#\n# Hook trigger: PreToolUse (mcp__*)\n# Exit codes: 0 = 허용, 2 = 차단 (속도 제한 초과)\n#\n# 제한 (로컬): 분당 60, 시간당 1000, 일 8000\n# 제한 (원격): 분당 30, 시간당 500, 일 5000\n\n# 세션 ID 결정\nif [[ -n \"${OPENCLAW_SESSION_ID:-}\" ]]; then\n  SESSION_ID=\"${OPENCLAW_SESSION_ID}\"\n  LIMIT_MIN=30; LIMIT_HOUR=500; LIMIT_DAY=5000\nelse\n  SESSION_ID=\"local-${PPID}\"\n  LIMIT_MIN=60; LIMIT_HOUR=1000; LIMIT_DAY=8000\nfi\n\n# 타임스탬프 파일 (/tmp로 전환 — 디스크 I/O 감소)\nRATE_FILE=\"/tmp/claude-rate-limits-${SESSION_ID}.log\"\nSECURITY_LOG=\"$HOME/.claude/security.log\"\n\nNOW=$(date +%s)\nMIN_AGO=$((NOW - 60))\nHOUR_AGO=$((NOW - 3600))\nDAY_AGO=$((NOW - 86400))\n\n# 오래된 항목 정리 + 카운팅 (1회 순회)\nCOUNT_MIN=0\nCOUNT_HOUR=0\nCOUNT_DAY=0\nCLEANED=\"\"\n\nif [[ -f \"$RATE_FILE\" ]]; then\n  while IFS= read -r ts; do\n    # 숫자가 아니면 건너뜀\n    [[ \"$ts\" =~ ^[0-9]+$ ]] || continue\n    if (( ts > DAY_AGO )); then\n      CLEANED=\"${CLEANED}${ts}\\n\"\n      (( COUNT_DAY++ ))\n      if (( ts > HOUR_AGO )); then\n        (( COUNT_HOUR++ ))\n        if (( ts > MIN_AGO )); then\n          (( COUNT_MIN++ ))\n        fi\n      fi\n    fi\n  done < \"$RATE_FILE\"\nfi\n\n# 제한 검사\nBLOCKED=\"\"\nif (( COUNT_MIN >= LIMIT_MIN )); then\n  BLOCKED=\"분당 속도 제한 초과 (${COUNT_MIN}/${LIMIT_MIN})\"\n  LIMIT_TYPE=\"per_minute\"\nelif (( COUNT_HOUR >= LIMIT_HOUR )); then\n  BLOCKED=\"시간당 속도 제한 초과 (${COUNT_HOUR}/${LIMIT_HOUR})\"\n  LIMIT_TYPE=\"per_hour\"\nelif (( COUNT_DAY >= LIMIT_DAY )); then\n  BLOCKED=\"일일 속도 제한 초과 (${COUNT_DAY}/${LIMIT_DAY})\"\n  LIMIT_TYPE=\"per_day\"\nfi\n\nif [[ -n \"$BLOCKED\" ]]; then\n  echo \"BLOCKED: $BLOCKED\" >&2\n  # 정리만 저장 (차단된 요청은 카운트 안 함)\n  printf '%b' \"$CLEANED\" > \"${RATE_FILE}.tmp\" && mv \"${RATE_FILE}.tmp\" \"$RATE_FILE\"\n  # 보안 로그\n  if [[ -n \"$SECURITY_LOG\" ]]; then\n    echo \"$(date '+%Y-%m-%d %H:%M:%S') | RATE_LIMITED | type=${LIMIT_TYPE} | session=${SESSION_ID}\" >> \"$SECURITY_LOG\" 2>/dev/null\n  fi\n  exit 2\nfi\n\n# 현재 타임스탬프 추가 + 정리된 데이터 저장 (atomic write)\nprintf '%b' \"${CLEANED}${NOW}\\n\" > \"${RATE_FILE}.tmp\" && mv -f \"${RATE_FILE}.tmp\" \"$RATE_FILE\"\n\nexit 0\n",
+  "contentSha256": "12b6c526afd41bcf10d9322d29c33ad06522402dc11bb069b6c49616dbb3e91a"
+}

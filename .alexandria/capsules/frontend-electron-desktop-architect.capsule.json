@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "frontend:electron-desktop-architect",
+  "domain": "frontend",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Electron and Tauri desktop security: contextIsolation, sandboxing, safe IPC channels, and native window lifecycle.",
+  "triggerKeywords": [
+    "frontend",
+    "electron",
+    "tauri",
+    "desktop",
+    "ipc",
+    "security",
+    "sandbox"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ENFORCE_CONTEXT_ISOLATION_TRUE",
+    "NODE_INTEGRATION_FALSE",
+    "VALIDATE_ALL_IPC_MESSAGES"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "frontend_electron-desktop-architect",
+      "targetFilter": "src/**/*.{ts,tsx,vue}"
+    }
+  ],
+  "instructionsMarkdown": "# Electron IPC Security & Desktop Architecture\n\nElectron and Tauri desktop security: contextIsolation, sandboxing, safe IPC channels, and native window lifecycle.\n\n## Invariants\n- ENFORCE_CONTEXT_ISOLATION_TRUE\n- NODE_INTEGRATION_FALSE\n- VALIDATE_ALL_IPC_MESSAGES\n",
+  "contentSha256": "c5228dbc1def724bc796b47c2615ba93a907708ba2489b7ff5500aea7d97f9eb"
+}

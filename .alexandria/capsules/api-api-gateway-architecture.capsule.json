@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "api:api-gateway-architecture",
+  "domain": "api",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "API Gateway architecture: dynamic routing, mutual TLS (mTLS), JWT validation at the edge, request transformation, and canary traffic splitting.",
+  "triggerKeywords": [
+    "api",
+    "gateway",
+    "envoy",
+    "routing",
+    "mtls",
+    "proxy",
+    "edge"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "TERMINATE_SSL_MTLS_AT_GATEWAY",
+    "VALIDATE_AUTH_BEFORE_UPSTREAM_ROUTING",
+    "CORRELATION_ID_INJECTION"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "api_api-gateway-architecture",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# API Gateway Routing, Rate-Limiting & SSL Termination\n\nAPI Gateway architecture: dynamic routing, mutual TLS (mTLS), JWT validation at the edge, request transformation, and canary traffic splitting.\n\n## Invariants\n- TERMINATE_SSL_MTLS_AT_GATEWAY\n- VALIDATE_AUTH_BEFORE_UPSTREAM_ROUTING\n- CORRELATION_ID_INJECTION\n",
+  "contentSha256": "3d97b6f56e557f7e607d7407606321082e3f916f0ae78da9410aa5bb190cfd4c"
+}

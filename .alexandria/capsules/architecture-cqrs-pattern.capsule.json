@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "architecture:cqrs-pattern",
+  "domain": "architecture",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "CQRS architecture: separating write models (strict validation, business invariants) from read models (denormalized, optimized for queries).",
+  "triggerKeywords": [
+    "architecture",
+    "cqrs",
+    "read-write-separation",
+    "event-sourcing",
+    "scaling"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "COMMANDS_NEVER_RETURN_DOMAIN_DATA",
+    "READ_MODELS_OPTIMIZED_FOR_QUERY_PERFORMANCE",
+    "EVENTUAL_CONSISTENCY_TOLERANCE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "architecture_cqrs-pattern",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Command Query Responsibility Segregation (CQRS)\n\nCQRS architecture: separating write models (strict validation, business invariants) from read models (denormalized, optimized for queries).\n\n## Invariants\n- COMMANDS_NEVER_RETURN_DOMAIN_DATA\n- READ_MODELS_OPTIMIZED_FOR_QUERY_PERFORMANCE\n- EVENTUAL_CONSISTENCY_TOLERANCE\n",
+  "contentSha256": "989c8239efa211959e6b9b448f61e5408835aa63ac86ce619e5cfa6f2c431ae4"
+}

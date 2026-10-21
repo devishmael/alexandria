@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:drizzle-orm-performance",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Drizzle ORM: zero-overhead type-safe SQL queries, relations query builder, drizzle-kit schema migrations, and prepared statements.",
+  "triggerKeywords": [
+    "database",
+    "drizzle",
+    "orm",
+    "typescript",
+    "sql",
+    "lightweight"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "PREPARED_STATEMENTS_FOR_REPEATED_QUERIES",
+    "SCHEMA_SOURCE_OF_TRUTH_IN_TYPESCRIPT",
+    "AVOID_UNCHECKED_RAW_SQL_FRAGMENTS"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_drizzle-orm-performance",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "{\n  \"name\": \"drizzle_push\",\n  \"description\": \"drizzle-kit push\",\n  \"input\": {\n    \"tool_name\": \"Bash\",\n    \"tool_input\": {\n      \"command\": \"drizzle-kit push\"\n    },\n    \"cwd\": \"/home/example-user/myproject\"\n  },\n  \"expect\": {\n    \"decision\": \"ask\",\n    \"rule\": \"supabase\",\n    \"reason_code\": \"supabase.drizzle_migration\"\n  }\n}\n",
+  "contentSha256": "33703dc6931a65ffce54a9e51bc19f7b0cd3b9b065da78b52e48ef491179e349"
+}

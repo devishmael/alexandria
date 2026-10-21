@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "alexandria.capsule.v2.4",
+  "skillId": "database:supabase-pro",
+  "domain": "database",
+  "profileCompatibility": [
+    "mvp-fullstack-ts",
+    "enterprise-microservices",
+    "rust-kernel-systems"
+  ],
+  "description": "Supabase backend-as-a-service architecture: PostgreSQL Row Level Security (RLS) policies, GoTrue Auth integration, Deno Edge Functions, Realtime WebSocket subscriptions, and Storage buckets.",
+  "triggerKeywords": [
+    "supabase",
+    "postgresql",
+    "rls",
+    "auth",
+    "edge-functions",
+    "realtime",
+    "database"
+  ],
+  "requiredTools": [
+    "prepare_task_context",
+    "verify_and_gate_changes"
+  ],
+  "invariants": [
+    "ROW_LEVEL_SECURITY_MANDATORY_ON_ALL_TABLES",
+    "SECURITY_DEFINER_AUDIT_ON_EDGE_FUNCTIONS",
+    "AUTHENTICATED_ROLE_LEAST_PRIVILEGE",
+    "SELECT_POLICIES_INDEXED_FOR_PERFORMANCE"
+  ],
+  "hooks": [
+    {
+      "event": "pre_gate_0",
+      "action": "database_supabase-pro",
+      "targetFilter": "src/**/*"
+    }
+  ],
+  "instructionsMarkdown": "# Supabase Full-Stack Architecture & PostgreSQL RLS\n\nBuild scalable, secure full-stack applications leveraging Supabase and PostgreSQL Row Level Security.\n\n## Key Principles & Invariants\n- Enable Row Level Security (`ALTER TABLE x ENABLE ROW LEVEL SECURITY;`) on every table without exception.\n- Create explicit `CREATE POLICY` statements for `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.\n- Index foreign keys and columns utilized in RLS `USING` and `WITH CHECK` clauses for sub-millisecond evaluation.\n- Secure Edge Functions against unauthorized invocations using JWT validation.",
+  "contentSha256": "e5e30db622d5b6ebc4af741671280d9545064014eaec7c231c2fc2f43ea22d3d"
+}
