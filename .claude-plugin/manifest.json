@@ -1,0 +1,14 @@
+{
+  "name": "alexandria",
+  "version": "1.0.0",
+  "description": "Alexandria Headless Deterministic Kernel Harness with 225 Master Capsules, Fact-Forcing GateGuard, and SQLite WAL",
+  "author": "Devi Ishmael",
+  "license": "MIT",
+  "homepage": "https://github.com/devishmael/alexandria",
+  "mcpServers": {
+    "alexandria-engine": {
+      "command": "alexandria",
+      "args": ["mcp"]
+    }
+  }
+}

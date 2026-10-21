@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "alexandria": {
+      "command": "alexandria",
+      "args": ["mcp"],
+      "env": {
+        "ALEXANDRIA_STRICT_TDD": "true",
+        "ALEXANDRIA_LOG_LEVEL": "info"
+      }
+    }
+  }
+}

@@ -384,7 +384,27 @@ pub fn execute_init_scaffolding(
     Ok(config_file_path)
 }
 
-pub fn resolve_default_vault_db_path() -> Result<PathBuf, String> {
+pub fn resolve_vault_db_path(workspace_root: Option<&Path>) -> Result<PathBuf, String> {
+    // 1. Explicit environment variable override
+    if let Ok(env_override) = std::env::var("ALEXANDRIA_VAULT_DB") {
+        if !env_override.trim().is_empty() {
+            let p = PathBuf::from(env_override.trim());
+            if let Some(parent) = p.parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+            return Ok(p);
+        }
+    }
+
+    // 2. Project-scoped local resolution (if workspace_root is provided)
+    if let Some(root) = workspace_root {
+        let alexandria_dir = root.join(".alexandria");
+        fs::create_dir_all(&alexandria_dir)
+            .map_err(|e| format!("Failed to create project-local directory {:?}: {}", alexandria_dir, e))?;
+        return Ok(alexandria_dir.join("vault.db"));
+    }
+
+    // 3. Global user fallback
     let home_dir = std::env::var("USERPROFILE")
         .or_else(|_| std::env::var("HOME"))
         .map(PathBuf::from)
@@ -395,6 +415,21 @@ pub fn resolve_default_vault_db_path() -> Result<PathBuf, String> {
         .map_err(|e| format!("Failed to create directory {:?}: {}", alexandria_dir, e))?;
 
     Ok(alexandria_dir.join("vault.db"))
+}
+
+pub fn resolve_default_vault_db_path() -> Result<PathBuf, String> {
+    let cwd = std::env::current_dir().ok();
+    if let Some(ref dir) = cwd {
+        if dir.join(".git").exists()
+            || dir.join(".alexandria.json").exists()
+            || dir.join(".alexandria").exists()
+            || dir.join("Cargo.toml").exists()
+            || dir.join("package.json").exists()
+        {
+            return resolve_vault_db_path(Some(dir));
+        }
+    }
+    resolve_vault_db_path(None)
 }
 
 pub fn execute_autonomous_run(workspace_root: &Path, instruction: &str) -> Result<String, String> {

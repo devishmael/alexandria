@@ -1,13 +1,13 @@
 # 🏛️ Alexandria — The Deterministic Agent Harness
 
 [![Release](https://img.shields.io/badge/Release-v1.0.0-0969da?logo=github)](https://github.com/devishmael/alexandria/releases/tag/v1.0.0)
-[![Tests: 52/52 Passed](https://img.shields.io/badge/Tests-52%2F52_Passed_100%25-brightgreen?logo=rust)](https://github.com/devishmael/alexandria)
+[![Tests: 54/54 Passed](https://img.shields.io/badge/Tests-54%2F54_Passed_100%25-brightgreen?logo=rust)](https://github.com/devishmael/alexandria)
 ![Rust Edition](https://img.shields.io/badge/Rust-2024_Edition-orange?logo=rust)
 ![Latency: <= 2ms](https://img.shields.io/badge/Latency-%E2%89%A4_2ms_Oxc_AST-success)
 ![Capsules: 225 Master Capsules](https://img.shields.io/badge/Capsules-225_Master_Capsules-blueviolet)
 ![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)
 ![LSP Protocol](https://img.shields.io/badge/LSP-3.17_Native-purple)
-![Multi-Harness](https://img.shields.io/badge/Multi--Harness-Cursor_%7C_VS_Code_%7C_Claude_%7C_Gemini_%7C_Zed-teal)
+![Multi-Harness](https://img.shields.io/badge/Multi--Harness-Cursor_%7C_VS_Code_%7C_Claude_%7C_Gemini_%7C_Codex_%7C_OpenCode_%7C_Zed-teal)
 ![Storage](https://img.shields.io/badge/Storage-SQLite_WAL_%2B_FTS5_%2B_Int8_Vector_RRF-003B57?logo=sqlite)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
@@ -53,13 +53,17 @@ Following our forensic reverse engineering of user-space prompt orchestrators (s
 - **The Problem:** LLMs are prone to hallucinated confidence and blind edits, modifying files without checking their imports, methods, or callers.
 - **Alexandria's Solution:** A native Rust gate in `src/gate_guard/fact_forcing.rs`. Before any file mutation (`Write` or `Edit`) is permitted on an existing file, the kernel verifies in memory that the file was previously inspected/read in the active session. If uninspected, it fires an immediate **Syscall Trap (`E_FACT_FORCING`)** that halts the mutation before it touches disk.
 
-### 🥈 Jewel 2: Native Zero-Config Multi-Harness Directory Layout
-- **The Problem:** Developers work across multiple environments (Cursor, VS Code, Claude Code, Gemini CLI, Zed). Running manual export scripts creates friction.
-- **Alexandria's Solution:** Built-in native support right in the repository root:
-  - `.cursor/rules/`: Canonical Cursor MDC rules governing the 225 capsules and AST invariants.
+### 🥈 Jewel 2: Native Zero-Config Multi-Harness Directory Layout & Universal Adapters
+- **The Problem:** Developers and teams work across fragmented environments (Cursor, VS Code, Claude Code, Gemini CLI, Codex, OpenCode, Zed, Kimi, Qwen, Windsurf). Running fragile export scripts creates onboarding friction and config drift.
+- **Alexandria's Solution:** Built-in native support right in the repository root for zero-config onboarding across 10+ AI tools:
+  - `.cursor/`: Cursor MDC rules (`alexandria.mdc`), `.cursorrules`, and native MCP config (`mcp.json`).
   - `.vscode/`: Tasks (`tasks.json`), recommended extensions, and settings.
-  - `.claude/`: Claude Code instructions (`CLAUDE.md`) enforcing strict TDD and AST checks.
-  - `rules/`: Project constitution, TDD mandates, and capsule catalogs.
+  - `.claude-plugin/`: Official Claude Code plugin manifest (`manifest.json`) and instructions (`.claude/CLAUDE.md`).
+  - `.gemini/`: Google Gemini CLI and Antigravity directives (`GEMINI.md`).
+  - `.codex/`: Codex tool config (`config.toml`) and system agents (`AGENTS.md`).
+  - `.opencode/`, `.zed/`, `.kimi/`, `.qwen/`, `.windsurf/`: Native client configs and tool definitions.
+  - `.mcp.json` & `.coderabbit.yaml`: Universal root configurations for CI and local agent hosts.
+  - `rules/`: Project constitution, Fact-Forcing mandates, and capsule catalogs.
 
 ### 🥉 Jewel 3: Pre-Compact Session Checkpoints in SQLite WAL
 - **The Problem:** When an AI assistant's context window reaches capacity, automated `/compact` commands execute lossy compression that erases active ADR decisions, pending test suites, and incremental progress.
@@ -78,7 +82,7 @@ Following our forensic reverse engineering of user-space prompt orchestrators (s
 | **Memory & Storage** | Flat `.tmp`, YAML, and `CLAUDE.md` files without ACID guarantees or concurrency locks. | SQLite WAL single-writer actor with **FTS5 Unicode61** and 64-dim `int8` hybrid vector memory. |
 | **Context Management** | Reads full files into context. Rapid token saturation (*token churn*). | **Surgical AST Pruning:** Extracts exported types/signatures and strips function bodies, saving up to 80% tokens. |
 | **Technology Coverage** | Fragmented rules across scattered files. | **225 Curated Master Capsules** covering 69+ languages, frameworks, DBs, and IDEs with SHA-256 integrity. |
-| **Verified Test Suite** | Ad-hoc script tests. | **52 / 52 Unit & E2E Tests (100% Green)** across 11 test suites in under 6 seconds. |
+| **Verified Test Suite** | Ad-hoc script tests. | **54 / 54 Unit & E2E Tests (100% Green)** across 11 test suites in under 6 seconds. |
 
 ---
 
@@ -131,7 +135,7 @@ Compiled with `opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abo
 | **Gate 0 Native AST Scan & Context Pruning (`oxc_parser`)** | $\le 2.00\text{ ms}$ | **`<= 0.85 ms`** (Contiguous arena bump allocation) |
 | **Fact-Forcing Gate In-Memory Verification (`fact_forcing.rs`)** | $\le 0.10\text{ ms}$ | **`<= 0.05 ms`** (Instant hash set membership lookup) |
 | **Hybrid Vector + FTS5 RRF Recall Query** | $\le 3.00\text{ ms}$ | **`<= 0.90 ms`** (64-dim `int8` cosine + BM25 Reciprocal Rank Fusion) |
-| **Automated Kernel Test Suites** | $100\%$ Pass | **`52 / 52 Passed`** across 11 integration & E2E suites |
+| **Automated Kernel Test Suites** | $100\%$ Pass | **`54 / 54 Passed`** across 11 integration & E2E suites |
 
 ---
 
@@ -191,17 +195,24 @@ alexandria run "Refactor Prisma billing transaction with strict lexical closure"
 
 ## 6. Native Multi-Harness IDE, Agent & LSP Configuration Guide
 
-Alexandria provides **zero-config native multi-harness projections** directly in the repository root, ensuring that any developer or agent using Cursor, VS Code, Claude Code, Gemini CLI, or Neovim immediately operates under Alexandria's deterministic governance:
+Alexandria provides **zero-config native multi-harness projections** directly in the repository root, ensuring that any developer or agent using Cursor, VS Code, Claude Code, Gemini CLI, Codex, OpenCode, Zed, Kimi, Qwen, Windsurf, or Neovim immediately operates under Alexandria's deterministic governance:
 
 ```text
 alexandria/
-├── .cursor/rules/alexandria.mdc    # Canonical Cursor Rules enforcing 225 capsules & Fact-Forcing
-├── .vscode/                        # VS Code settings, tasks (test/build/mcp), and recommended extensions
-│   ├── settings.json
-│   ├── tasks.json
-│   └── extensions.json
+├── .claude-plugin/                 # Claude Code Plugin Manifest (manifest.json)
 ├── .claude/CLAUDE.md               # Claude Code instructions mandating Dual-Space Kernel & strict TDD
-├── rules/                          # Canonical constitutional invariants, Fact-Forcing, and capsule index
+├── .codex/                         # Codex MCP config (config.toml) & Pantheon agents (AGENTS.md)
+├── .cursor/                        # Cursor MDC rules (alexandria.mdc), .cursorrules & mcp.json
+├── .gemini/GEMINI.md               # Google Gemini CLI & Antigravity governance directives
+├── .kimi/kimi.json                 # Kimi Code tool & agent definitions
+├── .opencode/opencode.json         # OpenCode plugin & command specifications
+├── .qwen/qwen.json                 # Alibaba Qwen CLI configuration
+├── .vscode/                        # VS Code settings, tasks (test/build/mcp), and recommended extensions
+├── .windsurf/mcp_config.json       # Windsurf Cascade native MCP configuration
+├── .zed/settings.json              # Zed Editor LSP & MCP assistant integration
+├── .mcp.json                       # Universal root MCP server definition
+├── .coderabbit.yaml                # Automated AI PR review quality gates
+├── rules/                          # Canonical constitutional invariants, Fact-Forcing & capsule index
 │   ├── alexandria-constitution.md
 │   ├── fact-forcing.md
 │   └── capsules-index.md
@@ -285,6 +296,11 @@ To prevent context window saturation while preserving long-term project memory a
    $$\text{RRF}(d) = \frac{1}{60 + \text{rank}_{\text{vector}}(d)} + \frac{1}{60 + \text{rank}_{\text{fts5}}(d)}$$
 4. **Hard Token Budget Enforcement:** `query_hybrid_vector_memory(storage, query, max_token_budget)` accumulates top-ranked chunks in descending `RRF` order and halts immediately before `total_tokens` exceeds `max_token_budget`.
 5. **Portable JSON Snapshot:** Automatically exports `.alexandria/vector-store/memory-index.json` so external tools and auditors can inspect every stored micro-chunk.
+6. **Project-Scoped Database Isolation (`ADR-009`):** Completely eliminates cross-project memory contamination when developers switch repositories. Alexandria resolves database paths using a three-tier hierarchy:
+   - **Tier 1 (Override):** Explicit `ALEXANDRIA_VAULT_DB` environment variable.
+   - **Tier 2 (Project Root):** Project-local `<project_root>/.alexandria/vault.db`, automatically discovered by climbing parent directories until detecting `.git`, `.alexandria.json`, `.alexandria/`, `Cargo.toml`, or `package.json`.
+   - **Tier 3 (Global Fallback):** User-level `~/.alexandria/vault.db`.
+   Every project maintains its own isolated episodic memory, vector micro-chunks, circuit breaker states, and session checkpoints with zero cross-talk.
 
 ---
 

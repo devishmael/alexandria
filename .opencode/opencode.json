@@ -1,0 +1,16 @@
+{
+  "$schema": "https://opencode.dev/schema/plugin.json",
+  "name": "alexandria",
+  "version": "1.0.0",
+  "description": "Deterministic Rust Kernel Harness for OpenCode",
+  "mcpServers": {
+    "alexandria": {
+      "command": "alexandria",
+      "args": ["mcp"]
+    }
+  },
+  "rules": [
+    "rules/alexandria-constitution.md",
+    "rules/fact-forcing.md"
+  ]
+}

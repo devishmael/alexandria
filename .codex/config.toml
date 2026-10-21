@@ -1,0 +1,10 @@
+[mcp_servers.alexandria]
+command = "alexandria"
+args = ["mcp"]
+env = { ALEXANDRIA_LOG_LEVEL = "info", ALEXANDRIA_STRICT_TDD = "true" }
+
+[editor]
+code_style = "strict"
+enforce_tdd = true
+fact_forcing = true
+capsules_path = ".alexandria/capsules"

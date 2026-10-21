@@ -1,0 +1,20 @@
+# CodeRabbit AI Code Review Configuration for Alexandria
+language: "en-US"
+early_access: true
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+chat:
+  auto_reply: true
+instructions: |
+  Review against Alexandria's Constitutional Invariants:
+  1. No explicit 'any' (TSAnyKeyword) in TypeScript.
+  2. No double casts 'as unknown as T'.
+  3. No blind file edits without reading/inspecting the target file first (Fact-Forcing E_FACT_FORCING).
+  4. Red-Green-Refactor TDD cycle is mandatory.
+  5. Rust code must compile clean with zero clippy warnings.

@@ -1,0 +1,25 @@
+{
+  "assistant": {
+    "version": "2",
+    "default_model": {
+      "provider": "anthropic",
+      "model": "claude-3-5-sonnet-latest"
+    }
+  },
+  "lsp": {
+    "alexandria": {
+      "binary": {
+        "path": "alexandria",
+        "arguments": ["lsp"]
+      }
+    }
+  },
+  "context_servers": {
+    "alexandria-engine": {
+      "command": {
+        "path": "alexandria",
+        "args": ["mcp"]
+      }
+    }
+  }
+}

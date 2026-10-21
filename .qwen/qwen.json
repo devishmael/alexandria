@@ -1,0 +1,15 @@
+{
+  "name": "alexandria",
+  "version": "1.0.0",
+  "description": "Alibaba Qwen CLI configuration for Alexandria Kernel",
+  "rules": [
+    "rules/alexandria-constitution.md",
+    "rules/fact-forcing.md"
+  ],
+  "mcpServers": {
+    "alexandria": {
+      "command": "alexandria",
+      "args": ["mcp"]
+    }
+  }
+}

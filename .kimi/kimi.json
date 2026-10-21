@@ -1,0 +1,14 @@
+{
+  "name": "alexandria",
+  "version": "1.0.0",
+  "description": "Kimi Code integration for Alexandria Deterministic Kernel",
+  "instructions": "rules/alexandria-constitution.md",
+  "mcp": {
+    "servers": {
+      "alexandria": {
+        "command": "alexandria",
+        "args": ["mcp"]
+      }
+    }
+  }
+}
