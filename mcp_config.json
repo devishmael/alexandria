@@ -1,8 +1,12 @@
 {
   "mcpServers": {
     "alexandria": {
-      "command": "./target/release/alexandria",
-      "args": ["mcp"]
+      "command": "alexandria",
+      "args": ["mcp"],
+      "env": {
+        "ALEXANDRIA_LOG_LEVEL": "info",
+        "ALEXANDRIA_STRICT_TDD": "true"
+      }
     }
   }
 }
