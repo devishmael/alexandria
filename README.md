@@ -220,16 +220,10 @@ alexandria/
 ├── .zed/settings.json              # Zed Editor LSP & MCP assistant integration
 ├── .mcp.json                       # Universal root MCP server definition
 ├── .coderabbit.yaml                # Automated AI PR review quality gates
-├── agents/                         # Pantheon Quartet & domain subagents (bel, enki, utu, nabu)
-├── commands/                       # Slash commands (/compact, /gate, /court-martial, /memory)
-├── docker/                         # Multi-stage Dockerfile & docker-compose test sandbox
-├── examples/                       # Integration examples (Cursor, Claude Code, MCP client)
-├── hooks/                          # Declarative hooks.json & git pre-commit AST interceptors
 ├── rules/                          # Canonical constitutional invariants, Fact-Forcing & capsule index
-├── schemas/                        # Formal JSON Schemas (capsule, manifest, checkpoint, telemetry)
-├── scripts/                        # Cross-platform installation, validation & benchmark scripts
-├── skills/                         # Human-readable modular skill guides (backend, db, tdd, sast)
-├── workflows/                      # Formal procedural workflows (strict TDD, ADR RFC, court-martial)
+│   ├── alexandria-constitution.md
+│   ├── fact-forcing.md
+│   └── capsules-index.md
 └── .alexandria/capsules/           # 225 Curated Master Capsules (69+ Technologies)
 ```
 
