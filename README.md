@@ -281,18 +281,19 @@ Alexandria continuously computes live organism health metrics from SQLite WAL (`
 
 ## 10. Curated Master Capsule Catalog & Active Lifecycle Hooks
 
-Alexandria normalizes and curates heterogeneous procedural skills into the deterministic **`AlexandriaCapsuleJson`** (`alexandria.capsule.v2.4`) schema. The production catalog comprises **189 Curated Master Capsules** indexed in SQLite WAL (`~/.alexandria/vault.db`) and `.alexandria/capsules/` across 8 canonical domains:
+Alexandria normalizes and curates heterogeneous procedural skills into the deterministic **`AlexandriaCapsuleJson`** (`alexandria.capsule.v2.4`) schema. The production catalog comprises **225 Curated Master Capsules** indexed in SQLite WAL (`~/.alexandria/vault.db`) and `.alexandria/capsules/` across 9 canonical domains, covering 69+ core languages, frameworks, databases, clouds, and IDE environments:
 
 | Domain | Master Capsules | Core Engineering Competencies |
 | :--- | :---: | :--- |
-| **`backend`** | **28** | Rust Tokio actors, Node.js Fastify/NestJS, Go Concurrency, Python AsyncIO, RabbitMQ, Zero-Copy serialization. |
-| **`architecture`** | **26** | Clean & Hexagonal Architecture, CQRS & Event Sourcing, Domain-Driven Design (DDD), Transactional Outbox pattern. |
-| **`devops`** | **26** | Multi-stage Docker, Kubernetes manifests, GitHub Actions CI/CD pipelines, Terraform IaC, Prometheus telemetry. |
-| **`frontend`** | **26** | React 19 Concurrent & Server Components, Next.js App Router, Vue 3 Composition, Zustand, Web Performance. |
-| **`testing`** | **25** | Strict TDD (Red-Green-Refactor), Vitest & Jest, Playwright E2E POM, Property-based testing, Mutation testing. |
-| **`database`** | **22** | PostgreSQL query tuning (`EXPLAIN ANALYZE`), Prisma/Drizzle transactions, SQLite WAL concurrency, Redis sharding. |
-| **`api`** | **20** | RESTful RFC 7807 Problem Details, GraphQL Schema-First, gRPC/Protobuf, WebSockets, API Gateways, OAuth2/OIDC. |
-| **`hook`** | **16** | Alexandria Syscall Traps: Pre-Commit Quality Gate, Post-Commit Audit, Secret Interceptor, Prisma Isolation. |
+| **`backend`** | **38** | Rust Tokio actors, Node.js Fastify/NestJS, Go Concurrency, Python AsyncIO, C#/.NET, Java/Spring Boot, C++, PHP 8.3+, Swift, Dart, R, Bash/POSIX, Lua, Luau. |
+| **`devops`** | **32** | Multi-stage Docker, Kubernetes manifests, GitHub Actions, GitLab CI, Bitbucket Pipelines, Terraform, AWS, GCP, Azure, Vercel, Netlify. |
+| **`database`** | **30** | PostgreSQL query tuning (`EXPLAIN ANALYZE`), MySQL, SQLite WAL, SQL Server, Oracle, MongoDB, Redis, Cassandra, ClickHouse, Firestore, DynamoDB, Supabase. |
+| **`frontend`** | **30** | React 19 Concurrent & Server Components, Next.js App Router, Vue 3, Nuxt 3, Svelte, Angular, Tauri v2, Unity C#, Godot 4, Zustand, Web Performance. |
+| **`architecture`** | **26** | Clean & Hexagonal Architecture, CQRS & Event Sourcing, Domain-Driven Design (DDD), Transactional Outbox pattern, 12-Factor App. |
+| **`testing`** | **25** | Strict TDD (Red-Green-Refactor), Vitest & Jest, Playwright E2E POM, Cypress, K6 Load Testing, Property-based testing, Mutation testing. |
+| **`api`** | **20** | RESTful RFC 7807 Problem Details, GraphQL Schema-First, gRPC/Protobuf, WebSockets, Server-Sent Events, API Gateways, Rate Limiting, MCP. |
+| **`hook`** | **16** | Alexandria Syscall Traps: Pre-Commit Quality Gate, Post-Commit Audit, Secret Leak Interceptor, Prisma Isolation, Token Budget Guard. |
+| **`ide`** | **8** | Environment configuration, debugging, keybindings, and prompt tuning for VS Code, IntelliJ IDEA, PyCharm, WebStorm, Cursor, Windsurf, Xcode, Android Studio. |
 
 ### Active Lifecycle Hook Interceptors
 When tools like `verify_and_gate_changes` (`pre_verify` event) or `finalize_task_and_log` (`pre_commit` event) are dispatched, the kernel queries registered hooks and evaluates AST policies, secret detection, and invariant compliance, returning deterministic rejections (`rejected_by_lifecycle_hook`) if any invariant fails.
