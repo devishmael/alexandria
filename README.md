@@ -117,8 +117,8 @@ To eliminate the fragility, latency, and context degradation of conventional scr
 
 | Agent ID | Archetype | `max_subagents` | Core Responsibility | Hard Boundary |
 | :--- | :--- | :---: | :--- | :--- |
-| **`bel`** | **Bel (The Overseer)** | `5` | Chief Software Architect & Presiding Judge. Resolves Depth=1 topological context, dispatches isolated worktrees, authors contracts in `wiki/modules/` and `[[ADR-XXX]]` in `wiki/decisions/`, and issues Single-Turn Court-Martial verdicts. | **Never** modifies executable code in `src/`. |
-| **`enki`** | **Enki (The Builder)** | `3` | Principal TDD Engineer. Executes strict **RED $\rightarrow$ GREEN $\rightarrow$ REFACTOR** TDD cycles in `tests/` and `src/`. | **Blocked** from editing `src/` without a prior contract and a verified RED assertion failure. |
+| **`bel`** | **Bel (The Overseer)** | `2` | Chief Software Architect & Presiding Judge. Resolves Depth=1 topological context, dispatches isolated worktrees, authors contracts in `wiki/modules/` and `[[ADR-XXX]]` in `wiki/decisions/`, and issues Single-Turn Court-Martial verdicts. | **Never** modifies executable code in `src/`. |
+| **`enki`** | **Enki (The Builder)** | `4` | Principal TDD Engineer. Executes strict **RED $\rightarrow$ GREEN $\rightarrow$ REFACTOR** TDD cycles in `tests/` and `src/`. | **Blocked** from editing `src/` without a prior contract and a verified RED assertion failure. |
 | **`utu`** | **Utu (The Critic)** | `1` | Impartial Security & Quality Auditor. Performs stateless cold-context audits against hoisted ADRs and Gate 2 SAST rules, and acts as Prosecutor in Court-Martial dockets. | Zero access to Enki's reasoning history (prevents confirmation bias). |
 | **`nabu`** | **Nabu (The Chronicler)** | `1` | Keeper of the Knowledge Vault & Cryptographic Signer. Records `FAIL-XXX` incidents in `wiki/failures.md`, signs Agentic Git IAM commits, updates `wiki/dashboard.md`, and exports vector snapshots. | Append-only immutable ledger enforcement. |
 

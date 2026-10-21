@@ -73,8 +73,8 @@ async fn test_a_schema_initialization_and_symmetric_fts5_triggers() {
         .collect();
 
     assert_eq!(agents.len(), 4, "All 4 Pantheon archetypes must be seeded");
-    assert_eq!(agents.get("bel"), Some(&5));
-    assert_eq!(agents.get("enki"), Some(&3));
+    assert_eq!(agents.get("bel"), Some(&2));
+    assert_eq!(agents.get("enki"), Some(&4));
     assert_eq!(agents.get("utu"), Some(&1));
     assert_eq!(agents.get("nabu"), Some(&1));
 

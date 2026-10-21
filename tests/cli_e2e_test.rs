@@ -114,8 +114,8 @@ fn test_cli_init_scaffolding() {
     let utu_md = fs::read_to_string(agents_dir.join("utu.md")).expect("utu.md must exist");
     let nabu_md = fs::read_to_string(agents_dir.join("nabu.md")).expect("nabu.md must exist");
 
-    assert!(bel_md.contains("max_subagents: 5"));
-    assert!(enki_md.contains("max_subagents: 3"));
+    assert!(bel_md.contains("max_subagents: 2"));
+    assert!(enki_md.contains("max_subagents: 4"));
     assert!(utu_md.contains("max_subagents: 1"));
     assert!(nabu_md.contains("max_subagents: 1"));
 

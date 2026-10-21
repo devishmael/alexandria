@@ -272,11 +272,11 @@ pub fn execute_init_scaffolding(
     let pantheon_profiles: [(&str, &str); 4] = [
         (
             "bel.md",
-            "---\nname: bel\ndisplay_name: \"Bel (The Overseer)\"\nrole: \"Zero-Turn Classifier, Topological Evaluator & Sub-Session Dispatcher\"\nmax_subagents: 5\nauthorized_tools:\n  - prepare_task_context\n  - spawn_isolated_worktrees\n  - resolve_skill_capsule\n---\n\n# Bel (The Overseer)\n\nEvaluates incoming instructions in Zero-Turn mode, resolves depth=1 topological context with transitive ADR hoisting, and dispatches bounded parallel worktrees (`max_subagents: 5`). Never modifies `src/` directly.\n",
+            "---\nname: bel\ndisplay_name: \"Bel (The Overseer)\"\nrole: \"Zero-Turn Classifier, Topological Evaluator & Sub-Session Dispatcher\"\nmax_subagents: 2\nauthorized_tools:\n  - prepare_task_context\n  - spawn_isolated_worktrees\n  - resolve_skill_capsule\n---\n\n# Bel (The Overseer)\n\nEvaluates incoming instructions in Zero-Turn mode, resolves depth=1 topological context with transitive ADR hoisting, and dispatches bounded parallel worktrees (`max_subagents: 2`). Never modifies `src/` directly.\n",
         ),
         (
             "enki.md",
-            "---\nname: enki\ndisplay_name: \"Enki (The Builder)\"\nrole: \"Polymorphic Constructor via Prefix-Pinned Sub-Sessions (DB, Backend, UI)\"\nmax_subagents: 3\nauthorized_tools:\n  - prepare_task_context\n  - resolve_skill_capsule\n  - verify_and_gate_changes\n---\n\n# Enki (The Builder)\n\nExecutes strict RED -> GREEN -> REFACTOR TDD cycles (`max_subagents: 3`) with zero `any`, zero `as unknown as T`, and strict lexical closure inside `prisma.$transaction`.\n",
+            "---\nname: enki\ndisplay_name: \"Enki (The Builder)\"\nrole: \"Polymorphic Constructor via Prefix-Pinned Sub-Sessions (DB, Backend, UI)\"\nmax_subagents: 4\nauthorized_tools:\n  - prepare_task_context\n  - resolve_skill_capsule\n  - verify_and_gate_changes\n---\n\n# Enki (The Builder)\n\nExecutes strict RED -> GREEN -> REFACTOR TDD cycles (`max_subagents: 4`) with zero `any`, zero `as unknown as T`, and strict lexical closure inside `prisma.$transaction`.\n",
         ),
         (
             "utu.md",
