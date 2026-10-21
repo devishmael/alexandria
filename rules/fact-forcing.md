@@ -1,4 +1,4 @@
-# 🔍 FACT-FORCING GATEGUARD RULE (`E_FACT_FORCING`)
+# 🛡️ FACT-FORCING GATEGUARD RULE (`E_FACT_FORCING`)
 
 ## Definition
 The **Fact-Forcing Gate** prevents blind modifications and hallucinated edits.

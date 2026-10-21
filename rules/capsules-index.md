@@ -1,4 +1,4 @@
-# 📚 ALEXANDRIA 225 MASTER CAPSULES INDEX
+# 📦 ALEXANDRIA 225 MASTER CAPSULES INDEX
 
 Alexandria includes **225 curated technology capsules** stored in `.alexandria/capsules/` and indexed in SQLite FTS5 for sub-millisecond retrieval.
 
