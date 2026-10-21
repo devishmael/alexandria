@@ -1,16 +1,4 @@
-# 🏛️ Alexandria — The Deterministic Agent Harness
-
-[![Release](https://img.shields.io/badge/Release-v1.0.0-0969da?logo=github)](https://github.com/devishmael/alexandria/releases/tag/v1.0.0)
-[![CI](https://github.com/devishmael/alexandria/actions/workflows/ci.yml/badge.svg)](https://github.com/devishmael/alexandria/actions/workflows/ci.yml)
-[![Tests: 54/54 Passed](https://img.shields.io/badge/Tests-54%2F54_Passed_100%25-brightgreen?logo=rust)](https://github.com/devishmael/alexandria)
-![Rust Edition](https://img.shields.io/badge/Rust-2024_Edition-orange?logo=rust)
-![Latency: <= 2ms](https://img.shields.io/badge/Latency-%E2%89%A4_2ms_Oxc_AST-success)
-![Capsules: 225 Master Capsules](https://img.shields.io/badge/Capsules-225_Master_Capsules-blueviolet)
-![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)
-![LSP Protocol](https://img.shields.io/badge/LSP-3.17_Native-purple)
-![Multi-Harness](https://img.shields.io/badge/Multi--Harness-Cursor_%7C_VS_Code_%7C_Claude_%7C_Gemini_%7C_Codex_%7C_OpenCode_%7C_Zed-teal)
-![Storage](https://img.shields.io/badge/Storage-SQLite_WAL_%2B_FTS5_%2B_Int8_Vector_RRF-003B57?logo=sqlite)
-![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+# Alexandria — The Deterministic Agent Harness
 
 > **Headless Deterministic Agent Harness, Kernel-Space Arbitrator, Hybrid Vector Store & Native LSP Server in Rust.**  
 > Governing probabilistic User-Space LLMs via zero-trust Oxc AST gates, deterministic **Fact-Forcing GateGuard** (zero blind edits), surgical AST context pruning, token-efficient hybrid vector memory (`int8` + BM25 Reciprocal Rank Fusion), OS-sandboxed TDD verification, **Pre-Compact Session Checkpoints**, Single-Turn Court-Martial arbitration, Agentic Git IAM, live organism telemetry (`MTTR` + `dashboard.md`), and **225 Curated Master Capsules** covering 69+ technologies with native Multi-Harness support (`.cursor/`, `.vscode/`, `.claude/`, `rules/`).
