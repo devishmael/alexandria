@@ -39,7 +39,7 @@ Alexandria operates under a fundamental operating system metaphor: the separatio
 ## 2. Directory Structure & File Responsibilities
 
 ```
-alexandria-runtime/
+alexandria/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                 # Multi-platform CI pipeline (Ubuntu & Windows, Rust 2024)
