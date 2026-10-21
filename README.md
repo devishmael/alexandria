@@ -20,18 +20,17 @@
 ## Table of Contents
 
 1. [Executive Summary: The Dual-Space Paradigm](#1-executive-summary-the-dual-space-paradigm)
-2. [The 3 Golden Architectural Jewels & Paradigm Clash](#2-the-3-golden-architectural-jewels--paradigm-clash)
-3. [System Architecture & The Pantheon Quartet](#3-system-architecture--the-pantheon-quartet)
-4. [Production Binary & Certified Benchmarks](#4-production-binary--certified-benchmarks)
-5. [Complete CLI Reference Guide](#5-complete-cli-reference-guide)
-6. [Native Multi-Harness IDE, Agent & LSP Configuration Guide](#6-native-multi-harness-ide-agent--lsp-configuration-guide)
-7. [Token-Efficient Hybrid Vector Store (`src/vector_store/`)](#7-token-efficient-hybrid-vector-store-srcvector_store)
-8. [Surgical AST Context Pruning (`oxc_parser`)](#8-surgical-ast-context-pruning-oxc_parser)
-9. [Out-of-Band Quality Gates, Court-Martial & Agentic Git IAM](#9-out-of-band-quality-gates-court-martial--agentic-git-iam)
-10. [Live Organism Telemetry (`MTTR` & `wiki/dashboard.md`)](#10-live-organism-telemetry-mttr--wikidashboardmd)
-11. [Curated 225 Master Capsule Catalog & Active Lifecycle Hooks](#11-curated-225-master-capsule-catalog--active-lifecycle-hooks)
-12. [Headless Markdown Knowledge Vault & Multi-Viewer Guide](#12-headless-markdown-knowledge-vault--multi-viewer-guide)
-13. [License](#13-license)
+2. [System Architecture & The Pantheon Quartet](#2-system-architecture--the-pantheon-quartet)
+3. [Production Binary & Certified Benchmarks](#3-production-binary--certified-benchmarks)
+4. [Complete CLI Reference Guide](#4-complete-cli-reference-guide)
+5. [Native Multi-Harness IDE, Agent & LSP Configuration Guide](#5-native-multi-harness-ide-agent--lsp-configuration-guide)
+6. [Token-Efficient Hybrid Vector Store & Session Persistence (`src/vector_store/`)](#6-token-efficient-hybrid-vector-store--session-persistence-srcvector_store)
+7. [Surgical AST Context Pruning (`oxc_parser`)](#7-surgical-ast-context-pruning-oxc_parser)
+8. [Out-of-Band Quality Gates, Fact-Forcing & Court-Martial](#8-out-of-band-quality-gates-fact-forcing--court-martial)
+9. [Live Organism Telemetry (`MTTR` & `wiki/dashboard.md`)](#9-live-organism-telemetry-mttr--wikidashboardmd)
+10. [Curated 225 Master Capsule Catalog & Active Lifecycle Hooks](#10-curated-225-master-capsule-catalog--active-lifecycle-hooks)
+11. [Headless Markdown Knowledge Vault & Multi-Viewer Guide](#11-headless-markdown-knowledge-vault--multi-viewer-guide)
+12. [License](#12-license)
 
 ---
 
@@ -44,35 +43,7 @@ Modern AI coding assistants suffer from **context rot**, **hallucinated green bu
 - **Kernel-Space (`alexandria` Rust Binary):** The deterministic authority. It owns the filesystem knowledge graph (`petgraph`), native TypeScript/TSX AST parsing and surgical context pruning (`oxc_parser` + `oxc_resolver`), OS-level process sandboxing (`node --permission`), polymorphic Skill/Hook ETL normalization (`src/collector/`), single-writer SQLite WAL + FTS5 BM25 + 64-dim `int8` hybrid vector memory (`rusqlite`), real-time Language Server Protocol (`LSP`) diagnostics, and the deterministic Circuit Breaker.
 - **User-Space (Probabilistic LLM Host):** Untrusted compute process (Google Antigravity 2.0, Claude Code, Cursor, Windsurf, VS Code, Neovim). It cannot self-certify compilation, test verdicts, or architectural compliance; every mutation is arbitrated out-of-band by the Rust kernel via **MCP (`2024-11-05`)** and **LSP (`3.17`)**.
 
----
-
-## 2. The 3 Golden Architectural Jewels & Paradigm Clash
-
-To eliminate the fragility, latency, and context degradation of conventional script-based agent wrappers, Alexandria synthesizes the industry's most powerful agentic governance patterns into **bare-metal, deterministic Rust implementations**:
-
-### 🥇 Jewel 1: Deterministic Fact-Forcing GateGuard (`E_FACT_FORCING`)
-- **The Problem:** LLMs are prone to hallucinated confidence and blind edits, modifying files without checking their imports, methods, or callers.
-- **Alexandria's Solution:** A native Rust gate in `src/gate_guard/fact_forcing.rs`. Before any file mutation (`Write` or `Edit`) is permitted on an existing file, the kernel verifies in memory that the file was previously inspected/read in the active session. If uninspected, it fires an immediate **Syscall Trap (`E_FACT_FORCING`)** that halts the mutation before it touches disk.
-
-### 🥈 Jewel 2: Native Zero-Config Multi-Harness Directory Layout & Universal Adapters
-- **The Problem:** Developers and teams work across fragmented environments (Cursor, VS Code, Claude Code, Gemini CLI, Codex, OpenCode, Zed, Kimi, Qwen, Windsurf). Running fragile export scripts creates onboarding friction and config drift.
-- **Alexandria's Solution:** Built-in native support right in the repository root for zero-config onboarding across 10+ AI tools:
-  - `.cursor/`: Cursor MDC rules (`alexandria.mdc`), `.cursorrules`, and native MCP config (`mcp.json`).
-  - `.vscode/`: Tasks (`tasks.json`), recommended extensions, and settings.
-  - `.claude-plugin/`: Official Claude Code plugin manifest (`manifest.json`) and instructions (`.claude/CLAUDE.md`).
-  - `.gemini/`: Google Gemini CLI and Antigravity directives (`GEMINI.md`).
-  - `.codex/`: Codex tool config (`config.toml`) and system agents (`AGENTS.md`).
-  - `.opencode/`, `.zed/`, `.kimi/`, `.qwen/`, `.windsurf/`: Native client configs and tool definitions.
-  - `.mcp.json` & `.coderabbit.yaml`: Universal root configurations for CI and local agent hosts.
-  - `rules/`: Project constitution, Fact-Forcing mandates, and capsule catalogs.
-
-### 🥉 Jewel 3: Pre-Compact Session Checkpoints in SQLite WAL
-- **The Problem:** When an AI assistant's context window reaches capacity, automated `/compact` commands execute lossy compression that erases active ADR decisions, pending test suites, and incremental progress.
-- **Alexandria's Solution:** Pre-compact session snapshots stored transactionally in SQLite WAL (`session_checkpoints`). Captures exact test status, modified files, active ADRs, and markdown summaries, ensuring zero loss of cognitive progress across compactions or session restarts.
-
----
-
-### ⚔️ The Paradigm Clash: Alexandria vs. User-Space Prompt Systems
+### Architectural Comparison: Alexandria vs. Scripted Prompt Wrappers
 
 | Dimension | Conventional Script / Prompt Wrappers | Alexandria (v1.0.0 Deterministic Kernel) |
 | :--- | :--- | :--- |
@@ -80,6 +51,8 @@ To eliminate the fragility, latency, and context degradation of conventional scr
 | **Authority Level** | **Probabilistic & Pleading:** Asks the LLM to follow 400-line Markdown prompts. | **Physical & Coercive:** The Rust binary intercepts calls and enforces **Syscall Traps**. |
 | **Quality Gate Timing** | **Post-Hoc (`PostToolUse`):** Runs after the file has already been written to disk. Only logs warnings to `stderr`. | **Pre-Hoc In-Memory:** Evaluates Oxc AST in memory **before** disk write. Violations abort instantly. |
 | **Per-Event Latency** | **$150\text{ ms} - 350\text{ ms}$:** Spawns `node.exe` processes per event, wasting >10s of CPU per 40 tool calls. | **$\le 2\text{ ms}$:** Sub-millisecond in-memory AST scan (`oxc_parser`). Imperceptible overhead. |
+| **Fact-Forcing Guard** | **None / Blind Edits:** Agent mutates files without checking active dependencies. | **`E_FACT_FORCING`:** Native gate halts uninspected mutations before disk write. |
+| **Session Compaction** | Lossy compression erases active ADRs and pending test states. | **Pre-Compact Checkpoints:** Transactional snapshots in SQLite WAL preserve exact state across compactions. |
 | **Memory & Storage** | Flat `.tmp`, YAML, and `CLAUDE.md` files without ACID guarantees or concurrency locks. | SQLite WAL single-writer actor with **FTS5 Unicode61** and 64-dim `int8` hybrid vector memory. |
 | **Context Management** | Reads full files into context. Rapid token saturation (*token churn*). | **Surgical AST Pruning:** Extracts exported types/signatures and strips function bodies, saving up to 80% tokens. |
 | **Technology Coverage** | Fragmented rules across scattered files. | **225 Curated Master Capsules** covering 69+ languages, frameworks, DBs, and IDEs with SHA-256 integrity. |
@@ -87,7 +60,7 @@ To eliminate the fragility, latency, and context degradation of conventional scr
 
 ---
 
-## 3. System Architecture & The Pantheon Quartet
+## 2. System Architecture & The Pantheon Quartet
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
@@ -124,7 +97,7 @@ To eliminate the fragility, latency, and context degradation of conventional scr
 
 ---
 
-## 4. Production Binary & Certified Benchmarks
+## 3. Production Binary & Certified Benchmarks
 
 Compiled with `opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abort"`, and `strip = true`:
 
@@ -140,7 +113,7 @@ Compiled with `opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abo
 
 ---
 
-## 5. Complete CLI Reference Guide
+## 4. Complete CLI Reference Guide
 
 ### Installation
 
@@ -201,7 +174,7 @@ alexandria run "Refactor Prisma billing transaction with strict lexical closure"
 
 ---
 
-## 6. Native Multi-Harness IDE, Agent & LSP Configuration Guide
+## 5. Native Multi-Harness IDE, Agent & LSP Configuration Guide
 
 Alexandria provides **zero-config native multi-harness projections** directly in the repository root, ensuring that any developer or agent using Cursor, VS Code, Claude Code, Gemini CLI, Codex, OpenCode, Zed, Kimi, Qwen, Windsurf, or Neovim immediately operates under Alexandria's deterministic governance:
 
@@ -294,7 +267,7 @@ lspconfig.alexandria_lsp.setup({})
 
 ---
 
-## 7. Token-Efficient Hybrid Vector Store (`src/vector_store/`)
+## 6. Token-Efficient Hybrid Vector Store & Session Persistence (`src/vector_store/`)
 
 To prevent context window saturation while preserving long-term project memory across sessions, Alexandria implements a **Zero-Bloat Hybrid Vector Store**:
 
@@ -309,10 +282,11 @@ To prevent context window saturation while preserving long-term project memory a
    - **Tier 2 (Project Root):** Project-local `<project_root>/.alexandria/vault.db`, automatically discovered by climbing parent directories until detecting `.git`, `.alexandria.json`, `.alexandria/`, `Cargo.toml`, or `package.json`.
    - **Tier 3 (Global Fallback):** User-level `~/.alexandria/vault.db`.
    Every project maintains its own isolated episodic memory, vector micro-chunks, circuit breaker states, and session checkpoints with zero cross-talk.
+7. **Pre-Compact Session Checkpoints in SQLite WAL:** When an AI assistant's context window reaches capacity, automated `/compact` commands execute lossy compression that erases active ADR decisions, pending test suites, and incremental progress. Alexandria stores transactional pre-compact session snapshots in SQLite WAL (`session_checkpoints`), capturing test status, modified files, active ADRs, and markdown summaries to guarantee zero loss of cognitive progress across compactions or restarts.
 
 ---
 
-## 8. Surgical AST Context Pruning (`oxc_parser`)
+## 7. Surgical AST Context Pruning (`oxc_parser`)
 
 When an agent is tasked with modifying a specific function inside a large TypeScript file, feeding the entire file wastes thousands of tokens. Passing `"focusSymbol": "processOrder"` to `prepare_task_context` invokes `prune_typescript_context_for_symbol`:
 
@@ -322,13 +296,13 @@ When an agent is tasked with modifying a specific function inside a large TypeSc
 
 ---
 
-## 9. Out-of-Band Quality Gates, Court-Martial & Agentic Git IAM
+## 8. Out-of-Band Quality Gates, Fact-Forcing & Court-Martial
 
 Every code mutation submitted via `verify_and_gate_changes` must clear five sequential kernel gates:
 
 | Gate | Subsystem | Deterministic Invariants Enforced |
 | :--- | :--- | :--- |
-| **Gate 0** | [`oxc_validator.rs`](src/gate_guard/oxc_validator.rs) | Rejects `any` (`NO_EXPLICIT_ANY`), double casts `as unknown as T` (`NO_DOUBLE_CAST_UNKNOWN`), enforces strict lexical closure inside `prisma.$transaction`, and triggers a **Kernel Syscall Trap** (`detect_public_export_signature_change`) promoting `alpha_fast` to `omega_pantheon` on public export signature mutations. |
+| **Gate 0** | [`fact_forcing.rs`](src/gate_guard/fact_forcing.rs) & [`oxc_validator.rs`](src/gate_guard/oxc_validator.rs) | **Deterministic Fact-Forcing GateGuard (`E_FACT_FORCING`):** Halts blind edits before disk write by verifying that any existing target file was inspected in the session.<br>**Oxc AST Invariants:** Rejects `any` (`NO_EXPLICIT_ANY`), double casts `as unknown as T` (`NO_DOUBLE_CAST_UNKNOWN`), enforces strict lexical closure inside `prisma.$transaction`, and triggers a **Kernel Syscall Trap** (`detect_public_export_signature_change`) promoting `alpha_fast` to `omega_pantheon` on public export signature mutations. |
 | **Gate 1** | Static Types & Lint | Executes `tsc --noEmit && npm run lint` with zero warnings tolerated. |
 | **Gate 2** | [`oxc_validator.rs`](src/gate_guard/oxc_validator.rs) | Out-of-band SAST & Secret Leak Guard (`scan_gate2_sast_and_secrets`): blocks hardcoded credentials (`GATE2_HARDCODED_SECRET`: `sk-`, `ghp_`, `AKIA`, PEM private keys) and unsafe execution vectors (`GATE2_SAST_UNSAFE_EXECUTION`: `eval(`, `new Function(`, `dangerouslySetInnerHTML`). |
 | **Gate 3** | [`vitest_sandbox.rs`](src/runner/vitest_sandbox.rs) | Invokes `node --permission` directly on `./node_modules/vitest/vitest.mjs` with `env_clear()`, Win32 UNC prefix stripping (`\\?\`), and read-only source confinement. Verifies genuine `AssertionError` in RED phase (`evaluate_tdd_red_phase`) and $\ge 90\%$ coverage in GREEN phase. |
@@ -354,7 +328,7 @@ Upon task certification in `finalize_task_and_log`, the kernel generates a crypt
 
 ---
 
-## 10. Live Organism Telemetry (`MTTR` & `wiki/dashboard.md`)
+## 9. Live Organism Telemetry (`MTTR` & `wiki/dashboard.md`)
 
 Alexandria continuously computes live organism health metrics from SQLite WAL (`write_telemetry_and_markdown_dashboard`) and writes both `.alexandria/telemetry/organism-health.json` and a Markdown-compatible **`wiki/dashboard.md`**:
 - **Gate Pass / Fail Ratio** across all recorded quality gate verdicts.
@@ -363,7 +337,7 @@ Alexandria continuously computes live organism health metrics from SQLite WAL (`
 
 ---
 
-## 11. Curated 225 Master Capsule Catalog & Active Lifecycle Hooks
+## 10. Curated 225 Master Capsule Catalog & Active Lifecycle Hooks
 
 Alexandria normalizes and curates heterogeneous procedural skills into the deterministic **`AlexandriaCapsuleJson`** (`alexandria.capsule.v2.4`) schema. The production catalog comprises **225 Curated Master Capsules** indexed in SQLite WAL (`~/.alexandria/vault.db`) and `.alexandria/capsules/` across 9 canonical domains, covering 69+ core languages, frameworks, databases, clouds, and IDE environments:
 
@@ -384,7 +358,7 @@ When tools like `verify_and_gate_changes` (`pre_verify` event) or `finalize_task
 
 ---
 
-## 12. Headless Markdown Knowledge Vault & Multi-Viewer Guide
+## 11. Headless Markdown Knowledge Vault & Multi-Viewer Guide
 
 ```text
 wiki/
@@ -427,6 +401,6 @@ The 75ms debounced file watcher monitors `wiki/**/*.md`, reloads the graph in RA
 
 ---
 
-## 13. License
+## 12. License
 
 Released under the [MIT License](LICENSE). Copyright (c) 2026 **Devi Ishmael**.
