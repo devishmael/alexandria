@@ -83,6 +83,7 @@ alexandria/
     ├── kernel_spec_completeness_test.rs # Gate 2 SAST, watcher, syscall traps, SQLite persistence
     ├── mcp_integration_test.rs    # Real tool invocation, FTS fallback, AST rejections
     ├── mcp_server_test.rs         # Protocol handshakes, ping-pong, tools/list, hook evaluation
+    ├── new_cli_commands_test.rs   # Lifecycle DX commands (doctor, gate, capsule, harness, vault)
     ├── oxc_validator_test.rs      # Explicit any, double casting, Prisma closures, unawaited promises
     ├── project_isolation_test.rs  # Project-Scoped DB Isolation (ADR-009, zero cross-project leak)
     ├── skill_collector_test.rs    # Directory ingestion, manifest generation, vault seeding
@@ -131,6 +132,16 @@ Zero external model dependencies:
 - **Hybrid Fusion:** Combines vector cosine similarity and SQLite FTS5 BM25 ranks using Reciprocal Rank Fusion:
   $$\text{RRF}(d) = \frac{1}{60 + \text{Rank}_{\text{vec}}(d)} + \frac{1}{60 + \text{Rank}_{\text{BM25}}(d)}$$
 - **Token Budgeting:** Dynamically packs recalled chunks within a specified token budget (default: 350 tokens) to minimize context rot.
+
+---
+
+### 3.5 Lifecycle Developer Experience (DX) CLI Engine (`src/cli.rs`)
+Formalized under [[ADR-010-lifecycle-dx-cli-suite]] and subsystem contract [[cli-dx-lifecycle]], providing bare-metal sub-15ms terminal workflows:
+- **`alexandria doctor` (or `status`):** Instant 5-point environment diagnostic validating binary in PATH, SQLite WAL journal mode and indexed capsules count, project scoping and vault graph node count, multi-harness configurations, and live organism telemetry (MTTR and circuit breakers).
+- **`alexandria gate <path>` (or `check`):** Evaluates in-memory Oxc AST quality gates directly from the terminal without launching an LLM. Enforces Gate 0 (`NO_EXPLICIT_ANY`, `NO_DOUBLE_CAST_UNKNOWN`, `PRISMA_TX_*`) and Gate 2 SAST in $\le 2\text{ ms}$. Exits with code `0` on pass or `1` on violation (ideal for git pre-commit hooks and CI pipelines).
+- **`alexandria capsule [list | search | show]`:** Direct terminal access to the 225 curated master capsules: list by domain, search with SQLite FTS5 BM25, and view full markdown specifications with invariants and code examples.
+- **`alexandria harness add <target>`:** Scaffolds configuration adapters for Cursor, Antigravity, Claude Code, Codex, or all 10+ environments. Automatically invoked during `alexandria init`.
+- **`alexandria vault [status | validate | log | sync]`:** Inspects vault graph topology, validates wikilink acyclicity and broken links, inspects certified epochs with SHA-256 IAM seals, and synchronizes manually edited markdown files into SQLite WAL.
 
 ---
 
