@@ -98,8 +98,27 @@ pub async fn run_sandboxed_vitest(
         .arg(format!("--allow-fs-read={}", canon_workspace.display()))
         .arg(format!("--allow-fs-read={}", canon_node_dir.display()))
         .arg(format!("--allow-fs-write={}", coverage_dir.display()))
-        .arg(format!("--allow-fs-write={}", canon_temp_dir.display()))
-        .arg(vitest_entry)
+        .arg(format!("--allow-fs-write={}", canon_temp_dir.display()));
+
+    // Optional monorepo and virtual store paths configured in .alexandria.json
+    let config_path = canon_workspace.join(".alexandria.json");
+    if let Ok(config_str) = std::fs::read_to_string(&config_path) {
+        if let Ok(config_json) = serde_json::from_str::<serde_json::Value>(&config_str) {
+            let extra_paths = config_json
+                .get("sandbox")
+                .and_then(|s| s.get("extra_read_paths").or_else(|| s.get("extraReadPaths")))
+                .and_then(|p| p.as_array());
+            if let Some(paths) = extra_paths {
+                for p in paths {
+                    if let Some(path_str) = p.as_str() {
+                        cmd.arg(format!("--allow-fs-read={}", path_str));
+                    }
+                }
+            }
+        }
+    }
+
+    cmd.arg(vitest_entry)
         .arg("run")
         .arg(target_test_file)
         .arg("--reporter=json")

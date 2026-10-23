@@ -26,6 +26,9 @@ pub struct HybridMemoryQueryResult {
     pub rrf_score: f32,
 }
 
+/// Canonical dimensionality for dense int8 quantized semantic embeddings.
+pub const FEATURE_VECTOR_DIM: usize = 128;
+
 fn fnv1a_hash64(bytes: &[u8], seed: u64) -> u64 {
     let mut hash = 0xcbf29ce484222325u64 ^ seed;
     for &b in bytes {
@@ -44,10 +47,10 @@ fn light_stem(token: &str) -> &str {
     token
 }
 
-/// Computes a deterministic 64-dimensional L2-normalized `int8` semantic embedding (`[-127, 127]`)
+/// Computes a deterministic 128-dimensional L2-normalized `int8` semantic embedding (`[-127, 127]`)
 /// via multi-granular lexical and character n-gram feature hashing with zero external model weights.
-pub fn compute_deterministic_int8_embedding(text: &str) -> [i8; 64] {
-    let mut accum = [0.0f32; 64];
+pub fn compute_deterministic_int8_embedding(text: &str) -> [i8; FEATURE_VECTOR_DIM] {
+    let mut accum = [0.0f32; FEATURE_VECTOR_DIM];
 
     let tokens: Vec<String> = text
         .split(|c: char| !c.is_alphanumeric() && c != '_')
@@ -56,7 +59,7 @@ pub fn compute_deterministic_int8_embedding(text: &str) -> [i8; 64] {
         .collect();
 
     if tokens.is_empty() {
-        return [0i8; 64];
+        return [0i8; FEATURE_VECTOR_DIM];
     }
 
     for (idx, tok) in tokens.iter().enumerate() {
@@ -64,13 +67,13 @@ pub fn compute_deterministic_int8_embedding(text: &str) -> [i8; 64] {
 
         // 1. Unigram stem projection (weight 2.0)
         let h1 = fnv1a_hash64(stem.as_bytes(), 0x101);
-        let dim1 = (h1 as usize) % 64;
+        let dim1 = (h1 as usize) % FEATURE_VECTOR_DIM;
         let sign1 = if (h1 >> 8) & 1 == 0 { 1.0 } else { -1.0 };
         accum[dim1] += 2.0 * sign1;
 
         // 2. Exact token projection (weight 1.2)
         let h2 = fnv1a_hash64(tok.as_bytes(), 0x202);
-        let dim2 = (h2 as usize) % 64;
+        let dim2 = (h2 as usize) % FEATURE_VECTOR_DIM;
         let sign2 = if (h2 >> 8) & 1 == 0 { 1.0 } else { -1.0 };
         accum[dim2] += 1.2 * sign2;
 
@@ -78,7 +81,7 @@ pub fn compute_deterministic_int8_embedding(text: &str) -> [i8; 64] {
         if idx + 1 < tokens.len() {
             let bigram = format!("{}_{}", stem, light_stem(&tokens[idx + 1]));
             let hb = fnv1a_hash64(bigram.as_bytes(), 0x303);
-            let dim_b = (hb as usize) % 64;
+            let dim_b = (hb as usize) % FEATURE_VECTOR_DIM;
             let sign_b = if (hb >> 8) & 1 == 0 { 1.0 } else { -1.0 };
             accum[dim_b] += 1.5 * sign_b;
         }
@@ -88,34 +91,44 @@ pub fn compute_deterministic_int8_embedding(text: &str) -> [i8; 64] {
         if bytes.len() >= 3 {
             for window in bytes.windows(3) {
                 let hc = fnv1a_hash64(window, 0x404);
-                let dim_c = (hc as usize) % 64;
+                let dim_c = (hc as usize) % FEATURE_VECTOR_DIM;
                 let sign_c = if (hc >> 8) & 1 == 0 { 1.0 } else { -1.0 };
                 accum[dim_c] += 0.5 * sign_c;
+            }
+        }
+
+        // 5. Character 4-gram projections for high-entropy 128-dimensional dispersion (weight 0.4)
+        if bytes.len() >= 4 {
+            for window in bytes.windows(4) {
+                let h4 = fnv1a_hash64(window, 0x505);
+                let dim_4 = (h4 as usize) % FEATURE_VECTOR_DIM;
+                let sign_4 = if (h4 >> 8) & 1 == 0 { 1.0 } else { -1.0 };
+                accum[dim_4] += 0.4 * sign_4;
             }
         }
     }
 
     let norm_sq: f32 = accum.iter().map(|v| v * v).sum();
     if norm_sq <= f32::EPSILON {
-        return [0i8; 64];
+        return [0i8; FEATURE_VECTOR_DIM];
     }
 
     let norm = norm_sq.sqrt();
-    let mut quantized = [0i8; 64];
-    for i in 0..64 {
+    let mut quantized = [0i8; FEATURE_VECTOR_DIM];
+    for i in 0..FEATURE_VECTOR_DIM {
         let unit = (accum[i] / norm).clamp(-1.0, 1.0);
         quantized[i] = (unit * 127.0).round() as i8;
     }
     quantized
 }
 
-/// Computes exact cosine similarity in `[-1.0, 1.0]` between two 64-dimensional `int8` vectors.
-pub fn cosine_similarity_int8(a: &[i8; 64], b: &[i8; 64]) -> f32 {
+/// Computes exact cosine similarity in `[-1.0, 1.0]` between two 128-dimensional `int8` vectors.
+pub fn cosine_similarity_int8(a: &[i8; FEATURE_VECTOR_DIM], b: &[i8; FEATURE_VECTOR_DIM]) -> f32 {
     let mut dot: i32 = 0;
     let mut norm_a: i32 = 0;
     let mut norm_b: i32 = 0;
 
-    for i in 0..64 {
+    for i in 0..FEATURE_VECTOR_DIM {
         let va = a[i] as i32;
         let vb = b[i] as i32;
         dot += va * vb;
@@ -192,9 +205,12 @@ pub fn query_hybrid_vector_memory(
             let token_estimate: i64 = row.get(5)?;
             let emb_json: String = row.get(6)?;
             let parsed_vec: Vec<i8> = serde_json::from_str(&emb_json).unwrap_or_default();
-            let mut arr = [0i8; 64];
-            if parsed_vec.len() == 64 {
+            let mut arr = [0i8; FEATURE_VECTOR_DIM];
+            if parsed_vec.len() == FEATURE_VECTOR_DIM {
                 arr.copy_from_slice(&parsed_vec);
+            } else if parsed_vec.len() == 64 {
+                // Backward compatibility: project legacy 64-dim vectors into the first 64 dimensions
+                arr[..64].copy_from_slice(&parsed_vec);
             }
             let cosine_sim = cosine_similarity_int8(&query_vec, &arr);
             Ok(CandidateRow {
@@ -335,7 +351,7 @@ pub fn export_vector_store_snapshot(
 
     let payload = json!({
         "schemaVersion": "alexandria.vector_store.v2.5",
-        "dimensions": 64,
+        "dimensions": FEATURE_VECTOR_DIM,
         "quantization": "int8_l2_normalized",
         "fusionAlgorithm": "reciprocal_rank_fusion_k60",
         "totalChunks": entries.len(),

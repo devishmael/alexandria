@@ -126,7 +126,7 @@ pub async fn run_mcp_stdio_loop_with_context(ctx: McpKernelContext) -> Result<()
         .with_ansi(false)
         .try_init();
 
-    tracing::info!("Alexandria v1.0.0 MCP Server started over stdio");
+    tracing::info!("Alexandria v1.1.0 MCP Server started over stdio");
 
     let stdin = tokio::io::stdin();
     let mut stdout = tokio::io::stdout();

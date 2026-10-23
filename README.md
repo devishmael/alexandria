@@ -162,8 +162,9 @@ alexandria capsule show database:postgres-pro
 ### 5. `alexandria harness add <target>` — Multi-Harness Scaffolding
 Scaffolds targeted or universal harness configuration files on demand:
 ```bash
-# Available targets: cursor, antigravity, claude, codex, all
+# Available targets: cursor, antigravity, claude, codex, git, all
 alexandria harness add cursor
+alexandria harness add git
 alexandria harness add all
 ```
 
@@ -317,7 +318,7 @@ lspconfig.alexandria_lsp.setup({})
 To prevent context window saturation while preserving long-term project memory across sessions, Alexandria implements a **Zero-Bloat Hybrid Vector Store**:
 
 1. **Micro-Chunk Distillation (`distill_into_micro_chunk`):** Raw user prompts, agent execution summaries, and forensic lessons are stripped of filler tokens and compressed into high-density micro-chunks ($\le 50$ words) with an exact token estimate (`token_estimate`).
-2. **64-Dimensional Quantized `int8` Embeddings (`compute_deterministic_int8_embedding`):** Uses deterministic SHA-256 unigram + bigram feature hashing projected onto a 64-dimensional L2-normalized `i8` vector (`64 bytes` per record, zero external LLM API calls, zero GPU/ONNX overhead).
+2. **128-Dimensional Quantized `int8` Embeddings (`compute_deterministic_int8_embedding`):** Uses deterministic unigram, bigram, and n-gram feature hashing projected onto a 128-dimensional L2-normalized `i8` vector (`128 bytes` per record, zero external LLM API calls, zero GPU/ONNX overhead).
 3. **Reciprocal Rank Fusion (`query_hybrid_vector_memory`):** Combines dense semantic cosine similarity (`cosine_similarity_int8`) with sparse lexical BM25 ranking (`episodic_memory_fts`) via Reciprocal Rank Fusion:
    $$\text{RRF}(d) = \frac{1}{60 + \text{rank}_{\text{vector}}(d)} + \frac{1}{60 + \text{rank}_{\text{fts5}}(d)}$$
 4. **Hard Token Budget Enforcement:** `query_hybrid_vector_memory(storage, query, max_token_budget)` accumulates top-ranked chunks in descending `RRF` order and halts immediately before `total_tokens` exceeds `max_token_budget`.

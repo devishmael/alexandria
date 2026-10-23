@@ -16,10 +16,10 @@ use serde_json::json;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub const VERSION_BANNER: &str = "alexandria v1.0.0";
+pub const VERSION_BANNER: &str = "alexandria v1.1.0";
 
 pub const HELP_BANNER: &str = "\
-alexandria v1.0.0
+alexandria v1.1.0
 Headless Deterministic Agent Harness & Kernel-Space Arbitrator
 
 USAGE:
@@ -42,7 +42,7 @@ COMMANDS:
                                  Gate 0 (lexical rules) & Gate 2 (SAST & secret leaks) in <= 2ms.
   capsule <list|search|show>     Access the 225 curated master capsules:
                                  list [--domain <d>], search <query>, show <id>.
-  harness add <target>           Scaffold harness configurations (cursor | antigravity | claude | codex | all).
+  harness add <target>           Scaffold harness configurations (cursor | antigravity | claude | codex | git | all).
   vault <status|validate|log|sync>
                                  Knowledge vault governance: graph metrics, wikilink integrity,
                                  certified operational epochs with SHA-256 IAM seals, and SQLite WAL sync.
@@ -52,7 +52,7 @@ COMMANDS:
                                  ./.alexandria/capsules), and synchronize into vault.db.
   memory <add|query> \"<text>\" [--kind <kind>] [--module <module>] [--budget <tokens>]
                                  Add or query episodic vector memory using hybrid RRF
-                                 (64-dim int8 embeddings + SQLite FTS5 BM25).
+                                 (128-dim int8 embeddings + SQLite FTS5 BM25).
   mcp                            Start the SQLite WAL actor on ~/.alexandria/vault.db
                                  and serve the MCP JSON-RPC 2.0 server over stdio.
   lsp                            Start the native Language Server Protocol (LSP) engine
@@ -161,11 +161,19 @@ where
         }
         Some("doctor") | Some("status") => Ok(CliCommand::Doctor),
         Some("gate") | Some("check") => {
-            let target = iter.next().ok_or_else(|| {
-                "Command 'gate' requires a target path. Usage: alexandria gate <path>".to_string()
+            let mut target = iter.next().ok_or_else(|| {
+                "Command 'gate' requires a target path. Usage: alexandria gate <path> or alexandria gate check <path>".to_string()
             })?;
             if target == "--help" || target == "-h" {
                 return Ok(CliCommand::Help);
+            }
+            if target == "check" {
+                target = iter.next().ok_or_else(|| {
+                    "Command 'gate check' requires a target path. Usage: alexandria gate check <path>".to_string()
+                })?;
+                if target == "--help" || target == "-h" {
+                    return Ok(CliCommand::Help);
+                }
             }
             Ok(CliCommand::Gate { target_path: target })
         }
@@ -203,7 +211,7 @@ where
         }
         Some("harness") => {
             let sub = iter.next().ok_or_else(|| {
-                "Command 'harness' requires an action (e.g. 'add'). Usage: alexandria harness add <cursor|antigravity|claude|codex|all>".to_string()
+                "Command 'harness' requires an action (e.g. 'add'). Usage: alexandria harness add <cursor|antigravity|claude|codex|git|all>".to_string()
             })?;
             if sub == "--help" || sub == "-h" {
                 return Ok(CliCommand::Help);
@@ -729,6 +737,9 @@ pub fn execute_doctor_diagnostic(workspace_root: &Path) -> Result<String, String
     if workspace_root.join(".vscode").exists() {
         detected_harnesses.push("VS Code (.vscode/)");
     }
+    if workspace_root.join(".git").join("hooks").join("pre-commit").exists() {
+        detected_harnesses.push("Git Pre-Commit Hook (.git/hooks/pre-commit)");
+    }
     let harness_str = if detected_harnesses.is_empty() {
         "None detected (run 'alexandria harness add all' to scaffold)".to_string()
     } else {
@@ -739,7 +750,59 @@ pub fn execute_doctor_diagnostic(workspace_root: &Path) -> Result<String, String
         harness_str
     ));
 
-    // 5. Live organism telemetry summary
+    // 5. Node.js Runtime & Sandbox readiness check
+    let node_status = match std::process::Command::new("node").arg("-v").output() {
+        Ok(out) if out.status.success() => {
+            let ver = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            let major = ver
+                .strip_prefix('v')
+                .and_then(|v| v.split('.').next())
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(0);
+            if major >= 20 {
+                format!("{} (Satisfies >= 20.0.0 permission sandbox requirements)", ver)
+            } else {
+                format!("{} (WARNING: Node.js < 20 detected; Node.js >= 20.0.0 is recommended for native --permission sandbox)", ver)
+            }
+        }
+        _ => "Not detected in PATH (Vitest runner sandbox requires Node.js >= 20.0.0)".to_string(),
+    };
+    report.push_str(&format!(
+        "[{}] Node.js Runtime: {}\n",
+        if node_status.contains("Satisfies") { "✓" } else { "!" },
+        node_status
+    ));
+
+    // 6. Package Manager & Monorepo Symlink Advisory
+    let (pm_symbol, pm_info) = if workspace_root.join("pnpm-lock.yaml").exists() {
+        (
+            "!",
+            "Package Manager: pnpm (Advisory: pnpm uses symlinks and an isolated virtual store; configure 'sandbox.extra_read_paths' in .alexandria.json to grant access to virtual store if test runner sandbox is enabled)".to_string(),
+        )
+    } else if workspace_root.join("package-lock.json").exists() {
+        (
+            "✓",
+            "Package Manager: npm (Flat node_modules structure detected)".to_string(),
+        )
+    } else if workspace_root.join("yarn.lock").exists() {
+        (
+            "✓",
+            "Package Manager: yarn (Yarn lockfile detected)".to_string(),
+        )
+    } else if workspace_root.join("bun.lockb").exists() || workspace_root.join("bun.lock").exists() {
+        (
+            "✓",
+            "Package Manager: bun (Bun lockfile detected)".to_string(),
+        )
+    } else {
+        (
+            "✓",
+            "Package Manager: None detected (Standard environment)".to_string(),
+        )
+    };
+    report.push_str(&format!("[{}] {}\n", pm_symbol, pm_info));
+
+    // 7. Live organism telemetry summary
     let telemetry_file = workspace_root
         .join(".alexandria")
         .join("telemetry")
@@ -783,6 +846,8 @@ fn collect_source_files_for_gate(dir: &Path, out: &mut Vec<PathBuf>) {
                 && name != "dist"
                 && name != "target"
                 && name != "build"
+                && name != "private"
+                && name != "coverage"
             {
                 collect_source_files_for_gate(&path, out);
             }
@@ -1218,7 +1283,7 @@ pub fn execute_harness_scaffold(target_root: &Path, target: &str) -> Result<Stri
         fs::create_dir_all(&cursor_dir)
             .map_err(|e| format!("Failed to create .cursor/rules/: {}", e))?;
 
-        let mdc_content = "---\ndescription: Alexandria Deterministic Agent Harness Rule\nglobs: *\nalwaysApply: true\n---\n# Alexandria Deterministic Governance\n\n- Strict prohibition on src/ mutations without prior contract in wiki/modules/.\n- Strict TDD (RED -> GREEN -> REFACTOR).\n- Zero explicit `any` and zero double casting `as unknown as T`.\n- Zero hardcoded secrets (`sk-`, `ghp_`, `AKIA`).\n- Gate 0 Oxc AST checks and Gate 2 SAST verification mandatory out-of-band.\n";
+        let mdc_content = "---\ndescription: Alexandria Deterministic Agent Harness Rule\nglobs: *\nalwaysApply: true\n---\n# Alexandria Deterministic Governance\n\n- Strict prohibition on src/ mutations without prior contract in wiki/modules/.\n- Strict TDD (RED -> GREEN -> REFACTOR).\n- Zero explicit `any` and zero double casting `as unknown as T`.\n- Zero hardcoded secrets (API tokens, private keys, cloud credentials).\n- Gate 0 Oxc AST checks and Gate 2 SAST verification mandatory out-of-band.\n";
         fs::write(cursor_dir.join("alexandria.mdc"), mdc_content)
             .map_err(|e| format!("Failed to write .cursor/rules/alexandria.mdc: {}", e))?;
 
@@ -1243,7 +1308,7 @@ pub fn execute_harness_scaffold(target_root: &Path, target: &str) -> Result<Stri
     }
 
     if lower_target == "antigravity" || lower_target == "gemini" || lower_target == "all" {
-        let gemini_content = "# ALEXANDRIA RUNTIME — TECHNICAL CONSTITUTION & GOVERNANCE DIRECTIVES\n\n> **System Version:** `v1.0.0`  \n> **Deterministic Arbitrator:** Kernel-Space Rust Arbitrator (`alexandria`)  \n> **Canonical Vault of Truth:** `./wiki/` (and `./alexandria/`)\n\n## 1. Dual-Space Paradigm\nKernel-Space (Rust Arbitrator) holds exclusive authority over filesystem mutations, AST lexical analysis (`oxc_parser`), Quality Gate validation, and SQLite WAL persistence.\n\n## 2. Inviolable Mandate: Strict Prohibition on `src/` Mutations\nStrictly forbidden to modify code in `src/` without prior architectural contract in `modules/<module>.md` and a deterministically failing unit test in `tests/` in RED phase.\n\n## 3. Out-of-Band Quality Gates\nEvery code mutation must clear Gate 0 (Oxc AST) and Gate 2 (SAST & Secret Leak Guard) before merge.\n";
+        let gemini_content = "# ALEXANDRIA RUNTIME — TECHNICAL CONSTITUTION & GOVERNANCE DIRECTIVES\n\n> **System Version:** `v1.1.0`  \n> **Deterministic Arbitrator:** Kernel-Space Rust Arbitrator (`alexandria`)  \n> **Canonical Vault of Truth:** `./wiki/` (and `./alexandria/`)\n\n## 1. Dual-Space Paradigm\nKernel-Space (Rust Arbitrator) holds exclusive authority over filesystem mutations, AST lexical analysis (`oxc_parser`), Quality Gate validation, and SQLite WAL persistence.\n\n## 2. Inviolable Mandate: Strict Prohibition on `src/` Mutations\nStrictly forbidden to modify code in `src/` without prior architectural contract in `modules/<module>.md` and a deterministically failing unit test in `tests/` in RED phase.\n\n## 3. Out-of-Band Quality Gates\nEvery code mutation must clear Gate 0 (Oxc AST) and Gate 2 (SAST & Secret Leak Guard) before merge.\n";
         fs::write(target_root.join("GEMINI.md"), gemini_content)
             .map_err(|e| format!("Failed to write GEMINI.md: {}", e))?;
 
@@ -1284,7 +1349,7 @@ pub fn execute_harness_scaffold(target_root: &Path, target: &str) -> Result<Stri
         fs::create_dir_all(&codex_dir)
             .map_err(|e| format!("Failed to create .codex/: {}", e))?;
 
-        let agents_content = "# ALEXANDRIA RUNTIME — TECHNICAL CONSTITUTION & GOVERNANCE DIRECTIVES\n\n> **System Version:** `v1.0.0`  \n> **Deterministic Arbitrator:** Kernel-Space Rust Arbitrator (`alexandria`)  \n> **Canonical Vault of Truth:** `./wiki/` (and `./alexandria/`)\n\n## 1. Dual-Space Paradigm\nKernel-Space (Rust Arbitrator) holds exclusive authority over filesystem mutations, AST lexical analysis (`oxc_parser`), Quality Gate validation, and SQLite WAL persistence.\n\n## 2. Inviolable Mandate\nStrict prohibition on `src/` mutations without prior architectural contract in `modules/<module>.md` and failing unit test in `tests/`.\n";
+        let agents_content = "# ALEXANDRIA RUNTIME — TECHNICAL CONSTITUTION & GOVERNANCE DIRECTIVES\n\n> **System Version:** `v1.1.0`  \n> **Deterministic Arbitrator:** Kernel-Space Rust Arbitrator (`alexandria`)  \n> **Canonical Vault of Truth:** `./wiki/` (and `./alexandria/`)\n\n## 1. Dual-Space Paradigm\nKernel-Space (Rust Arbitrator) holds exclusive authority over filesystem mutations, AST lexical analysis (`oxc_parser`), Quality Gate validation, and SQLite WAL persistence.\n\n## 2. Inviolable Mandate\nStrict prohibition on `src/` mutations without prior architectural contract in `modules/<module>.md` and failing unit test in `tests/`.\n";
         fs::write(target_root.join("AGENTS.md"), agents_content)
             .map_err(|e| format!("Failed to write AGENTS.md: {}", e))?;
 
@@ -1294,9 +1359,70 @@ pub fn execute_harness_scaffold(target_root: &Path, target: &str) -> Result<Stri
         scaffolded.push("OpenAI Codex (AGENTS.md, .codex/config.toml)");
     }
 
+    if lower_target == "git" || lower_target == "all" {
+        let git_dir = target_root.join(".git");
+        if git_dir.exists() || lower_target == "git" {
+            let hooks_dir = git_dir.join("hooks");
+            fs::create_dir_all(&hooks_dir)
+                .map_err(|e| format!("Failed to create .git/hooks/: {}", e))?;
+
+            let hook_sh = hooks_dir.join("pre-commit");
+            let hook_sh_content = r#"#!/usr/bin/env sh
+# Alexandria Deterministic Git Pre-Commit Hook
+# Validates staged changes against Gate 0 (Oxc AST) and Gate 2 (SAST / Secret Leaks)
+echo "[ALEXANDRIA] Executing deterministic pre-commit quality gate inspection..."
+
+if command -v alexandria >/dev/null 2>&1; then
+    alexandria gate .
+    EXIT_CODE=$?
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo "[ALEXANDRIA] ERROR: Pre-commit Quality Gate validation failed. Commit aborted."
+        exit $EXIT_CODE
+    fi
+else
+    echo "[ALEXANDRIA] WARNING: 'alexandria' binary not found in PATH. Skipping pre-commit gate."
+fi
+exit 0
+"#;
+            fs::write(&hook_sh, hook_sh_content)
+                .map_err(|e| format!("Failed to write .git/hooks/pre-commit: {}", e))?;
+
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                if let Ok(metadata) = fs::metadata(&hook_sh) {
+                    let mut perms = metadata.permissions();
+                    perms.set_mode(0o755);
+                    let _ = fs::set_permissions(&hook_sh, perms);
+                }
+            }
+
+            let hook_bat = hooks_dir.join("pre-commit.bat");
+            let hook_bat_content = r#"@echo off
+rem Alexandria Deterministic Git Pre-Commit Hook (Windows)
+echo [ALEXANDRIA] Executing deterministic pre-commit quality gate inspection...
+where alexandria >nul 2>nul
+if %ERRORLEVEL% EQU 0 (
+    alexandria gate .
+    if %ERRORLEVEL% NEQ 0 (
+        echo [ALEXANDRIA] ERROR: Pre-commit Quality Gate validation failed. Commit aborted.
+        exit /b %ERRORLEVEL%
+    )
+) else (
+    echo [ALEXANDRIA] WARNING: 'alexandria' binary not found in PATH. Skipping pre-commit gate.
+)
+exit /b 0
+"#;
+            fs::write(&hook_bat, hook_bat_content)
+                .map_err(|e| format!("Failed to write .git/hooks/pre-commit.bat: {}", e))?;
+
+            scaffolded.push("Git Pre-Commit Hook (.git/hooks/pre-commit, pre-commit.bat)");
+        }
+    }
+
     if scaffolded.is_empty() {
         return Err(format!(
-            "Unknown harness target '{}'. Available targets: cursor, antigravity, claude, codex, all",
+            "Unknown harness target '{}'. Available targets: cursor, antigravity, claude, codex, git, all",
             target
         ));
     }

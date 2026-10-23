@@ -22,6 +22,8 @@ pub struct GateZeroAstVisitor {
     /// Collected AST violations.
     pub violations: Vec<AstViolation>,
     active_tx_params: Vec<String>,
+    /// Whether Prisma transaction lexical closure invariants are enforced.
+    pub enable_prisma: bool,
 }
 
 impl Default for GateZeroAstVisitor {
@@ -35,6 +37,15 @@ impl GateZeroAstVisitor {
         Self {
             violations: Vec::new(),
             active_tx_params: Vec::new(),
+            enable_prisma: true,
+        }
+    }
+
+    pub fn with_prisma(enable_prisma: bool) -> Self {
+        Self {
+            violations: Vec::new(),
+            active_tx_params: Vec::new(),
+            enable_prisma,
         }
     }
 
@@ -227,7 +238,7 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
             }
         }
 
-        let is_prisma_tx_call = match &it.callee {
+        let is_prisma_tx_call = self.enable_prisma && match &it.callee {
             Expression::StaticMemberExpression(member) => {
                 member.property.name.as_str() == "$transaction"
             }
@@ -278,9 +289,30 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
     }
 }
 
+/// Detects whether the TypeScript/JavaScript source references Prisma client instances or imports.
+pub fn detect_prisma_usage(source_text: &str) -> bool {
+    source_text.contains("@prisma/client")
+        || source_text.contains("PrismaClient")
+        || source_text.contains("PrismaTransactionClient")
+        || source_text.contains("prisma.")
+        || source_text.contains("prisma:")
+}
+
+/// Validates TypeScript source text using Oxc AST parser.
+/// Auto-detects Prisma usage to conditionally enforce `PRISMA_TX_*` lexical invariants.
 pub fn validate_typescript_source(
     source_text: &str,
     is_tsx: bool,
+) -> Result<Vec<AstViolation>, String> {
+    let enable_prisma = detect_prisma_usage(source_text);
+    validate_typescript_source_scoped(source_text, is_tsx, enable_prisma)
+}
+
+/// Validates TypeScript source text with explicit scoping for Prisma transactional invariants.
+pub fn validate_typescript_source_scoped(
+    source_text: &str,
+    is_tsx: bool,
+    enable_prisma: bool,
 ) -> Result<Vec<AstViolation>, String> {
     let allocator = Allocator::default();
     let source_type = SourceType::default().with_typescript(true).with_jsx(is_tsx);
@@ -290,7 +322,7 @@ pub fn validate_typescript_source(
         return Err(format!("SyntaxError during Oxc parsing: {:?}", ret.errors[0]));
     }
 
-    let mut visitor = GateZeroAstVisitor::new();
+    let mut visitor = GateZeroAstVisitor::with_prisma(enable_prisma);
     visitor.visit_program(&ret.program);
     Ok(visitor.violations)
 }
