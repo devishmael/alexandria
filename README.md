@@ -126,7 +126,7 @@ We are actively expanding native AST parsing and sandboxing to other major langu
 
 | Language | AST Parsing & Pruning | Test Sandbox Runner | Status |
 | :--- | :--- | :--- | :---: |
-| **TypeScript / JavaScript** | `oxc_parser` ($\le 2\text{ ms}$) | Vitest + `node --permission` | **Shipped (v1.1.0)** |
+| **TypeScript / JavaScript** | `oxc_parser` (<= 2 ms) | Vitest + `node --permission` | **Shipped (v1.1.0)** |
 | **Rust** | `syn` + `quote` | `cargo test --message-format=json` | **In Development (v1.2.0)** |
 | **Python** | `tree-sitter-python` | `pytest --json-report` | **In Development (v1.2.0)** |
 | **Go** | `tree-sitter-go` | `go test -json` | **Planned (v1.2.0)** |
@@ -254,7 +254,7 @@ alexandria mcp
 ```
 
 ### `alexandria lsp`
-Starts the real-time Language Server Protocol engine to surface diagnostics directly in VS Code, Zed, or Neovim:
+Starts the real-time Language Server Protocol engine to surface diagnostics directly in your editor (VS Code, Cursor, Zed):
 ```bash
 alexandria lsp
 ```
@@ -263,27 +263,59 @@ alexandria lsp
 
 ## IDE & Agent Configuration
 
-### Google Antigravity (`mcp_config.json`)
-```json
-{
-  "mcpServers": {
-    "alexandria": {
-      "command": "alexandria",
-      "args": ["mcp"],
-      "env": {
-        "ALEXANDRIA_LOG_LEVEL": "info"
+Alexandria provides zero-config native projections for all major AI coding assistants and environments. You can scaffold everything at once with:
+
+```bash
+alexandria harness add all
+```
+
+Or configure specific tools individually:
+
+### 1. Cursor (`.cursor/` & `.cursorrules`)
+- **Rules Directive (`.cursor/rules/alexandria.mdc`):** Enforces contract-first development, strict TDD, and zero `any` usage.
+- **Root Cursor Rules (`.cursorrules`):** Ensures all operations are validated against Alexandria quality gates.
+- **MCP Server (`.cursor/mcp.json`):**
+  ```json
+  {
+    "mcpServers": {
+      "alexandria": {
+        "command": "alexandria",
+        "args": ["mcp"]
       }
     }
   }
-}
-```
+  ```
 
-### Claude Code (`.mcp.json` or terminal)
-```bash
-claude mcp add alexandria -- alexandria mcp
-```
+### 2. Claude Code (`.claude/CLAUDE.md` & MCP)
+- **Direct Terminal Registration:**
+  ```bash
+  claude mcp add alexandria -- alexandria mcp
+  ```
+- **Governance Directives (`.claude/CLAUDE.md`):** Mandates pre-commit validation and contract-first workflows for Claude Code sessions.
 
-### Cursor (`.cursor/mcp.json`)
+### 3. Google Antigravity & Gemini CLI (`GEMINI.md` & `mcp_config.json`)
+- **Directives (`GEMINI.md`):** Automatically injected into agent sessions to enforce quality gate invariants.
+- **MCP Configuration (`mcp_config.json`):**
+  ```json
+  {
+    "mcpServers": {
+      "alexandria": {
+        "command": "alexandria",
+        "args": ["mcp"],
+        "env": {
+          "ALEXANDRIA_LOG_LEVEL": "info"
+        }
+      }
+    }
+  }
+  ```
+
+### 4. VS Code (`.vscode/`)
+- **Tasks (`.vscode/tasks.json`):** Built-in tasks for running `alexandria doctor` and `alexandria gate .`.
+- **Settings (`.vscode/settings.json`):** Configures MCP tools and real-time LSP diagnostic squiggles.
+
+### 5. Windsurf Cascade (`.windsurf/` & MCP)
+Add Alexandria to `~/.codeium/windsurf/mcp_config.json` or project-level `.mcp.json`:
 ```json
 {
   "mcpServers": {
@@ -295,22 +327,26 @@ claude mcp add alexandria -- alexandria mcp
 }
 ```
 
-### Neovim (`nvim-lspconfig` for real-time diagnostics)
-```lua
-local lspconfig = require('lspconfig')
-local configs = require('lspconfig.configs')
+### 6. OpenAI Codex & CLI Agents (`AGENTS.md`)
+Standardized agent directives in `AGENTS.md` and `.codex/config.toml` keep headless CLI agents strictly compliant with module contracts and test suites.
 
-if not configs.alexandria_lsp then
-  configs.alexandria_lsp = {
-    default_config = {
-      cmd = { 'alexandria', 'lsp' },
-      filetypes = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
-      root_dir = lspconfig.util.root_pattern('.alexandria.json', 'package.json', '.git'),
-      settings = {},
-    },
+### 7. Universal Project Configuration (`.mcp.json`)
+Any MCP-compliant tool or editor can pick up the universal root configuration:
+```json
+{
+  "mcpServers": {
+    "alexandria": {
+      "command": "alexandria",
+      "args": ["mcp"]
+    }
   }
-end
-lspconfig.alexandria_lsp.setup({})
+}
+```
+
+### 8. Physical Git Pre-Commit Hook (`.git/hooks/pre-commit`)
+Installed via `alexandria harness add git` or `alexandria init`. Runs `alexandria gate .` before every `git commit`. If uninspected changes, AST violations, or secret leaks are detected, the commit is physically aborted in the terminal:
+```bash
+alexandria harness add git
 ```
 
 ---
@@ -319,10 +355,12 @@ lspconfig.alexandria_lsp.setup({})
 
 To avoid context window exhaustion while keeping track of project lessons, Alexandria uses a **hybrid memory pipeline**:
 
-1. **Micro-Chunk Compression:** Prompts and execution outcomes are condensed into high-density micro-chunks ($\le 50$ words).
+1. **Micro-Chunk Compression:** Prompts and execution outcomes are condensed into high-density micro-chunks (<= 50 words).
 2. **128-Dimensional Quantized `int8` Embeddings:** Fast bitwise n-gram feature hashing projects text into an L2-normalized 128-byte vector. Zero cloud latency, zero GPU requirements.
 3. **Reciprocal Rank Fusion (RRF):** Combines dense semantic cosine similarity with SQLite FTS5 BM25 lexical ranking:
-   $$\text{RRF}(d) = \frac{1}{60 + \text{rank}_{\text{vector}}(d)} + \frac{1}{60 + \text{rank}_{\text{bm25}}(d)}$$
+   ```text
+   RRF_Score(d) = 1 / (60 + Vector_Rank(d)) + 1 / (60 + BM25_Rank(d))
+   ```
 4. **Hard Token Budget Enforcement:** The memory search accumulates top-ranked results in descending RRF order and stops immediately before crossing your specified `max_token_budget`.
 5. **Project-Scoped Isolation:** Databases are resolved per project root (`.alexandria/vault.db`), preventing memory from one repository leaking into another.
 
@@ -353,12 +391,12 @@ wiki/ (or alexandria/)
 
 | Metric | Target | Verified Benchmark (v1.1.0) |
 | :--- | :--- | :--- |
-| **Release Binary Size** | $\le 5.0\text{ MB}$ | **`~2.20 MB`** (self-contained with SQLite, Oxc, Tokio, LSP) |
-| **Idle Memory (RSS)** | $\le 15.0\text{ MB}$ | **`~8.5 MB`** (zero external ML models in RAM) |
-| **Graph Resolution & ADR Hoisting** | $\le 1.0\text{ ms}$ | **`<= 0.20 ms`** (`petgraph::StableDiGraph`) |
-| **Gate 0 In-Memory AST Scan** | $\le 2.0\text{ ms}$ | **`<= 0.85 ms`** (`oxc_parser` arena allocation) |
-| **Fact-Forcing Verification** | $\le 0.1\text{ ms}$ | **`<= 0.05 ms`** (instant hash set lookup) |
-| **Hybrid Memory Query (RRF)** | $\le 3.0\text{ ms}$ | **`<= 0.90 ms`** (128-dim cosine + SQLite FTS5) |
+| **Release Binary Size** | `<= 5.0 MB` | **`~2.20 MB`** (self-contained with SQLite, Oxc, Tokio, LSP) |
+| **Idle Memory (RSS)** | `<= 15.0 MB` | **`~8.5 MB`** (zero external ML models in RAM) |
+| **Graph Resolution & ADR Hoisting** | `<= 1.0 ms` | **`<= 0.20 ms`** (`petgraph::StableDiGraph`) |
+| **Gate 0 In-Memory AST Scan** | `<= 2.0 ms` | **`<= 0.85 ms`** (`oxc_parser` arena allocation) |
+| **Fact-Forcing Verification** | `<= 0.1 ms` | **`<= 0.05 ms`** (instant hash set lookup) |
+| **Hybrid Memory Query (RRF)** | `<= 3.0 ms` | **`<= 0.90 ms`** (128-dim cosine + SQLite FTS5) |
 | **Automated Test Suite** | 100% Pass | **`66 / 66 Passed`** across 14 test suites in < 6s |
 
 ---
