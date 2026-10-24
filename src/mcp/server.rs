@@ -275,7 +275,7 @@ pub async fn run_mcp_stdio_loop_with_context(ctx: McpKernelContext) -> Result<()
         .with_ansi(false)
         .try_init();
 
-    tracing::info!("Alexandria v1.1.0 MCP Server started over stdio");
+    tracing::info!("Alexandria v{} MCP Server started over stdio", env!("CARGO_PKG_VERSION"));
 
     let stdin = tokio::io::stdin();
     let mut stdout = tokio::io::stdout();
@@ -347,7 +347,7 @@ pub async fn dispatch_mcp_method_with_context(
                     "protocolVersion": "2024-11-05",
                     "serverInfo": {
                         "name": "alexandria",
-                        "version": "1.1.0"
+                        "version": env!("CARGO_PKG_VERSION")
                     },
                     "capabilities": {
                         "tools": { "listChanged": false }

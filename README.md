@@ -106,7 +106,7 @@ When an LLM context window fills up and triggers a `/compact` command, critical 
 
 We believe in being transparent about what works across all stacks today versus where language-specific engines are currently focused.
 
-### What Works for Any Technology Today (v1.1.0)
+### What Works for Any Technology Today (v1.2.0)
 If you work with **Python, Go, Rust, Java, C#, C++, Docker, or Kubernetes**, the following capabilities are 100% stack-agnostic:
 
 - **Architectural Contracts & Graph:** Documenting module contracts, ADRs, and dependencies in Markdown.
@@ -117,19 +117,19 @@ If you work with **Python, Go, Rust, Java, C#, C++, Docker, or Kubernetes**, the
 - **225 Curated Master Capsules:** Ready-to-use best practices covering 69+ technologies (Postgres, Redis, Docker, FastAPI, Tokio, Spring Boot, etc.).
 
 ### Specialized Engine Focus (TypeScript / Node.js)
-In version 1.1.0, two subsystems have deep language-specific implementations:
+In version 1.2.0, two subsystems have deep language-specific implementations:
 - **Gate 0 AST Scanning & Pruning:** Built on `oxc_parser`, specialized for TypeScript, TSX, JavaScript, and JSX.
 - **Gate 3 Sandboxed Runner:** Built on Node.js `--permission` and Vitest for hermetic test execution with JSON reporting.
 
-### Polyglot Roadmap (Sprint v1.2.0)
+### Polyglot Roadmap (Sprint v1.3.0)
 We are actively expanding native AST parsing and sandboxing to other major languages:
 
 | Language | AST Parsing & Pruning | Test Sandbox Runner | Status |
 | :--- | :--- | :--- | :---: |
-| **TypeScript / JavaScript** | `oxc_parser` (<= 2 ms) | Vitest + `node --permission` | **Shipped (v1.1.0)** |
-| **Rust** | `syn` + `quote` | `cargo test --message-format=json` | **In Development (v1.2.0)** |
-| **Python** | `tree-sitter-python` | `pytest --json-report` | **In Development (v1.2.0)** |
-| **Go** | `tree-sitter-go` | `go test -json` | **Planned (v1.2.0)** |
+| **TypeScript / JavaScript** | `oxc_parser` (<= 2 ms) | Vitest + `node --permission` | **Shipped (v1.2.0)** |
+| **Rust** | `syn` + `quote` | `cargo test --message-format=json` | **In Development (v1.3.0)** |
+| **Python** | `tree-sitter-python` | `pytest --json-report` | **In Development (v1.3.0)** |
+| **Go** | `tree-sitter-go` | `go test -json` | **Planned (v1.3.0)** |
 
 ---
 
@@ -389,7 +389,7 @@ wiki/ (or alexandria/)
 
 ## Performance Summary
 
-| Metric | Target | Verified Benchmark (v1.1.0) |
+| Metric | Target | Verified Benchmark (v1.2.0) |
 | :--- | :--- | :--- |
 | **Release Binary Size** | `<= 5.0 MB` | **`~2.20 MB`** (self-contained with SQLite, Oxc, Tokio, LSP) |
 | **Idle Memory (RSS)** | `<= 15.0 MB` | **`~8.5 MB`** (zero external ML models in RAM) |

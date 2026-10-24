@@ -1,7 +1,7 @@
 # 🏛️ ALEXANDRIA — CURSOR RULES
 # Governing architecture, quality gates, and 225 master capsules.
 
-- Operating under Alexandria Deterministic Kernel v1.1.0.
+- Operating under Alexandria Deterministic Kernel v1.2.0.
 - Mandatory: Zero blind edits. Inspect or read target file before modifying (Fact-Forcing GateGuard E_FACT_FORCING).
 - Strict TDD: Write failing assertion test in tests/ (RED), write minimal code in src/ (GREEN), refactor with nominal types (REFACTOR).
 - Zero explicit any (TSAnyKeyword), zero double cast (as unknown as T).

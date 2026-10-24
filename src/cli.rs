@@ -16,48 +16,44 @@ use serde_json::json;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub const VERSION_BANNER: &str = "alexandria v1.1.0";
+pub const VERSION_BANNER: &str = concat!("alexandria v", env!("CARGO_PKG_VERSION"));
 
-pub const HELP_BANNER: &str = "\
-alexandria v1.1.0
-Headless Deterministic Agent Harness & Kernel-Space Arbitrator
-
-USAGE:
-  alexandria <COMMAND> [OPTIONS]
-
-GLOBAL OPTIONS:
-  -v, --version                  Print the exact kernel version and exit.
-  -h, --help                     Display this help catalog and exit.
-
-COMMANDS:
-  init [--vault <path>] [--profile <profile>]
-                                 Initialize .alexandria.json, the knowledge vault
-                                 (wiki/index.md, log.md, failures.md, architecture/,
-                                 modules/, decisions/), Pantheon agent profiles
-                                 (.agents/agents/{bel,enki,utu,nabu}.md), multi-harness
-                                 configs, and .gitignore.
-  doctor (or status)             Instant (< 15ms) 5-point system diagnostic: binary & PATH,
-                                 SQLite WAL health, project scoping, harness audit, and telemetry.
-  gate <path> (or check <path>)  Out-of-band in-memory Oxc AST quality gates directly from terminal:
-                                 Gate 0 (lexical rules) & Gate 2 (SAST & secret leaks) in <= 2ms.
-  capsule <list|search|show>     Access the 225 curated master capsules:
-                                 list [--domain <d>], search <query>, show <id>.
-  harness add <target>           Scaffold harness configurations (cursor | antigravity | claude | codex | git | all).
-  vault <status|validate|log|sync>
-                                 Knowledge vault governance: graph metrics, wikilink integrity,
-                                 certified operational epochs with SHA-256 IAM seals, and SQLite WAL sync.
-  collect <source_dir> [--out <output_dir>]
-                                 Scan <source_dir>, refactor skills/hooks into canonical
-                                 AlexandriaCapsuleJson files in <output_dir> (default:
-                                 ./.alexandria/capsules), and synchronize into vault.db.
-  memory <add|query> \"<text>\" [--kind <kind>] [--module <module>] [--budget <tokens>]
-                                 Add or query episodic vector memory using hybrid RRF
-                                 (128-dim int8 embeddings + SQLite FTS5 BM25).
-  mcp                            Start the SQLite WAL actor on ~/.alexandria/vault.db
-                                 and serve the MCP JSON-RPC 2.0 server over stdio.
-  lsp                            Start the native Language Server Protocol (LSP) engine
-                                 over stdio for sub-2ms Gate 0 & Gate 2 diagnostics.
-  run \"<directive>\"              Execute a directive in autonomous CLI mode by evaluating
+pub const HELP_BANNER: &str = "alexandria v1.2.0\n\
+Headless Deterministic Agent Harness & Kernel-Space Arbitrator\n\n\
+USAGE:\n\
+  alexandria <COMMAND> [OPTIONS]\n\n\
+GLOBAL OPTIONS:\n\
+  -v, --version                  Print the exact kernel version and exit.\n\
+  -h, --help                     Display this help catalog and exit.\n\n\
+COMMANDS:\n\
+  init [--vault <path>] [--profile <profile>]\n\
+                                 Initialize .alexandria.json, the knowledge vault\n\
+                                 (wiki/index.md, log.md, failures.md, architecture/,\n\
+                                 modules/, decisions/), Pantheon agent profiles\n\
+                                 (.agents/agents/{bel,enki,utu,nabu}.md), multi-harness\n\
+                                 configs, and .gitignore.\n\
+  doctor (or status)             Instant (< 15ms) 5-point system diagnostic: binary & PATH,\n\
+                                 SQLite WAL health, project scoping, harness audit, and telemetry.\n\
+  gate <path> (or check <path>)  Out-of-band in-memory Oxc AST quality gates directly from terminal:\n\
+                                 Gate 0 (lexical rules) & Gate 2 (SAST & secret leaks) in <= 2ms.\n\
+  capsule <list|search|show>     Access the 225 curated master capsules:\n\
+                                 list [--domain <d>], search <query>, show <id>.\n\
+  harness add <target>           Scaffold harness configurations (cursor | antigravity | claude | codex | git | all).\n\
+  vault <status|validate|log|sync>\n\
+                                 Knowledge vault governance: graph metrics, wikilink integrity,\n\
+                                 certified operational epochs with SHA-256 IAM seals, and SQLite WAL sync.\n\
+  collect <source_dir> [--out <output_dir>]\n\
+                                 Scan <source_dir>, refactor skills/hooks into canonical\n\
+                                 AlexandriaCapsuleJson files in <output_dir> (default:\n\
+                                 ./.alexandria/capsules), and synchronize into vault.db.\n\
+  memory <add|query> \"<text>\" [--kind <kind>] [--module <module>] [--budget <tokens>]\n\
+                                 Add or query episodic vector memory using hybrid RRF\n\
+                                 (128-dim int8 embeddings + SQLite FTS5 BM25).\n\
+  mcp                            Start the SQLite WAL actor on ~/.alexandria/vault.db\n\
+                                 and serve the MCP JSON-RPC 2.0 server over stdio.\n\
+  lsp                            Start the native Language Server Protocol (LSP) engine\n\
+                                 over stdio for sub-2ms Gate 0 & Gate 2 diagnostics.\n\
+  run \"<directive>\"              Execute a directive in autonomous CLI mode by evaluating\n\
                                  the execution path (Path Alpha / Path Omega).";
 
 /// Parsed representation of Alexandria command-line invocations.
@@ -1416,7 +1412,7 @@ pub fn execute_harness_scaffold(target_root: &Path, target: &str) -> Result<Stri
     }
 
     if lower_target == "antigravity" || lower_target == "gemini" || lower_target == "all" {
-        let gemini_content = "# ALEXANDRIA RUNTIME — TECHNICAL CONSTITUTION & GOVERNANCE DIRECTIVES\n\n> **System Version:** `v1.1.0`  \n> **Deterministic Arbitrator:** Kernel-Space Rust Arbitrator (`alexandria`)  \n> **Canonical Vault of Truth:** `./wiki/` (and `./alexandria/`)\n\n## 1. Dual-Space Paradigm\nKernel-Space (Rust Arbitrator) holds exclusive authority over filesystem mutations, AST lexical analysis (`oxc_parser`), Quality Gate validation, and SQLite WAL persistence.\n\n## 2. Inviolable Mandate: Strict Prohibition on `src/` Mutations\nStrictly forbidden to modify code in `src/` without prior architectural contract in `modules/<module>.md` and a deterministically failing unit test in `tests/` in RED phase.\n\n## 3. Out-of-Band Quality Gates\nEvery code mutation must clear Gate 0 (Oxc AST) and Gate 2 (SAST & Secret Leak Guard) before merge.\n";
+        let gemini_content = concat!("# ALEXANDRIA RUNTIME — TECHNICAL CONSTITUTION & GOVERNANCE DIRECTIVES\n\n> **System Version:** `v", env!("CARGO_PKG_VERSION"), "`  \n> **Deterministic Arbitrator:** Kernel-Space Rust Arbitrator (`alexandria`)  \n> **Canonical Vault of Truth:** `./wiki/` (and `./alexandria/`)\n\n## 1. Dual-Space Paradigm\nKernel-Space (Rust Arbitrator) holds exclusive authority over filesystem mutations, AST lexical analysis (`oxc_parser`), Quality Gate validation, and SQLite WAL persistence.\n\n## 2. Inviolable Mandate: Strict Prohibition on `src/` Mutations\nStrictly forbidden to modify code in `src/` without prior architectural contract in `modules/<module>.md` and a deterministically failing unit test in `tests/` in RED phase.\n\n## 3. Out-of-Band Quality Gates\nEvery code mutation must clear Gate 0 (Oxc AST) and Gate 2 (SAST & Secret Leak Guard) before merge.\n");
         fs::write(target_root.join("GEMINI.md"), gemini_content)
             .map_err(|e| format!("Failed to write GEMINI.md: {}", e))?;
 
@@ -1457,7 +1453,7 @@ pub fn execute_harness_scaffold(target_root: &Path, target: &str) -> Result<Stri
         fs::create_dir_all(&codex_dir)
             .map_err(|e| format!("Failed to create .codex/: {}", e))?;
 
-        let agents_content = "# ALEXANDRIA RUNTIME — TECHNICAL CONSTITUTION & GOVERNANCE DIRECTIVES\n\n> **System Version:** `v1.1.0`  \n> **Deterministic Arbitrator:** Kernel-Space Rust Arbitrator (`alexandria`)  \n> **Canonical Vault of Truth:** `./wiki/` (and `./alexandria/`)\n\n## 1. Dual-Space Paradigm\nKernel-Space (Rust Arbitrator) holds exclusive authority over filesystem mutations, AST lexical analysis (`oxc_parser`), Quality Gate validation, and SQLite WAL persistence.\n\n## 2. Inviolable Mandate\nStrict prohibition on `src/` mutations without prior architectural contract in `modules/<module>.md` and failing unit test in `tests/`.\n";
+        let agents_content = concat!("# ALEXANDRIA RUNTIME — TECHNICAL CONSTITUTION & GOVERNANCE DIRECTIVES\n\n> **System Version:** `v", env!("CARGO_PKG_VERSION"), "`  \n> **Deterministic Arbitrator:** Kernel-Space Rust Arbitrator (`alexandria`)  \n> **Canonical Vault of Truth:** `./wiki/` (and `./alexandria/`)\n\n## 1. Dual-Space Paradigm\nKernel-Space (Rust Arbitrator) holds exclusive authority over filesystem mutations, AST lexical analysis (`oxc_parser`), Quality Gate validation, and SQLite WAL persistence.\n\n## 2. Inviolable Mandate\nStrict prohibition on `src/` mutations without prior architectural contract in `modules/<module>.md` and failing unit test in `tests/`.\n");
         fs::write(target_root.join("AGENTS.md"), agents_content)
             .map_err(|e| format!("Failed to write AGENTS.md: {}", e))?;
 
