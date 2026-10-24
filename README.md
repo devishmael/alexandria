@@ -54,7 +54,7 @@ Alexandria addresses these issues by moving enforcement out of prompts and into 
 │                           DEVELOPER ENVIRONMENT & AI ASSISTANTS                          │
 │                     (Cursor, Claude Code, Antigravity, VS Code, Zed)                     │
 │   ┌────────────────────┬────────────────────┬────────────────────┬───────────────────┐   │
-│   │     ARCHITECT      │      BUILDER       │      REVIEWER      │    CHRONICLER     │   │
+│   │   SPECIFICATION    │   IMPLEMENTATION   │      REVIEWER      │    CHRONICLER     │   │
 │   │ • Designs specs    │ • Strict TDD       │ • Independent code │ • Change logging  │   │
 │   │ • Reviews impact   │ • Implements code  │   and safety audit │ • Session records │   │
 │   └─────────┬──────────┴─────────┬──────────┴─────────┬──────────┴─────────┬─────────┘   │
@@ -139,9 +139,9 @@ Rather than treating AI agents as generic chatbots, Alexandria organizes work in
 
 | Role | Archetype | Responsibilities | Boundary |
 | :--- | :--- | :--- | :--- |
-| **Architect** | Planner & Governor | Resolves dependency graphs, authors architectural contracts (`modules/`), documents ADRs, and handles escalation if retries fail. | Never modifies implementation code in `src/`. |
-| **Builder** | Engineer | Implements features and bug fixes following strict Test-Driven Development (Red $\rightarrow$ Green $\rightarrow$ Refactor). | Cannot edit `src/` without an existing contract and failing test. |
-| **Reviewer** | Security & Auditor | Performs independent audits in a clean, stateless context against active ADRs and security rules without bias. | Has no access to the Builder's previous reasoning chain. |
+| **Specification** | Planner & Governor | Resolves dependency graphs, authors architectural contracts (`modules/`), documents ADRs, and handles escalation if retries fail. | Never modifies implementation code in `src/`. |
+| **Implementation** | Engineer | Implements features and bug fixes following strict Test-Driven Development (Red $\rightarrow$ Green $\rightarrow$ Refactor). | Cannot edit `src/` without an existing contract and failing test. |
+| **Reviewer** | Security & Auditor | Performs independent audits in a clean, stateless context against active ADRs and security rules without bias. | Has no access to the previous implementation reasoning chain. |
 | **Chronicler** | Recorder & Signer | Maintains the operational changelog (`wiki/log.md`), records incident details, and saves memory checkpoints. | Append-only ledger updates. |
 
 ### Circuit Breaker & Retry Limits
