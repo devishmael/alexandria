@@ -87,7 +87,11 @@ impl<'a> Visit<'a> for GateZeroAstVisitor {
     }
 
     fn visit_ts_as_expression(&mut self, it: &TSAsExpression<'a>) {
-        if let Expression::TSAsExpression(inner_as) = &it.expression {
+        let mut expr = &it.expression;
+        while let Expression::ParenthesizedExpression(paren) = expr {
+            expr = &paren.expression;
+        }
+        if let Expression::TSAsExpression(inner_as) = expr {
             if matches!(inner_as.type_annotation, TSType::TSUnknownKeyword(_)) {
                 self.violations.push(AstViolation {
                     rule: "NO_DOUBLE_CAST_UNKNOWN",
