@@ -31,3 +31,5 @@ pnpm-debug.log*
 Thumbs.db
 *.swp
 *.bak
+
+.alexandria/telemetry/

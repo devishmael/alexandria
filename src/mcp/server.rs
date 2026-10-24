@@ -17,17 +17,55 @@ use crate::vector_store::hybrid_memory::{
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::sync::RwLock;
+
+pub fn parse_file_uri_to_path(raw_uri: &str) -> Option<PathBuf> {
+    let unescaped = raw_uri.replace("%20", " ");
+    let s = unescaped.trim();
+    if s.is_empty() {
+        return None;
+    }
+
+    let stripped = if let Some(rest) = s.strip_prefix("file://localhost/") {
+        rest
+    } else if let Some(rest) = s.strip_prefix("file:///") {
+        rest
+    } else if let Some(rest) = s.strip_prefix("file://") {
+        rest
+    } else {
+        s
+    };
+
+    if cfg!(windows)
+        && stripped.starts_with('/')
+        && stripped.len() >= 4
+        && stripped.as_bytes()[2] == b':'
+    {
+        Some(PathBuf::from(&stripped[1..]))
+    } else if stripped.len() >= 2 && stripped.as_bytes()[1] == b':' {
+        Some(PathBuf::from(stripped))
+    } else if s.starts_with("file:///") && !cfg!(windows) {
+        Some(PathBuf::from(format!("/{}", stripped)))
+    } else {
+        Some(PathBuf::from(stripped))
+    }
+}
 
 #[derive(Clone)]
 pub struct McpKernelContext {
     pub workspace_root: PathBuf,
     pub vault_dir: PathBuf,
     pub storage: Option<VaultStorageHandle>,
+    pub session_root: Arc<RwLock<Option<PathBuf>>>,
+    pub session_vault: Arc<RwLock<Option<PathBuf>>>,
+    pub storage_pool: Arc<RwLock<HashMap<PathBuf, VaultStorageHandle>>>,
 }
 
 impl McpKernelContext {
@@ -36,10 +74,14 @@ impl McpKernelContext {
         vault_dir: PathBuf,
         storage: Option<VaultStorageHandle>,
     ) -> Self {
+        let pool = Arc::new(RwLock::new(HashMap::new()));
         Self {
-            workspace_root,
-            vault_dir,
+            workspace_root: workspace_root.clone(),
+            vault_dir: vault_dir.clone(),
             storage,
+            session_root: Arc::new(RwLock::new(Some(workspace_root))),
+            session_vault: Arc::new(RwLock::new(Some(vault_dir))),
+            storage_pool: pool,
         }
     }
 
@@ -51,10 +93,117 @@ impl McpKernelContext {
             workspace_root.join("wiki")
         };
         Self {
-            workspace_root,
-            vault_dir,
+            workspace_root: workspace_root.clone(),
+            vault_dir: vault_dir.clone(),
             storage: None,
+            session_root: Arc::new(RwLock::new(Some(workspace_root))),
+            session_vault: Arc::new(RwLock::new(Some(vault_dir))),
+            storage_pool: Arc::new(RwLock::new(HashMap::new())),
         }
+    }
+
+    pub async fn get_or_spawn_storage_for(
+        &self,
+        db_path: &Path,
+    ) -> Result<VaultStorageHandle, String> {
+        let mut pool = self.storage_pool.write().await;
+        if let Some(handle) = pool.get(db_path) {
+            return Ok(handle.clone());
+        }
+        let handle = VaultStorageHandle::spawn(
+            db_path.to_path_buf(),
+            crate::storage::CANONICAL_SCHEMA_SQL,
+        )?;
+        pool.insert(db_path.to_path_buf(), handle.clone());
+        Ok(handle)
+    }
+
+    pub async fn resolve_active_workspace(
+        &self,
+        args: &Value,
+    ) -> (PathBuf, PathBuf, Option<VaultStorageHandle>) {
+        let explicit_ws = args
+            .get("workspaceRoot")
+            .and_then(|v| v.as_str())
+            .map(PathBuf::from);
+        let explicit_vault = args
+            .get("vaultDir")
+            .and_then(|v| v.as_str())
+            .map(PathBuf::from);
+
+        let target_file_hint = args
+            .get("targetFiles")
+            .and_then(|v| v.as_array())
+            .and_then(|arr| arr.first())
+            .and_then(|v| v.as_str())
+            .map(PathBuf::from)
+            .or_else(|| {
+                args.get("targetPath")
+                    .or_else(|| args.get("sourceDir"))
+                    .or_else(|| args.get("collectFromDir"))
+                    .and_then(|v| v.as_str())
+                    .map(PathBuf::from)
+            });
+
+        let current_session_root = self.session_root.read().await.clone();
+        let current_session_vault = self.session_vault.read().await.clone();
+
+        let resolved = if let Some(ref ws) = explicit_ws {
+            crate::cli::discover_workspace_context(
+                target_file_hint.as_deref(),
+                Some(ws),
+                explicit_vault.as_deref(),
+            )
+        } else if let Some(ref hint) = target_file_hint {
+            if hint.is_absolute() {
+                crate::cli::discover_workspace_context(
+                    Some(hint),
+                    None,
+                    explicit_vault.as_deref(),
+                )
+            } else if let Some(ref sr) = current_session_root {
+                let joined = sr.join(hint);
+                crate::cli::discover_workspace_context(
+                    Some(&joined),
+                    Some(sr),
+                    explicit_vault
+                        .as_deref()
+                        .or(current_session_vault.as_deref()),
+                )
+            } else {
+                let joined = self.workspace_root.join(hint);
+                crate::cli::discover_workspace_context(
+                    Some(&joined),
+                    Some(&self.workspace_root),
+                    explicit_vault.as_deref().or(Some(&self.vault_dir)),
+                )
+            }
+        } else if let Some(ref sr) = current_session_root {
+            crate::cli::discover_workspace_context(
+                None,
+                Some(sr),
+                explicit_vault
+                    .as_deref()
+                    .or(current_session_vault.as_deref()),
+            )
+        } else {
+            crate::cli::discover_workspace_context(
+                None,
+                Some(&self.workspace_root),
+                explicit_vault.as_deref().or(Some(&self.vault_dir)),
+            )
+        };
+
+        let storage = if self.storage.is_some() && resolved.workspace_root == self.workspace_root {
+            self.storage.clone()
+        } else {
+            self.get_or_spawn_storage_for(&resolved.db_path)
+                .await
+                .ok()
+                .or_else(|| self.storage.clone())
+        };
+
+        (resolved.workspace_root, resolved.vault_dir, storage)
     }
 }
 
@@ -160,21 +309,53 @@ pub async fn dispatch_mcp_method_with_context(
     ctx: &McpKernelContext,
 ) -> JsonRpcResponse {
     match method {
-        "initialize" => JsonRpcResponse {
-            jsonrpc: "2.0",
-            id,
-            result: Some(json!({
-                "protocolVersion": "2024-11-05",
-                "serverInfo": {
-                    "name": "alexandria",
-                    "version": "1.0.0"
-                },
-                "capabilities": {
-                    "tools": { "listChanged": false }
+        "initialize" => {
+            if let Some(root_uri) = params.get("rootUri").and_then(|v| v.as_str()) {
+                if let Some(parsed) = parse_file_uri_to_path(root_uri) {
+                    let resolved =
+                        crate::cli::discover_workspace_context(Some(&parsed), Some(&parsed), None);
+                    *ctx.session_root.write().await = Some(resolved.workspace_root);
+                    *ctx.session_vault.write().await = Some(resolved.vault_dir);
                 }
-            })),
-            error: None,
-        },
+            } else if let Some(root_path) = params.get("rootPath").and_then(|v| v.as_str()) {
+                let p = PathBuf::from(root_path);
+                let resolved = crate::cli::discover_workspace_context(Some(&p), Some(&p), None);
+                *ctx.session_root.write().await = Some(resolved.workspace_root);
+                *ctx.session_vault.write().await = Some(resolved.vault_dir);
+            } else if let Some(ws_folders) =
+                params.get("workspaceFolders").and_then(|v| v.as_array())
+            {
+                if let Some(first_folder) = ws_folders.first() {
+                    if let Some(uri) = first_folder.get("uri").and_then(|v| v.as_str()) {
+                        if let Some(parsed) = parse_file_uri_to_path(uri) {
+                            let resolved = crate::cli::discover_workspace_context(
+                                Some(&parsed),
+                                Some(&parsed),
+                                None,
+                            );
+                            *ctx.session_root.write().await = Some(resolved.workspace_root);
+                            *ctx.session_vault.write().await = Some(resolved.vault_dir);
+                        }
+                    }
+                }
+            }
+
+            JsonRpcResponse {
+                jsonrpc: "2.0",
+                id,
+                result: Some(json!({
+                    "protocolVersion": "2024-11-05",
+                    "serverInfo": {
+                        "name": "alexandria",
+                        "version": "1.1.0"
+                    },
+                    "capabilities": {
+                        "tools": { "listChanged": false }
+                    }
+                })),
+                error: None,
+            }
+        }
         "ping" => JsonRpcResponse {
             jsonrpc: "2.0",
             id,
@@ -197,7 +378,9 @@ pub async fn dispatch_mcp_method_with_context(
                                 "instruction": { "type": "string" },
                                 "targetFiles": { "type": "array", "items": { "type": "string" } },
                                 "moduleName": { "type": "string" },
-                                "focusSymbol": { "type": "string" }
+                                "focusSymbol": { "type": "string" },
+                                "workspaceRoot": { "type": "string" },
+                                "vaultDir": { "type": "string" }
                             }
                         }
                     },
@@ -212,7 +395,9 @@ pub async fn dispatch_mcp_method_with_context(
                                 "moduleName": { "type": "string" },
                                 "technicalSpecMarkdown": { "type": "string" },
                                 "adrTitle": { "type": "string" },
-                                "adrDecisionMarkdown": { "type": "string" }
+                                "adrDecisionMarkdown": { "type": "string" },
+                                "workspaceRoot": { "type": "string" },
+                                "vaultDir": { "type": "string" }
                             }
                         }
                     },
@@ -226,7 +411,9 @@ pub async fn dispatch_mcp_method_with_context(
                                 "skillId": { "type": "string" },
                                 "intentQuery": { "type": "string" },
                                 "sourceDir": { "type": "string" },
-                                "outputDir": { "type": "string" }
+                                "outputDir": { "type": "string" },
+                                "workspaceRoot": { "type": "string" },
+                                "vaultDir": { "type": "string" }
                             }
                         }
                     },
@@ -253,7 +440,8 @@ pub async fn dispatch_mcp_method_with_context(
                                     ],
                                     "description": "Optional canonical domain filter."
                                 },
-                                "limit": { "type": "integer", "minimum": 1, "maximum": 50, "description": "Maximum number of capsules to return (default: 10, max: 50)." }
+                                "limit": { "type": "integer", "minimum": 1, "maximum": 50, "description": "Maximum number of capsules to return (default: 10, max: 50)." },
+                                "workspaceRoot": { "type": "string" }
                             }
                         }
                     },
@@ -265,7 +453,8 @@ pub async fn dispatch_mcp_method_with_context(
                             "required": ["capsuleId"],
                             "additionalProperties": false,
                             "properties": {
-                                "capsuleId": { "type": "string", "description": "The canonical capsule identifier (e.g. 'testing:tdd-practitioner' or 'api:api-designer')." }
+                                "capsuleId": { "type": "string", "description": "The canonical capsule identifier (e.g. 'testing:tdd-practitioner' or 'api:api-designer')." },
+                                "workspaceRoot": { "type": "string" }
                             }
                         }
                     },
@@ -284,12 +473,14 @@ pub async fn dispatch_mcp_method_with_context(
                                         "type": "object",
                                         "required": ["workerId", "moduleName", "targetFiles"],
                                         "properties": {
-                                            "workerId": { "type": "string" },
-                                            "moduleName": { "type": "string" },
-                                            "targetFiles": { "type": "array", "items": { "type": "string" } }
+                                             "workerId": { "type": "string" },
+                                             "moduleName": { "type": "string" },
+                                             "targetFiles": { "type": "array", "items": { "type": "string" } }
                                         }
                                     }
-                                }
+                                },
+                                "workspaceRoot": { "type": "string" },
+                                "vaultDir": { "type": "string" }
                             }
                         }
                     },
@@ -304,7 +495,9 @@ pub async fn dispatch_mcp_method_with_context(
                                 "targetModule": { "type": "string" },
                                 "targetFiles": { "type": "array", "items": { "type": "string" } },
                                 "executionPath": { "type": "string", "enum": ["alpha_fast", "omega_pantheon"] },
-                                "tddPhase": { "type": "string", "enum": ["red_expect_assertion_failure", "green_expect_pass", "refactor_full_gate"] }
+                                "tddPhase": { "type": "string", "enum": ["red_expect_assertion_failure", "green_expect_pass", "refactor_full_gate"] },
+                                "workspaceRoot": { "type": "string" },
+                                "vaultDir": { "type": "string" }
                             }
                         }
                     },
@@ -318,7 +511,9 @@ pub async fn dispatch_mcp_method_with_context(
                             "properties": {
                                 "moduleName": { "type": "string" },
                                 "summary": { "type": "string" },
-                                "startDevServer": { "type": "boolean" }
+                                "startDevServer": { "type": "boolean" },
+                                "workspaceRoot": { "type": "string" },
+                                "vaultDir": { "type": "string" }
                             }
                         }
                     }
@@ -397,7 +592,9 @@ pub async fn execute_lifecycle_hook_interceptors(
     let mut triggered_actions = Vec::new();
     let mut rejections = Vec::new();
 
-    let registered_hooks = if let Some(storage) = &ctx.storage {
+    let (_, _, active_storage) = ctx.resolve_active_workspace(args).await;
+    let storage_ref = active_storage.as_ref().or(ctx.storage.as_ref());
+    let registered_hooks = if let Some(storage) = storage_ref {
         storage.get_hooks_for_event(event).unwrap_or_default()
     } else {
         Vec::new()
@@ -541,6 +738,8 @@ pub async fn dispatch_alexandria_tool_with_context(
     id: Value,
     ctx: &McpKernelContext,
 ) -> JsonRpcResponse {
+    let (active_ws, active_vault, active_storage) = ctx.resolve_active_workspace(&args).await;
+
     match tool_name {
         "prepare_task_context" => {
             let instruction = args
@@ -559,29 +758,7 @@ pub async fn dispatch_alexandria_tool_with_context(
             let module_name = args.get("moduleName").and_then(|v| v.as_str());
 
             let enforced_path = classify_execution_path(instruction, &target_files);
-            let (graph, node_map) = load_vault_graph_from_dir(&ctx.vault_dir);
-
-            if let Some(storage) = &ctx.storage {
-                let (nodes, edges) = serialize_graph_for_sqlite(&ctx.vault_dir, &graph);
-                let _ = storage.sync_wiki_graph(nodes, edges).await;
-            }
-
-            let start_node_idx = module_name
-                .and_then(|m| node_map.get(m).copied())
-                .or_else(|| node_map.get("index").copied());
-
-            let (architectural_context, direct_neighbors, hoisted_adrs) =
-                if let Some(idx) = start_node_idx {
-                    let resolved = resolve_context_with_adr_hoisting(&graph, idx, 6);
-                    let content = graph[idx].content.clone();
-                    (content, resolved.direct_neighbors, resolved.hoisted_adrs)
-                } else {
-                    (
-                        "Alexandria Canonical Vault Context (Default)".to_string(),
-                        Vec::new(),
-                        Vec::new(),
-                    )
-                };
+            let (graph, node_map) = load_vault_graph_from_dir(&active_vault);
 
             let required_gates = if enforced_path == "omega_pantheon" {
                 vec![
@@ -595,6 +772,81 @@ pub async fn dispatch_alexandria_tool_with_context(
                 vec!["oxc_ast", "types", "tests_sandbox"]
             };
 
+            if node_map.is_empty() {
+                let payload = json!({
+                    "tool": tool_name,
+                    "status": "vault_unresolved",
+                    "error": format!(
+                        "No architectural vault found at '{}'. Initialize contracts with 'alexandria init' or configure vaultPath in .alexandria.json.",
+                        active_vault.display()
+                    ),
+                    "receivedArgs": args,
+                    "enforcedPath": enforced_path,
+                    "architecturalContext": "",
+                    "directNeighbors": [],
+                    "hoistedAdrs": [],
+                    "prunedAstContexts": [],
+                    "recalledVectorMemory": [],
+                    "humanInterventionEpoch": current_human_intervention_epoch(),
+                    "activeInvariants": [
+                        "NO_EXPLICIT_ANY",
+                        "NO_DOUBLE_CAST_UNKNOWN",
+                        "PRISMA_TX_STRICT_LEXICAL_CLOSURE"
+                    ],
+                    "requiredGates": required_gates
+                });
+                return wrap_mcp_text_response(id, payload, false);
+            }
+
+            if let Some(storage) = &active_storage {
+                let (nodes, edges) = serialize_graph_for_sqlite(&active_vault, &graph);
+                let _ = storage.sync_wiki_graph(nodes, edges).await;
+            }
+
+            let inferred_module = module_name.map(String::from).or_else(|| {
+                for f in &target_files {
+                    let path = Path::new(f);
+                    if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                        let stem_clean = stem.split('.').next().unwrap_or(stem);
+                        for k in node_map.keys() {
+                            if k == stem_clean
+                                || k.starts_with(stem_clean)
+                                || stem_clean.starts_with(k)
+                            {
+                                return Some(k.clone());
+                            }
+                        }
+                    }
+                }
+                None
+            });
+
+            let start_node_idx = inferred_module
+                .as_deref()
+                .and_then(|m| node_map.get(m).copied())
+                .or_else(|| node_map.get("index").copied());
+
+            let (architectural_context, direct_neighbors, hoisted_adrs) =
+                if let Some(idx) = start_node_idx {
+                    let resolved = resolve_context_with_adr_hoisting(&graph, idx, 6);
+                    let mut content = graph[idx].content.clone();
+                    if graph[idx].id == "index" {
+                        for neighbor_id in &resolved.direct_neighbors {
+                            if let Some(&n_idx) = node_map.get(neighbor_id) {
+                                content.push_str("\n\n---\n\n");
+                                content.push_str(&graph[n_idx].content);
+                            }
+                        }
+                    }
+                    (content, resolved.direct_neighbors, resolved.hoisted_adrs)
+                } else {
+                    (
+                        "Alexandria Canonical Vault Context (Default)".to_string(),
+                        Vec::new(),
+                        Vec::new(),
+                    )
+                };
+
             let mut pruned_ast_contexts: Vec<Value> = Vec::new();
             if let Some(focus_sym) = args
                 .get("focusSymbol")
@@ -602,7 +854,9 @@ pub async fn dispatch_alexandria_tool_with_context(
                 .filter(|s| !s.trim().is_empty())
             {
                 if let Some(inline_src) = args.get("sourceCode").and_then(|v| v.as_str()) {
-                    if let Ok(pruned) = prune_typescript_context_for_symbol(inline_src, focus_sym, false) {
+                    if let Ok(pruned) =
+                        prune_typescript_context_for_symbol(inline_src, focus_sym, false)
+                    {
                         if let Ok(val) = serde_json::to_value(pruned) {
                             pruned_ast_contexts.push(val);
                         }
@@ -612,7 +866,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                     let candidate = if Path::new(file_str).is_absolute() {
                         PathBuf::from(file_str)
                     } else {
-                        ctx.workspace_root.join(file_str)
+                        active_ws.join(file_str)
                     };
                     if candidate.is_file() {
                         if let Ok(code) = fs::read_to_string(&candidate) {
@@ -630,7 +884,7 @@ pub async fn dispatch_alexandria_tool_with_context(
             }
 
             let mut recalled_vector_memory: Vec<Value> = Vec::new();
-            if let Some(storage) = &ctx.storage {
+            if let Some(storage) = &active_storage {
                 if let Ok(chunks) = query_hybrid_vector_memory(storage, instruction, 350) {
                     for chunk in chunks {
                         if let Ok(v) = serde_json::to_value(chunk) {
@@ -685,23 +939,23 @@ pub async fn dispatch_alexandria_tool_with_context(
             let adr_title = args.get("adrTitle").and_then(|v| v.as_str());
             let adr_md = args.get("adrDecisionMarkdown").and_then(|v| v.as_str());
 
-            let modules_dir = ctx.vault_dir.join("modules");
+            let modules_dir = active_vault.join("modules");
             let _ = fs::create_dir_all(&modules_dir);
             let contract_path = modules_dir.join(format!("{}.md", module_name));
             let _ = fs::write(&contract_path, spec_md);
 
             let mut adr_path_str: Option<String> = None;
             if let (Some(title), Some(decision_content)) = (adr_title, adr_md) {
-                let decisions_dir = ctx.vault_dir.join("decisions");
+                let decisions_dir = active_vault.join("decisions");
                 let _ = fs::create_dir_all(&decisions_dir);
                 let adr_file = decisions_dir.join(format!("{}.md", title));
                 let _ = fs::write(&adr_file, decision_content);
                 adr_path_str = Some(adr_file.to_string_lossy().to_string());
             }
 
-            if let Some(storage) = &ctx.storage {
-                let (graph, _) = load_vault_graph_from_dir(&ctx.vault_dir);
-                let (nodes, edges) = serialize_graph_for_sqlite(&ctx.vault_dir, &graph);
+            if let Some(storage) = &active_storage {
+                let (graph, _) = load_vault_graph_from_dir(&active_vault);
+                let (nodes, edges) = serialize_graph_for_sqlite(&active_vault, &graph);
                 let _ = storage.sync_wiki_graph(nodes, edges).await;
             }
 
@@ -726,7 +980,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                 let source_path = if Path::new(source_dir_str).is_absolute() {
                     PathBuf::from(source_dir_str)
                 } else {
-                    ctx.workspace_root.join(source_dir_str)
+                    active_ws.join(source_dir_str)
                 };
                 let out_path = args
                     .get("outputDir")
@@ -735,15 +989,15 @@ pub async fn dispatch_alexandria_tool_with_context(
                         if Path::new(p).is_absolute() {
                             PathBuf::from(p)
                         } else {
-                            ctx.workspace_root.join(p)
+                            active_ws.join(p)
                         }
                     })
-                    .unwrap_or_else(|| ctx.workspace_root.join(".alexandria").join("capsules"));
+                    .unwrap_or_else(|| active_ws.join(".alexandria").join("capsules"));
 
                 match collect_and_refactor_directory(&source_path) {
                     Ok(capsules) => {
                         let manifest_res = export_refactored_json_bundle(&capsules, &out_path);
-                        if let Some(storage) = &ctx.storage {
+                        if let Some(storage) = &active_storage {
                             for cap in &capsules {
                                 let _ = storage.upsert_skill_capsule(cap).await;
                             }
@@ -775,7 +1029,7 @@ pub async fn dispatch_alexandria_tool_with_context(
             let skill_id = args.get("skillId").and_then(|v| v.as_str());
             let intent_query = args.get("intentQuery").and_then(|v| v.as_str());
 
-            let resolved_opt = if let Some(storage) = &ctx.storage {
+            let resolved_opt = if let Some(storage) = &active_storage {
                 storage
                     .resolve_skill_capsule(skill_id, intent_query)
                     .ok()
@@ -835,7 +1089,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                 .and_then(|v| v.as_u64())
                 .map(|u| u as usize);
 
-            let records = if let Some(storage) = &ctx.storage {
+            let records = if let Some(storage) = &active_storage {
                 storage
                     .search_skill_capsules(query, domain, limit)
                     .unwrap_or_default()
@@ -873,7 +1127,7 @@ pub async fn dispatch_alexandria_tool_with_context(
         "read_capsule" => {
             let capsule_id = args.get("capsuleId").and_then(|v| v.as_str()).unwrap_or("");
 
-            let record_opt = if let Some(storage) = &ctx.storage {
+            let record_opt = if let Some(storage) = &active_storage {
                 storage
                     .resolve_skill_capsule(Some(capsule_id), None)
                     .ok()
@@ -949,7 +1203,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                 }
             }
 
-            let (graph, node_map) = load_vault_graph_from_dir(&ctx.vault_dir);
+            let (graph, node_map) = load_vault_graph_from_dir(&active_vault);
             let payload = match verify_worktree_disjunction(&graph, &node_map, &task_tuples) {
                 Ok(()) => {
                     let mut paths = serde_json::Map::new();
@@ -1031,7 +1285,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                 let candidate = if Path::new(file_str).is_absolute() {
                     PathBuf::from(file_str)
                 } else {
-                    ctx.workspace_root.join(file_str)
+                    active_ws.join(file_str)
                 };
                 if candidate.is_file() {
                     let ext = candidate
@@ -1188,7 +1442,7 @@ pub async fn dispatch_alexandria_tool_with_context(
             let mut verdict_id_opt: Option<i64> = None;
 
             if !passed {
-                if let Some(storage) = &ctx.storage {
+                if let Some(storage) = &active_storage {
                     if let Ok((fid, state, attempts)) = storage
                         .record_gate_failure(
                             target_module.to_string(),
@@ -1208,7 +1462,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                 } else {
                     cb_state = "retry_allowed".to_string();
                 }
-            } else if let Some(storage) = &ctx.storage {
+            } else if let Some(storage) = &active_storage {
                 let _ = storage
                     .reset_circuit_breaker(
                         target_module.to_string(),
@@ -1218,7 +1472,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                     .await;
             }
 
-            if let Some(storage) = &ctx.storage {
+            if let Some(storage) = &active_storage {
                 let valid_exec_path = if promoted_execution_path == "omega_pantheon" {
                     "omega_pantheon".to_string()
                 } else {
@@ -1314,7 +1568,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                     let path = if Path::new(f).is_absolute() {
                         PathBuf::from(f)
                     } else {
-                        ctx.workspace_root.join(f)
+                        active_ws.join(f)
                     };
                     if let Ok(code) = fs::read_to_string(&path) {
                         commit_sources.push((f.to_string(), code));
@@ -1344,8 +1598,8 @@ pub async fn dispatch_alexandria_tool_with_context(
                 return wrap_mcp_text_response(id, payload, false);
             }
 
-            let _ = fs::create_dir_all(&ctx.vault_dir);
-            let log_path = ctx.vault_dir.join("log.md");
+            let _ = fs::create_dir_all(&active_vault);
+            let log_path = active_vault.join("log.md");
             let ts = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
@@ -1369,7 +1623,7 @@ pub async fn dispatch_alexandria_tool_with_context(
                 }
             }
 
-            if let Some(storage) = &ctx.storage {
+            if let Some(storage) = &active_storage {
                 let _ = storage
                     .reset_circuit_breaker(
                         module_name.to_string(),
@@ -1387,12 +1641,12 @@ pub async fn dispatch_alexandria_tool_with_context(
                         50,
                     )
                     .await;
-                let vector_dir = ctx.workspace_root.join(".alexandria").join("vector-store");
+                let vector_dir = active_ws.join(".alexandria").join("vector-store");
                 let _ = export_vector_store_snapshot(storage, &vector_dir);
                 let _ = write_telemetry_and_markdown_dashboard(
                     storage,
-                    &ctx.workspace_root,
-                    &ctx.vault_dir,
+                    &active_ws,
+                    &active_vault,
                 );
             }
 

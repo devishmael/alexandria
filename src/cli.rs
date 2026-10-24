@@ -549,6 +549,114 @@ pub fn resolve_default_vault_db_path() -> Result<PathBuf, String> {
     resolve_vault_db_path(None)
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ResolvedWorkspaceContext {
+    pub workspace_root: PathBuf,
+    pub vault_dir: PathBuf,
+    pub db_path: PathBuf,
+}
+
+pub fn discover_workspace_context(
+    hint_path: Option<&Path>,
+    explicit_workspace: Option<&Path>,
+    explicit_vault: Option<&Path>,
+) -> ResolvedWorkspaceContext {
+    // 1. Determine workspace_root
+    let workspace_root = if let Some(explicit) = explicit_workspace {
+        explicit.to_path_buf()
+    } else if let Some(hint) = hint_path {
+        let start_dir = if hint.is_file() {
+            hint.parent().unwrap_or(hint).to_path_buf()
+        } else if hint.is_dir() {
+            hint.to_path_buf()
+        } else {
+            hint.parent().unwrap_or(hint).to_path_buf()
+        };
+
+        let mut candidate_root = start_dir.clone();
+        for ancestor in start_dir.ancestors() {
+            if ancestor.join(".alexandria.json").exists()
+                || ancestor.join(".alexandria").exists()
+                || ancestor.join(".git").exists()
+                || ancestor.join("Cargo.toml").exists()
+                || ancestor.join("package.json").exists()
+                || ancestor.join("wiki").exists()
+                || ancestor.join("alexandria").exists()
+            {
+                candidate_root = ancestor.to_path_buf();
+                break;
+            }
+        }
+        candidate_root
+    } else {
+        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+    };
+
+    // 2. Determine vault_dir
+    let vault_dir = if let Some(explicit_v) = explicit_vault {
+        if explicit_v.is_absolute() {
+            explicit_v.to_path_buf()
+        } else {
+            workspace_root.join(explicit_v)
+        }
+    } else if workspace_root.join(".alexandria.json").exists() {
+        if let Ok(content) = fs::read_to_string(workspace_root.join(".alexandria.json")) {
+            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&content) {
+                if let Some(vp) = parsed.get("vaultPath").and_then(|v| v.as_str()) {
+                    let p = PathBuf::from(vp);
+                    if p.is_absolute() {
+                        p
+                    } else {
+                        workspace_root.join(p)
+                    }
+                } else if workspace_root.join("alexandria").is_dir() {
+                    workspace_root.join("alexandria")
+                } else if workspace_root.join("wiki").is_dir() {
+                    workspace_root.join("wiki")
+                } else if workspace_root.join("docs").is_dir() {
+                    workspace_root.join("docs")
+                } else {
+                    workspace_root.join("wiki")
+                }
+            } else if workspace_root.join("alexandria").is_dir() {
+                workspace_root.join("alexandria")
+            } else if workspace_root.join("wiki").is_dir() {
+                workspace_root.join("wiki")
+            } else if workspace_root.join("docs").is_dir() {
+                workspace_root.join("docs")
+            } else {
+                workspace_root.join("wiki")
+            }
+        } else if workspace_root.join("alexandria").is_dir() {
+            workspace_root.join("alexandria")
+        } else if workspace_root.join("wiki").is_dir() {
+            workspace_root.join("wiki")
+        } else if workspace_root.join("docs").is_dir() {
+            workspace_root.join("docs")
+        } else {
+            workspace_root.join("wiki")
+        }
+    } else if workspace_root.join("alexandria").is_dir() {
+        workspace_root.join("alexandria")
+    } else if workspace_root.join("wiki").is_dir() {
+        workspace_root.join("wiki")
+    } else if workspace_root.join("docs").is_dir() {
+        workspace_root.join("docs")
+    } else {
+        workspace_root.join("wiki")
+    };
+
+    // 3. Determine db_path
+    let db_path = resolve_vault_db_path(Some(&workspace_root))
+        .unwrap_or_else(|_| workspace_root.join(".alexandria").join("vault.db"));
+
+    ResolvedWorkspaceContext {
+        workspace_root,
+        vault_dir,
+        db_path,
+    }
+}
+
 pub fn execute_autonomous_run(workspace_root: &Path, instruction: &str) -> Result<String, String> {
     let lower = instruction.to_lowercase();
     let enforced_path = if lower.contains("schema.prisma")

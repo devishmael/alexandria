@@ -30,7 +30,7 @@ async fn test_mcp_initialize_handshake() {
     assert_eq!(result["serverInfo"]["name"], json!("alexandria"));
     assert_eq!(
         result["serverInfo"]["version"],
-        json!("1.0.0")
+        json!("1.1.0")
     );
     assert_eq!(
         result["capabilities"]["tools"]["listChanged"],
