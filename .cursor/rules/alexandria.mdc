@@ -6,7 +6,7 @@ alwaysApply: true
 
 # 🏛️ ALEXANDRIA — CURSOR RULES & CONSTITUTIONAL GOVERNANCE
 
-You are operating within a repository governed by **Alexandria (v1.0.0)**, a deterministic agent harness in Rust.
+You are operating within a repository governed by **Alexandria (v1.1.0)**, a deterministic agent harness in Rust.
 
 ## 1. Dual-Space Architectural Invariant
 - **Kernel-Space (Rust Arbitrator):** All quality gates, file access, and AST scans are deterministically enforced by `alexandria-core`.

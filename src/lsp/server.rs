@@ -34,7 +34,7 @@ pub fn handle_lsp_jsonrpc_message(raw_json: &str) -> Option<Value> {
             "result": {
                 "serverInfo": {
                     "name": "alexandria",
-                    "version": "1.0.0"
+                    "version": env!("CARGO_PKG_VERSION")
                 },
                 "capabilities": {
                     "textDocumentSync": 1,

@@ -33,3 +33,6 @@ Thumbs.db
 *.bak
 
 .alexandria/telemetry/
+
+# Sandbox environment for prototyping & empirical experiments
+sandbox/

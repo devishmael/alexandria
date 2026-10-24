@@ -1440,7 +1440,7 @@ pub fn execute_harness_scaffold(target_root: &Path, target: &str) -> Result<Stri
 
         let manifest = json!({
             "name": "alexandria",
-            "version": "1.0.0",
+            "version": env!("CARGO_PKG_VERSION"),
             "description": "Headless Deterministic Agent Harness & Kernel-Space Arbitrator",
             "author": { "name": "Devi Ishmael" }
         });

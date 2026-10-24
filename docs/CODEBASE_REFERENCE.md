@@ -1,7 +1,7 @@
 # 🏛️ Alexandria Codebase Technical Reference Manual
 
 > **Product:** Alexandria (*The Deterministic Agent Harness*)  
-> **Official Version:** `v1.0.0`  
+> **Official Version:** `v1.1.0`  
 > **Author & System Architect:** Devi Ishmael (`devishmael`)  
 > **Language & Toolchain:** Rust (Edition 2024, Tokio Async Runtime)  
 > **License:** MIT License  
@@ -43,7 +43,7 @@ alexandria/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                 # Multi-platform CI pipeline (Ubuntu & Windows, Rust 2024)
-├── Cargo.toml                     # Package manifest (alexandria v1.0.0, zero external weight)
+├── Cargo.toml                     # Package manifest (alexandria v1.1.0, zero external weight)
 ├── docs/
 │   └── CODEBASE_REFERENCE.md      # This comprehensive architectural reference
 ├── src/

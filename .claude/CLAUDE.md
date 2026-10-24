@@ -1,6 +1,6 @@
 # 🏛️ ALEXANDRIA — GOVERNANCE DIRECTIVES FOR CLAUDE CODE
 
-Welcome to the **Alexandria (v1.0.0)** repository. This system operates under a strict **Dual-Space Architectural Separation**:
+Welcome to the **Alexandria (v1.1.0)** repository. This system operates under a strict **Dual-Space Architectural Separation**:
 - **Kernel-Space (Rust Arbitrator):** The compiled Rust binary (`alexandria-core`) arbitrates all mutations, quality gates, and filesystem operations.
 - **User-Space (LLM):** Probabilistic, untrusted compute process governed out-of-band by Alexandria's deterministic Quality Gates.
 
